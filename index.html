@@ -915,6 +915,8 @@
     }
     .facility-cell-main{font-weight:700;color:#7d1010;line-height:1.35}
     .facility-cell-sub{margin-top:4px;color:#667085;font-size:14px;line-height:1.4}
+    .facility-owner-col{white-space:nowrap}
+    .facility-owner-col.is-hidden{display:none}
     #adminPanel{position:relative; z-index:20;}
     .facility-admin-shell{position:relative; z-index:21; isolation:isolate;}
     .facility-admin-shell,
@@ -1030,7 +1032,7 @@
 <div class="grid" id="mainGrid">
 <div class="card" id="accessCard">
 <div class="card-body">
-<div class="status info" id="loadStatus">Đang kết nối kho dữ liệu công việc...</div>
+<div class="status info" id="loadStatus">Sẵn sàng sử dụng.</div>
 <div class="role-list" id="roleList">
 <button class="role-btn manager-entry-btn" data-manager="Cơ sở Đội 2" type="button">
 <strong>Cơ sở Đội 2</strong>
@@ -1201,9 +1203,9 @@
 <div class="admin-toolbar facility-toolbar" style="justify-content:space-between">
 <div class="facility-toolbar-title" id="facilityManagerLabel"></div>
 <div class="flex" style="justify-content:flex-end; width:100%">
-<button class="secondary" id="btnFacilityPrint" onclick="printVisibleFacilities()" type="button">In danh sách</button>
-<button class="secondary" id="btnFacilityExport" onclick="exportFacilitiesExcel()" type="button">Xuất Excel</button>
-<button class="secondary" id="btnFacilityLogout" onclick="closeFacilityManager()" type="button">Quay lại</button>
+<button class="secondary" id="btnFacilityPrint" type="button">In danh sách</button>
+<button class="secondary" id="btnFacilityExport" type="button">Xuất Excel</button>
+<button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
 </div>
 </div>
 <div class="panel-box compact-form-panel facility-form-panel" id="facilityFormPanel" style="margin-bottom:16px">
@@ -1251,7 +1253,7 @@
 </div>
 </div>
 <div class="flex" style="margin-top:14px; gap:10px; flex-wrap:wrap">
-<button class="success" id="btnSaveFacility" onclick="handleSaveFacility()" type="button">Lưu cơ sở</button>
+<button class="success" id="btnSaveFacility" type="button">Lưu cơ sở</button>
 </div>
 <div class="status info" id="facilitySaveStatus" style="margin-top:14px">Sẵn sàng cập nhật danh sách cơ sở.</div>
 </div>
@@ -1319,6 +1321,10 @@
 <option value="II">II</option>
 </select>
 </div>
+<div id="facilityFilterDescriptionWrap" style="display:none">
+<label for="facilityFilterDescription">Mô tả</label>
+<input id="facilityFilterDescription" placeholder="Tìm theo mô tả" type="text"/>
+</div>
 <div id="facilityFilterOwnerWrap" style="display:none">
 <label for="facilityFilterOwner">Người quản lý</label>
 <select id="facilityFilterOwner">
@@ -1356,7 +1362,7 @@
 <th>Địa chỉ</th>
 <th>Lĩnh vực</th>
 <th>Nhóm</th>
-<th>Người quản lý</th>
+<th class="facility-owner-col">Người quản lý</th>
 <th>Ngày kiểm tra</th>
 <th>Bảo hiểm</th>
 <th>Bảo dưỡng</th>
@@ -1654,6 +1660,10 @@
 <label for="facilityEditName">Tên cơ sở</label>
 <input id="facilityEditName" placeholder="Nhập tên cơ sở" type="text"/>
 </div>
+<div class="full-col">
+<label for="facilityEditDescription">Mô tả</label>
+<input id="facilityEditDescription" placeholder="Nhập mô tả cơ sở" type="text"/>
+</div>
 <div>
 <label for="facilityEditCode">Mã cơ sở</label>
 <input id="facilityEditCode" placeholder="Nhập mã cơ sở" type="text"/>
@@ -1815,6 +1825,7 @@
     selectedFacilityId: "",
     facilityFilters: {
       name: "",
+      description: "",
       address: "",
       field: "",
       appendix: "",
@@ -1829,8 +1840,37 @@
 
   const $ = (id) => document.getElementById(id);
 
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 7000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   function getCurrentFacilityManager() {
     return state.currentFacilityManager || "Nguyễn Văn Nguyên";
+  }
+
+  function shouldShowFacilityOwnerColumn(managerName = getCurrentFacilityManager()) {
+    return isTeamFacilityView(managerName);
+  }
+
+  function shouldShowFacilityDescriptionFilter(managerName = getCurrentFacilityManager()) {
+    return isTeamFacilityView(managerName);
+  }
+
+  function getFacilityTableColumnCount(managerName = getCurrentFacilityManager()) {
+    return shouldShowFacilityOwnerColumn(managerName) ? 12 : 11;
+  }
+
+  function updateFacilityOwnerColumnVisibility(managerName = getCurrentFacilityManager()) {
+    const showOwner = shouldShowFacilityOwnerColumn(managerName);
+    document.querySelectorAll('.facility-owner-col').forEach(el => {
+      el.classList.toggle('is-hidden', !showOwner);
+    });
   }
 
   function isTeamFacilityView(managerName = getCurrentFacilityManager()) {
@@ -1866,6 +1906,8 @@
     const saveStatus = $("facilitySaveStatus");
     const ownerFilterWrap = $("facilityFilterOwnerWrap");
     const ownerFilter = $("facilityFilterOwner");
+    const descriptionFilterWrap = $("facilityFilterDescriptionWrap");
+    const descriptionFilter = $("facilityFilterDescription");
     const codeInput = $("facilityCode");
     const nameInput = $("facilityName");
     const addressInput = $("facilityAddress");
@@ -1878,7 +1920,9 @@
     if (formPanel) formPanel.style.display = isTeamView ? "none" : "";
     if (refreshButton) refreshButton.style.display = "none";
     if (ownerFilterWrap) ownerFilterWrap.style.display = isTeamView ? "" : "none";
+    if (descriptionFilterWrap) descriptionFilterWrap.style.display = shouldShowFacilityDescriptionFilter() ? "" : "none";
     if (!isTeamView && ownerFilter) ownerFilter.value = '';
+    if (!shouldShowFacilityDescriptionFilter() && descriptionFilter) descriptionFilter.value = '';
     if (saveStatus) saveStatus.textContent = isTeamView
       ? "Cơ sở Đội 2 chỉ dùng để xem dữ liệu tổng hợp từ 9 danh sách cá nhân."
       : "Sẵn sàng cập nhật danh sách cơ sở.";
@@ -1886,6 +1930,7 @@
       saveButton.disabled = isTeamView;
       saveButton.title = isTeamView ? "Mục này chỉ tổng hợp dữ liệu từ 9 danh sách cá nhân." : "";
     }
+    updateFacilityOwnerColumnVisibility();
   }
 
   function setStatus(type, html) {
@@ -2926,7 +2971,7 @@
 
     try {
       const url = SCRIPT_URL + (SCRIPT_URL.includes("?") ? "&" : "?") + "action=listTasks&_ts=" + Date.now();
-      const resp = await fetch(url);
+      const resp = await fetchWithTimeout(url, {}, 5000);
       const data = await resp.json();
       const rows = Array.isArray(data.rows) ? data.rows : [];
       state.tasks = sortTasks(rows.map(normalizeTask).filter(task => task.title));
@@ -2965,6 +3010,7 @@
       id: String(raw.id || makeId()).trim(),
       code: buildFacilityCode(raw),
       name: String(raw.name || '').trim(),
+      description: String(raw.description || raw.moTa || '').trim(),
       address: String(raw.address || '').trim(),
       field: String(raw.field || '').trim(),
       appendix: String(raw.appendix || '').trim(),
@@ -3003,7 +3049,7 @@
         _ts: String(Date.now())
       });
       const url = SCRIPT_URL + (SCRIPT_URL.includes("?") ? "&" : "?") + params.toString();
-      const resp = await fetch(url);
+      const resp = await fetchWithTimeout(url, {}, 7000);
       const data = await resp.json().catch(() => ({ ok: false, error: "Không đọc được phản hồi từ hệ thống." }));
       if (data && typeof data.ok !== "undefined") return data;
       return { ok: false, error: "Không nhận được phản hồi hợp lệ từ hệ thống." };
@@ -3018,11 +3064,11 @@
       return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
     }
     try {
-      const resp = await fetch(SCRIPT_URL, {
+      const resp = await fetchWithTimeout(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({ action: "saveFacility", facility }),
         headers: { "Content-Type": "text/plain;charset=utf-8" }
-      });
+      }, 7000);
       const data = await resp.json().catch(() => ({ ok: false, error: "Không đọc được phản hồi khi lưu cơ sở." }));
       if (data && typeof data.ok !== "undefined") return data;
       return { ok: false, error: "Không nhận được phản hồi hợp lệ khi lưu cơ sở." };
@@ -3037,11 +3083,11 @@
       return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
     }
     try {
-      const resp = await fetch(SCRIPT_URL, {
+      const resp = await fetchWithTimeout(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify({ action: "deleteFacility", id: facilityId }),
         headers: { "Content-Type": "text/plain;charset=utf-8" }
-      });
+      }, 7000);
       const data = await resp.json().catch(() => ({ ok: false, error: "Không đọc được phản hồi khi xóa cơ sở." }));
       if (data && typeof data.ok !== "undefined") return data;
       return { ok: false, error: "Không nhận được phản hồi hợp lệ khi xóa cơ sở." };
@@ -3171,6 +3217,7 @@
     $('facilityEditId').value = item.id || '';
     $('facilityEditCode').value = item.code || '';
     $('facilityEditName').value = item.name || '';
+    $('facilityEditDescription').value = item.description || '';
     $('facilityEditAddress').value = item.address || '';
     $('facilityEditField').value = Array.from($('facilityEditField').options).some(opt => opt.value === item.field) ? item.field : 'Khác';
     $('facilityEditAppendix').value = Array.from($('facilityEditAppendix').options).some(opt => opt.value === item.appendix) ? item.appendix : 'I';
@@ -3205,6 +3252,7 @@
     $('facilityEditId').value = '';
     $('facilityEditCode').value = '';
     $('facilityEditName').value = '';
+    $('facilityEditDescription').value = '';
     $('facilityEditAddress').value = '';
     $('facilityEditField').value = 'Cơ sở thương mại, dịch vụ';
     $('facilityEditAppendix').value = 'I';
@@ -3225,6 +3273,7 @@
   function readFacilityFiltersFromInputs() {
     state.facilityFilters = {
       name: $('facilityFilterName') ? $('facilityFilterName').value.trim().toLowerCase() : '',
+      description: $('facilityFilterDescription') ? $('facilityFilterDescription').value.trim().toLowerCase() : '',
       address: $('facilityFilterAddress') ? $('facilityFilterAddress').value.trim().toLowerCase() : '',
       field: $('facilityFilterField') ? $('facilityFilterField').value.trim() : '',
       appendix: $('facilityFilterAppendix') ? $('facilityFilterAppendix').value.trim() : '',
@@ -3236,11 +3285,12 @@
     const filters = state.facilityFilters || {};
     return state.facilities.filter(item => {
       const nameOk = !filters.name || String(item.name || '').toLowerCase().includes(filters.name);
+      const descriptionOk = !filters.description || String(item.description || '').toLowerCase().includes(filters.description);
       const addressOk = !filters.address || String(item.address || '').toLowerCase().includes(filters.address);
       const fieldOk = !filters.field || String(item.field || '') === filters.field;
       const appendixOk = !filters.appendix || String(item.appendix || '') === filters.appendix;
       const ownerOk = !filters.owner || String(item.owner || '') === filters.owner;
-      return nameOk && addressOk && fieldOk && appendixOk && ownerOk;
+      return nameOk && descriptionOk && addressOk && fieldOk && appendixOk && ownerOk;
     });
   }
 
@@ -3393,12 +3443,14 @@
 
   function resetFacilityFilters(options = {}) {
     if ($('facilityFilterName')) $('facilityFilterName').value = '';
+    if ($('facilityFilterDescription')) $('facilityFilterDescription').value = '';
     if ($('facilityFilterAddress')) $('facilityFilterAddress').value = '';
     if ($('facilityFilterField')) $('facilityFilterField').value = '';
     if ($('facilityFilterAppendix')) $('facilityFilterAppendix').value = '';
     if ($('facilityFilterOwner')) $('facilityFilterOwner').value = '';
     state.facilityFilters = {
       name: '',
+      description: '',
       address: '',
       field: '',
       appendix: '',
@@ -3462,7 +3514,7 @@
 
     if (!allFacilities.length) {
       updateFacilityFilterSummary([]);
-      body.innerHTML = '<tr><td colspan="12"><div class="empty-state">' + (isTeamFacilityView() ? 'Chưa có dữ liệu ở 9 danh sách cá nhân.' : 'Chưa có cơ sở nào. Hãy nhập cơ sở đầu tiên.') + '</div></td></tr>';
+      body.innerHTML = '<tr><td colspan="' + getFacilityTableColumnCount() + '"><div class="empty-state">' + (isTeamFacilityView() ? 'Chưa có dữ liệu ở 9 danh sách cá nhân.' : 'Chưa có cơ sở nào. Hãy nhập cơ sở đầu tiên.') + '</div></td></tr>';
       return;
     }
 
@@ -3471,7 +3523,7 @@
     updateFacilityFilterSummary(filteredFacilities);
 
     if (!filteredFacilities.length) {
-      body.innerHTML = '<tr><td colspan="12"><div class="empty-state">Không có cơ sở phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
+      body.innerHTML = '<tr><td colspan="' + getFacilityTableColumnCount() + '"><div class="empty-state">Không có cơ sở phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
       return;
     }
 
@@ -3494,11 +3546,11 @@
       tr.innerHTML = `
         <td>${idx + 1}</td>
         <td>${escapeHtml(item.code || '-')}</td>
-        <td><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div></td>
+        <td><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub">${escapeHtml(item.description)}</div>` : ''}</td>
         <td>${escapeHtml(item.address || '-')}</td>
         <td>${escapeHtml(item.field || '-')}</td>
         <td>${escapeHtml(item.appendix || '-')}</td>
-        <td>${escapeHtml(item.owner || '-')}</td>
+        <td class="facility-owner-col">${escapeHtml(item.owner || '-')}</td>
         <td>${escapeHtml(formatDate(item.inspectionDate) || '-')}</td>
         <td>${renderFlagWithHover(item.insurance, 'Bảo hiểm', { useExpiry: true })}</td>
         <td>${renderFlagWithHover(item.maintenance, 'Bảo dưỡng', { useExpiry: true })}</td>
@@ -3507,6 +3559,7 @@
       `;
       body.appendChild(tr);
     });
+    updateFacilityOwnerColumnVisibility();
   }
 
 
@@ -3518,6 +3571,7 @@
     const id = makeId();
     const code = $('facilityCode').value.trim();
     const name = $('facilityName').value.trim();
+    const description = '';
     const address = $('facilityAddress').value.trim();
     const field = $('facilityField').value.trim() || 'Cơ sở thương mại, dịch vụ';
     const appendix = ($('facilityAppendix').value || 'I').trim();
@@ -3532,6 +3586,7 @@
       id,
       code,
       name,
+      description,
       address,
       field,
       appendix,
@@ -3584,6 +3639,7 @@
     const id = $('facilityEditId').value.trim();
     const code = $('facilityEditCode').value.trim();
     const name = $('facilityEditName').value.trim();
+    const description = $('facilityEditDescription').value.trim();
     const address = $('facilityEditAddress').value.trim();
     const field = $('facilityEditField').value.trim() || 'Cơ sở thương mại, dịch vụ';
     const appendix = ($('facilityEditAppendix').value || 'I').trim();
@@ -3611,6 +3667,7 @@
       id,
       code,
       name,
+      description,
       address,
       field,
       appendix,
@@ -3902,10 +3959,10 @@
   ['facilityCode','facilityName','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
   });
-  ['facilityEditCode','facilityEditName','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining'].forEach(id => {
+  ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
-  ['facilityFilterName','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterOwner'].forEach(id => {
+  ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterOwner'].forEach(id => {
     if (!$(id)) return;
     const eventName = $(id).tagName === 'SELECT' || $(id).type === 'date' ? 'change' : 'input';
     $(id).addEventListener(eventName, applyFacilityFilters);
@@ -4972,13 +5029,12 @@ th{font-weight:700;background:#f1f1f1}
     await handleDeleteTask(taskId);
   });
 
-  void loadFacilities();
+  setStatus("info", "Sẵn sàng sử dụng.");
   updateSyncUI();
   toggleCustomAssigneeInput();
   setDefaultAssignedWeek();
   updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
   renderAll();
-  loadTasks();
 })();
 </script>
 </body>
