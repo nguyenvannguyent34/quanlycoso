@@ -1,0 +1,4174 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quản lý cơ sở Đội Công tác phòng cháy</title>
+<style>
+    :root{
+      --primary:#a11919;
+      --primary-dark:#7d1010;
+      --bg:#f4f6fb;
+      --card:#ffffff;
+      --text:#1d2433;
+      --muted:#667085;
+      --border:#dde3ee;
+      --success:#137333;
+      --warning:#b26a00;
+      --danger:#c62828;
+      --shadow:0 10px 30px rgba(16,24,40,.08);
+      --radius:18px;
+      --gold:#ffd700;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Times New Roman", Times, serif;
+      color:var(--text);
+      min-height:100vh;
+      position:relative;
+      background:#111;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.35)),
+        url("pccc-bg.png") center/cover no-repeat;
+      filter:blur(7px) brightness(.65);
+      transform:scale(1.04);
+      z-index:-2;
+    }
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:linear-gradient(180deg, rgba(161,25,25,.14), rgba(0,0,0,.08));
+      z-index:-1;
+      pointer-events:none;
+    }
+    .top-unit{
+      text-align:center;
+      color:var(--gold);
+      padding:18px 12px 4px;
+      line-height:1.35;
+      text-shadow:0 2px 6px rgba(0,0,0,.45);
+      font-weight:700;
+      text-transform:uppercase;
+    }
+    .top-unit .line1{font-size:20px;}
+    .top-unit .line2{font-size:19px;}
+    .topbar{
+      max-width:1180px;
+      margin:26px auto 0;
+      background:linear-gradient(90deg, var(--primary-dark), var(--primary));
+      color:#fff;
+      padding:18px 24px;
+      box-shadow:0 6px 20px rgba(125,16,16,.2);
+      border-radius:18px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+    .topbar-logo{
+      width:62px;
+      height:62px;
+      border-radius:12px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+    .topbar-logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      background:transparent;
+    }
+    .topbar-title{
+      min-width:0;
+      flex:1;
+    }
+    .topbar h1{
+      margin:0;
+      font-size:28px;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+    }
+    .topbar .sub{
+      margin-top:6px;
+      opacity:.95;
+      font-size:15px;
+    }
+    .container{
+      max-width:1180px;
+      margin:28px auto;
+      padding:0 16px 40px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:18px;
+    }
+    .grid.expanded{
+      grid-template-columns:1fr;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card-header{
+      padding:16px 20px;
+      border-bottom:1px solid var(--border);
+      background:#fff;
+    }
+    .card-header h2,.card-header h3{
+      margin:0 0 6px 0;
+      font-size:22px;
+    }
+    .card-body{
+      padding:18px 20px 20px;
+    }
+    .muted{color:var(--muted)}
+    .small{font-size:14px}
+    .tiny{font-size:13px}
+    .status{
+      padding:12px 14px;
+      border-radius:12px;
+      margin-bottom:12px;
+      font-size:15px;
+      border:1px solid transparent;
+      line-height:1.45;
+    }
+    .status.info{background:#eef4ff;border-color:#d6e5ff;color:#194185}
+    .status.success{background:#ecfdf3;border-color:#ccebd8;color:#0f6d33}
+    .status.warning{background:#fff8e8;border-color:#f5e2a8;color:#8b5a00}
+    .status.error{background:#fff1f1;border-color:#f0c7c7;color:#a12626}
+    .role-list{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:14px;
+    }
+    .role-btn{
+      width:100%;
+      padding:16px;
+      border:none;
+      border-radius:16px;
+      background:#fff;
+      border:1px solid var(--border);
+      font-size:18px;
+      cursor:pointer;
+      transition:.18s ease;
+      text-align:left;
+    }
+    .role-btn:hover{
+      transform:translateY(-1px);
+      border-color:#d0b1b1;
+      box-shadow:0 12px 20px rgba(16,24,40,.07);
+      background:rgba(125,16,16,.9);
+      color:#fff4b3;
+    }
+    .role-btn:hover strong{
+      color:#fff4b3;
+    }
+    .role-btn strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--primary-dark);
+      font-size:20px;
+    }
+    label{
+      display:block;
+      font-weight:700;
+      margin:10px 0 6px;
+    }
+    input, select, textarea{
+      width:100%;
+      padding:12px 14px;
+      border:1px solid #cfd6e1;
+      border-radius:12px;
+      font-size:16px;
+      font-family:inherit;
+      background:#fff;
+    }
+    textarea{
+      min-height:110px;
+      resize:vertical;
+    }
+    .password-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .password-row input{
+      flex:1;
+      min-width:0;
+    }
+    .password-toggle{
+      flex:0 0 auto;
+      white-space:nowrap;
+      padding:12px 16px;
+    }
+    .week-preview{
+      margin-top:6px;
+      font-size:14px;
+      color:rgba(255,255,255,.82);
+      font-style:italic;
+    }
+    .week-input-wrap{
+      position:relative;
+    }
+    .week-input-display{
+      position:absolute;
+      inset:0 52px 0 14px;
+      display:flex;
+      align-items:center;
+      pointer-events:none;
+      color:var(--text);
+      font-size:16px;
+      font-style:normal;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      z-index:1;
+    }
+    .week-input-display.empty{
+      color:#8c96a8;
+    }
+    .week-input-wrap input[type="week"]{
+      position:relative;
+      z-index:2;
+      background:transparent;
+      color:transparent;
+      caret-color:transparent;
+    }
+    .week-input-wrap input[type="week"]::-webkit-datetime-edit,
+    .week-input-wrap input[type="week"]::-webkit-datetime-edit-fields-wrapper,
+    .week-input-wrap input[type="week"]::-webkit-datetime-edit-text,
+    .week-input-wrap input[type="week"]::-webkit-datetime-edit-month-field,
+    .week-input-wrap input[type="week"]::-webkit-datetime-edit-week-field,
+    .week-input-wrap input[type="week"]::-webkit-datetime-edit-year-field{
+      color:transparent;
+    }
+    .week-input-wrap input[type="week"]::-webkit-calendar-picker-indicator{
+      opacity:1;
+      cursor:pointer;
+    }
+    button{
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      padding:11px 16px;
+      font-size:16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-family:inherit;
+      transition:.18s ease;
+    }
+    button:hover{background:var(--primary-dark)}
+    button:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.15);}
+    button.secondary{
+      background:#fff;
+      color:var(--text);
+      border:1px solid #ccd4e0;
+    }
+    button.secondary:hover{background:#f7f8fa}
+    button.success{background:var(--success)}
+    button.warning{background:var(--warning)}
+    button.danger{background:var(--danger)}
+    .hidden{display:none !important}
+    .flex{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      padding:9px 12px;
+      border-radius:999px;
+      background:#f6f8fc;
+      border:1px solid #e1e7f0;
+      font-size:15px;
+    }
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin:14px 0 18px;
+    }
+    .summary-box{
+      border:1px solid #e4e9f1;
+      border-radius:16px;
+      padding:16px;
+      background:#fcfdff;
+    }
+    .summary-box .label{font-size:14px;color:var(--muted)}
+    .summary-box .value{font-size:28px;font-weight:700;margin-top:6px}
+    .summary-box.doing{background:#ecfdf3;border-color:#ccebd8}
+    .summary-box.doing .value{color:#0f6d33}
+    .summary-box.done{background:#fff8e8;border-color:#f5e2a8}
+    .summary-box.done .value{color:#8b5a00}
+    .summary-box.overdue{background:#fff1f1;border-color:#f0c7c7}
+    .summary-box.overdue .value{color:#a12626}
+    .filter-grid{
+      display:grid;
+      grid-template-columns:1.8fr 1fr 1fr 1fr 1fr auto;
+      gap:12px;
+      align-items:end;
+      margin:10px 0 16px;
+    }
+    .task-layout{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:18px;
+      align-items:start;
+    }
+    .admin-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+    .compact-form-panel .form-grid{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .facility-form-panel .form-grid{
+      grid-template-columns:repeat(5,minmax(0,1fr));
+    }
+    .compact-form-panel textarea{
+      min-height:72px;
+    }
+    .panel-box{
+      border:1px solid #e4e9f1;
+      border-radius:16px;
+      padding:16px;
+      background:#fbfcfe;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+    .form-grid .full-col{
+      grid-column:1 / -1;
+    }
+    .split-field{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      align-items:stretch;
+    }
+    .split-field .field-box{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .split-field textarea{
+      flex:1;
+      min-height:118px;
+    }
+    .split-field .attachment-box{
+      margin-top:0;
+      flex:1;
+      min-height:118px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
+    }
+    .split-field input[type="file"]{
+      width:100%;
+    }
+    .priority-tag,
+    .state-tag{
+      display:inline-flex;
+      align-items:center;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .priority-hot{background:#fff1f1;color:#a12626;border-color:#f0c7c7}
+    .priority-high{background:#fff8e8;color:#8b5a00;border-color:#f5e2a8}
+    .priority-normal{background:#eef4ff;color:#194185;border-color:#d6e5ff}
+    .priority-low{background:#f5f7fa;color:#475467;border-color:#d9e0ea}
+    .state-todo{background:#eef4ff;color:#194185;border-color:#d6e5ff}
+    .state-doing{background:#ecfdf3;color:#0f6d33;border-color:#ccebd8}
+    .state-done{background:#fff8e8;color:#8b5a00;border-color:#f5e2a8}
+    .state-hold{background:#f5f7fa;color:#475467;border-color:#d9e0ea}
+    .state-overdue{background:#fff1f1;color:#a12626;border-color:#f0c7c7}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:12px;
+      background:#fff;
+    }
+    th, td{
+      border-bottom:1px solid #e6ebf3;
+      border-right:1px solid rgba(221,227,238,.6);
+      padding:10px 8px;
+      text-align:center;
+      font-size:15px;
+      vertical-align:middle;
+    }
+    tr > *:last-child{
+      border-right:none;
+    }
+    th{
+      background:#f8fafc;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    .table-wrap{
+      border:1px solid #e1e7f0;
+      border-radius:16px;
+      overflow:auto;
+      max-height:600px;
+      background:#fff;
+    }
+    .task-title{font-weight:700; color:#7d1010; text-align:center}
+    .task-desc{color:#475467; margin-top:4px; line-height:1.45; text-align:center}
+    .task-meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
+    .empty-state{
+      padding:28px 16px;
+      text-align:center;
+      color:var(--muted);
+    }
+    .note-box{
+      padding:14px;
+      border-radius:14px;
+      background:#fff8e8;
+      border:1px solid #f2dba4;
+      color:#7a5100;
+      margin-top:14px;
+      line-height:1.45;
+    }
+    .task-note-cell{
+      min-width:140px;
+    }
+    .week-stacked{
+      display:inline-flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      line-height:1.2;
+      white-space:nowrap;
+      min-width:82px;
+    }
+    .week-stacked .month-line{
+      margin-top:2px;
+    }
+    .task-note-text{
+      line-height:1.45;
+      white-space:pre-wrap;
+      text-align:center;
+    }
+    .task-note-attachment{
+      margin-top:8px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+    .task-note-image{
+      max-width:180px;
+      max-height:120px;
+      border-radius:10px;
+      border:1px solid #e1e7f0;
+      box-shadow:0 6px 16px rgba(16,24,40,.08);
+    }
+    .task-note-file-link{
+      color:#194185;
+      text-decoration:none;
+      font-weight:700;
+    }
+    .task-note-file-link:hover{
+      text-decoration:underline;
+    }
+    .task-row-soon td{
+      background:#ffe3ee;
+    }
+    .task-row-soon:hover td{
+      background:#ffd6e6;
+    }
+    .task-row-overdue td{
+      background:#ffd6d6;
+    }
+    .task-row-overdue:hover td{
+      background:#ffc4c4;
+    }
+    .due-soon-date{
+      color:#c62828;
+      font-weight:700;
+    }
+    .print-note{
+      margin-top:10px;
+      color:#667085;
+      font-size:13px;
+    }
+    .footer-note{
+      margin-top:12px;
+      font-size:13px;
+      color:#667085;
+      line-height:1.5;
+    }
+    .welcome-illustration{
+      width:100%;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid #e1e7f0;
+      background:#fff;
+      box-shadow:0 10px 24px rgba(16,24,40,.06);
+    }
+    .welcome-illustration img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:1500;
+      overflow-y:auto;
+    }
+    .modal-card{
+      width:min(430px, 100%);
+      max-height:calc(100vh - 40px);
+      display:flex;
+      flex-direction:column;
+      background:#fff;
+      border-radius:18px;
+      border:1px solid #e1e7f0;
+      box-shadow:0 20px 40px rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+    .modal-card.modal-large{
+      width:min(820px, 100%);
+    }
+    .modal-card .form-grid{
+      margin-top:4px;
+    }
+    .modal-card textarea{
+      min-height:88px;
+    }
+    .modal-card .modal-head{
+      padding:18px 20px 10px;
+      border-bottom:1px solid #e6ebf3;
+      background:#fff;
+    }
+    .modal-card .modal-body{
+      padding:18px 20px 20px;
+      overflow-y:auto;
+      overflow-x:hidden;
+      max-height:calc(100vh - 160px);
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-gutter:stable;
+    }
+    .modal-error{
+      margin-top:12px;
+      color:#a12626;
+      font-size:14px;
+      min-height:20px;
+    }
+
+    .attachment-box{
+      margin-top:10px;
+      border:1px dashed #d7deea;
+      border-radius:14px;
+      padding:12px;
+      background:#fcfdff;
+    }
+    .attachment-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .attachment-hint{
+      color:#667085;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .attachment-inline-preview{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      flex:1;
+      min-width:0;
+    }
+    .attachment-inline-preview:empty{
+      display:none;
+    }
+    .attachment-inline-preview .viewer-quick-file-chip{
+      max-width:100%;
+    }
+    .image-preview-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .image-preview-card{
+      border:1px solid #e1e7f0;
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+      text-align:center;
+    }
+    .image-preview-card img{
+      max-width:100%;
+      max-height:220px;
+      border-radius:10px;
+      display:block;
+      margin:0 auto 8px;
+    }
+    .viewer-quick-panel{
+      padding:12px 14px;
+    }
+    .viewer-quick-panel .muted.small{
+      font-size:13px;
+      margin-bottom:6px;
+    }
+    .viewer-quick-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.65fr) minmax(240px,.85fr);
+      gap:12px;
+      align-items:start;
+      margin-top:8px;
+    }
+    .viewer-quick-column{
+      min-width:0;
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .viewer-quick-field{
+      min-width:0;
+    }
+    .viewer-quick-content-wrap{
+      min-width:0;
+    }
+    .viewer-quick-content-wrap textarea,
+    .viewer-quick-column textarea{
+      min-height:48px;
+      height:48px;
+      resize:vertical;
+      overflow:auto;
+    }
+    .viewer-quick-column .attachment-box{
+      margin-top:0;
+      padding:10px 12px;
+    }
+    .viewer-quick-inline-label{
+      display:block;
+      font-weight:700;
+      margin:0 0 6px;
+      font-size:14px;
+    }
+    .viewer-quick-column .attachment-actions{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .viewer-quick-column .image-preview-grid{
+      grid-template-columns:repeat(auto-fit,minmax(92px,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+    .viewer-quick-inline-preview{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      flex:1;
+      min-width:0;
+    }
+    .viewer-quick-file-chip{
+      display:inline-flex;
+      align-items:center;
+      max-width:100%;
+      min-height:36px;
+      padding:6px 10px;
+      border:1px solid #d7deea;
+      border-radius:10px;
+      background:#f8fafc;
+      color:#344054;
+      font-size:13px;
+      line-height:1.35;
+      box-shadow:0 2px 6px rgba(16,24,40,.04);
+    }
+    .viewer-quick-file-chip strong{
+      margin-right:6px;
+      color:#194185;
+      flex:none;
+    }
+    .viewer-quick-file-chip span{
+      display:inline-block;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width:220px;
+    }
+    .viewer-quick-column .image-preview-card{
+      padding:8px;
+      border-radius:12px;
+    }
+    .viewer-quick-column .image-preview-card img{
+      max-height:92px;
+      margin-bottom:6px;
+    }
+    .viewer-quick-column .image-preview-file{
+      min-height:56px;
+    }
+    .viewer-quick-footer{
+      margin-top:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .viewer-quick-footer .status{
+      margin:0;
+      flex:1;
+      min-width:240px;
+      padding:10px 12px;
+      font-size:14px;
+    }
+    .image-preview-file{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:86px;
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      background:#f5f7fa;
+      border:1px solid #d9e0ea;
+      font-weight:700;
+      color:#475467;
+    }
+    .image-preview-name{
+      font-size:13px;
+      color:#475467;
+      word-break:break-word;
+    }
+    .task-desc-attachment{
+      margin-top:8px;
+      text-align:center;
+    }
+    .task-desc-image-link{
+      display:inline-block;
+      margin-top:8px;
+    }
+    .task-desc-image{
+      max-width:160px;
+      max-height:110px;
+      border-radius:10px;
+      border:1px solid #e1e7f0;
+      display:block;
+      margin:0 auto;
+    }
+    .task-desc-file-link{
+      display:inline-block;
+      margin-top:8px;
+      padding:8px 12px;
+      border-radius:10px;
+      background:#f5f7fa;
+      border:1px solid #d9e0ea;
+      color:#344054;
+      text-decoration:none;
+      font-weight:700;
+      word-break:break-word;
+    }
+    .copyright{
+      text-align:center;
+      color:#fff;
+      padding:0 16px 22px;
+      font-style:italic;
+      text-shadow:0 2px 6px rgba(0,0,0,.45);
+    }
+    @media (max-width: 1120px){
+      .filter-grid{grid-template-columns:1fr 1fr;}
+      .task-layout{grid-template-columns:1fr}
+      .compact-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .facility-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .topbar{margin-left:16px;margin-right:16px;}
+    }
+    @media (max-width: 640px){
+      .summary-grid{grid-template-columns:1fr}
+      .topbar{flex-direction:column;align-items:flex-start}
+      .topbar h1{font-size:22px}
+      .top-unit .line1{font-size:17px}
+      .top-unit .line2{font-size:16px}
+      .filter-grid,.form-grid,.compact-form-panel .form-grid,.facility-form-panel .form-grid{grid-template-columns:1fr}
+      .viewer-quick-grid{grid-template-columns:1fr}
+      .viewer-quick-column{gap:10px}
+      .split-field{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .split-field textarea{min-height:96px}
+      .split-field .attachment-box{min-height:96px;padding:10px}
+      .attachment-actions{display:grid;grid-template-columns:1fr}
+      .attachment-actions button{width:100%}
+      .modal-card .modal-body{padding:16px}
+    }
+    @media (max-width: 480px){
+      .split-field{grid-template-columns:1fr}
+      .split-field textarea{min-height:88px}
+      .split-field .attachment-box{min-height:auto}
+      .image-preview-grid{grid-template-columns:1fr}
+    }
+  
+    .facility-toolbar{
+      justify-content:flex-end;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .facility-summary-grid{
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      margin-bottom:16px;
+    }
+    .facility-summary-box{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .facility-table tbody tr{cursor:pointer}
+    .facility-table tbody tr:nth-child(odd) td{background:rgba(255,255,255,.96)}
+    .facility-table tbody tr:nth-child(even) td{background:rgba(255,245,204,.72)}
+    .facility-table tbody tr:hover td{background:#fff7f0 !important}
+    .facility-row-active td{background:#fff1e8 !important}
+    .facility-cell-main{font-weight:700;color:#7d1010;line-height:1.35}
+    .facility-cell-sub{margin-top:4px;color:#667085;font-size:14px;line-height:1.4}
+    #adminPanel{position:relative; z-index:20;}
+    .facility-admin-shell{position:relative; z-index:21; isolation:isolate;}
+    .facility-admin-shell,
+    .facility-admin-shell *{pointer-events:auto !important;}
+    .facility-admin-shell .panel-box,
+    .facility-admin-shell .admin-toolbar,
+    .facility-admin-shell .summary-grid,
+    .facility-admin-shell .table-wrap,
+    .facility-admin-shell .facility-table,
+    .facility-admin-shell input,
+    .facility-admin-shell select,
+    .facility-admin-shell textarea,
+    .facility-admin-shell button{position:relative; z-index:999;}
+    .facility-form-panel > h3,
+    .facility-form-panel > .muted.small,
+    .facility-toolbar .facility-toolbar-title{display:none !important;}
+    body.facility-manager-open .topbar,
+    body.facility-manager-open .container{
+      max-width:min(1600px, calc(100vw - 24px));
+    }
+    body.facility-manager-open .facility-admin-shell,
+    body.facility-manager-open .facility-admin-shell .panel-box,
+    body.facility-manager-open .facility-admin-shell .table-wrap,
+    body.facility-manager-open .facility-admin-shell .facility-table{
+      width:100%;
+    }
+    body.facility-manager-open .facility-admin-shell .table-wrap{
+      max-height:none;
+    }
+    body.facility-manager-open .facility-admin-shell .facility-table{
+      min-width:1280px;
+      table-layout:auto;
+    }
+    .legacy-admin-shell{display:none !important; pointer-events:none !important;}
+  </style>
+</head>
+<body>
+<div class="top-unit">
+<div class="line1">Phòng Cảnh sát PCCC và CNCH</div>
+<div class="line2">Đội Công tác phòng cháy</div>
+</div>
+<div class="topbar">
+<div class="topbar-logo">
+<img alt="Logo Cảnh sát PCCC" src="logo-pccc.png"/>
+</div>
+<div class="topbar-title">
+<h1>Quản lý cơ sở Đội Công tác phòng cháy</h1>
+<div class="sub"></div>
+</div>
+</div>
+<div class="container">
+<div class="grid" id="mainGrid">
+<div class="card" id="accessCard">
+<div class="card-body">
+<div class="status info" id="loadStatus">Đang kết nối kho dữ liệu công việc...</div>
+<div class="role-list" id="roleList">
+<button class="role-btn manager-entry-btn" data-manager="Cơ sở Đội 2" type="button">
+<strong>Cơ sở Đội 2</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Phạm Thái Sơn" type="button">
+<strong>Phạm Thái Sơn</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Phan Văn Thanh" type="button">
+<strong>Phan Văn Thanh</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Phạm Thanh Tùng" type="button">
+<strong>Phạm Thanh Tùng</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Hoàng Minh Quang" type="button">
+<strong>Hoàng Minh Quang</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Nguyễn Xuân Quang" type="button">
+<strong>Nguyễn Xuân Quang</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Nguyễn Văn Nguyên" type="button">
+<strong>Nguyễn Văn Nguyên</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Phạm Quyền Anh" type="button">
+<strong>Phạm Quyền Anh</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Phí Văn Tuyển" type="button">
+<strong>Phí Văn Tuyển</strong>
+</button>
+<button class="role-btn manager-entry-btn" data-manager="Tạ Minh Phương" type="button">
+<strong>Tạ Minh Phương</strong>
+</button>
+</div>
+<input id="adminPassword" type="hidden" value=""/>
+<input id="viewerPassword" type="hidden" value=""/>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h2 id="mainTitle">Sẵn sàng sử dụng</h2>
+<div class="muted small" id="mainSub"></div>
+</div>
+<div class="card-body">
+<div id="welcomePanel">
+<div class="welcome-illustration">
+<img alt="Quản lý công việc đội" src="ready-exam.png"/>
+</div>
+</div>
+<div class="hidden" id="viewerPanel">
+<div class="flex" style="justify-content:flex-end; margin-bottom:6px">
+<div class="flex">
+<button class="secondary" id="btnPrintWeeklyReportViewer">In báo cáo</button>
+<button class="secondary" id="btnRefreshViewer">Làm mới</button>
+<button class="secondary" id="btnBackHome">Quay lại</button>
+</div>
+</div>
+<div class="summary-grid" id="viewerSummaryGrid">
+<div class="summary-box">
+<div class="label">Tổng công việc</div>
+<div class="value" id="statTotal">0</div>
+</div>
+<div class="summary-box doing">
+<div class="label">Đang thực hiện</div>
+<div class="value" id="statDoing">0</div>
+</div>
+<div class="summary-box done">
+<div class="label">Hoàn thành</div>
+<div class="value" id="statDone">0</div>
+</div>
+<div class="summary-box overdue">
+<div class="label">Quá hạn</div>
+<div class="value" id="statOverdue">0</div>
+</div>
+</div>
+<div class="panel-box viewer-quick-panel" style="margin-bottom:14px">
+<h3 style="margin:0 0 4px;font-size:20px">Nhập công việc</h3>
+<div class="muted small">Nhập nhanh công việc ngay tại phần xem công việc.</div>
+<div class="viewer-quick-grid">
+<div class="viewer-quick-column viewer-quick-content-wrap">
+<div class="viewer-quick-field">
+<label for="viewerQuickContent">Nội dung</label>
+<textarea id="viewerQuickContent" placeholder="Nhập nội dung công việc cần bổ sung..."></textarea>
+</div>
+<div class="viewer-quick-field">
+<label for="viewerQuickDescription">Mô tả</label>
+<textarea id="viewerQuickDescription" placeholder="Nhập mô tả chi tiết cho công việc..."></textarea>
+</div>
+</div>
+<div class="viewer-quick-column">
+<div class="viewer-quick-field">
+<label for="viewerQuickDueDate">Thời hạn</label>
+<input id="viewerQuickDueDate" type="date"/>
+</div>
+<div class="viewer-quick-field">
+<div class="attachment-box">
+<label class="viewer-quick-inline-label" for="viewerQuickAttachment">Tải tệp đính kèm</label>
+<input accept="image/*,application/pdf,.pdf" id="viewerQuickAttachment" multiple="" type="file"/>
+<div class="attachment-actions">
+<button class="secondary" id="btnRemoveViewerQuickAttachment" type="button">Xóa tệp</button>
+<div class="viewer-quick-inline-preview" id="viewerQuickAttachmentPreview"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex viewer-quick-footer">
+<button class="success" id="btnSaveViewerQuickTask">Lưu công việc</button>
+<div class="status info" id="viewerQuickSaveStatus">Sẵn sàng nhập công việc mới.</div>
+</div>
+</div>
+<div class="panel-box">
+<div class="filter-grid">
+<div>
+<label for="filterKeyword">Tìm kiếm</label>
+<input id="filterKeyword" placeholder="Tìm theo tên công việc, nội dung, ghi chú..." type="text"/>
+</div>
+<div>
+<label for="filterAssignee">Người phụ trách</label>
+<select id="filterAssignee">
+<option value="">Tất cả</option>
+</select>
+</div>
+<div>
+<label for="filterWeek">Tuần giao</label>
+<select id="filterWeek">
+<option value="">Tất cả</option>
+</select>
+</div>
+<div>
+<label for="filterStatus">Trạng thái</label>
+<select id="filterStatus">
+<option value="">Tất cả</option>
+<option value="Đang thực hiện">Đang thực hiện</option>
+<option value="Hoàn thành">Hoàn thành</option>
+</select>
+</div>
+<div>
+<label for="filterSoonDue">Ghi chú</label>
+<select id="filterSoonDue">
+<option value="">Tất cả</option>
+<option value="yes">Chỉ việc sắp hết hạn</option>
+<option value="overdue">Quá hạn</option>
+</select>
+</div>
+<div>
+<label> </label>
+<button class="secondary" id="btnClearFilters">Xóa lọc</button>
+</div>
+</div>
+<div class="table-wrap">
+<table class="viewer-task-table">
+<thead>
+<tr>
+<th>STT</th>
+<th>Công việc</th>
+<th>Tuần giao</th>
+<th>Hạn hoàn thành</th>
+<th>Trạng thái</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody id="viewerTaskBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="hidden" id="adminPanel">
+<div class="facility-admin-shell">
+<div class="admin-toolbar facility-toolbar" style="justify-content:space-between">
+<div class="facility-toolbar-title" id="facilityManagerLabel"></div>
+<div class="flex" style="justify-content:flex-end; width:100%">
+<button class="secondary" id="btnFacilityExport" onclick="exportFacilitiesCsv()" type="button">Xuất Excel</button>
+<button class="secondary" id="btnFacilityLogout" onclick="closeFacilityManager()" type="button">Quay lại</button>
+</div>
+</div>
+<div class="panel-box compact-form-panel facility-form-panel" id="facilityFormPanel" style="margin-bottom:16px">
+<input id="facilityId" type="hidden"/>
+<input id="facilityInspectionDate" type="hidden"/>
+<input id="facilityInsurance" type="hidden"/>
+<input id="facilityMaintenance" type="hidden"/>
+<input id="facilityDrill" type="hidden"/>
+<input id="facilityTraining" type="hidden"/>
+<div class="form-grid" style="margin-top:10px">
+<div>
+<label for="facilityName">Tên cơ sở</label>
+<input id="facilityName" placeholder="Nhập tên cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityCode">Mã cơ sở</label>
+<input id="facilityCode" placeholder="Nhập mã cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityAddress">Địa chỉ</label>
+<input id="facilityAddress" placeholder="Nhập địa chỉ cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityField">Lĩnh vực</label>
+<select id="facilityField">
+<option selected="" value="Cơ sở thương mại, dịch vụ">Cơ sở thương mại, dịch vụ</option>
+<option value="Nhà ở, trụ sở làm việc, văn phòng, đa năng">Nhà ở, trụ sở làm việc, văn phòng, đa năng</option>
+<option value="Cơ sở giáo dục">Cơ sở giáo dục</option>
+<option value="Cơ sở y tế">Cơ sở y tế</option>
+<option value="Cơ sở văn hóa, thể thao, du lịch">Cơ sở văn hóa, thể thao, du lịch</option>
+<option value="Cơ sở giao thông, vận tải">Cơ sở giao thông, vận tải</option>
+<option value="Cơ sở xăng dầu, dầu khí">Cơ sở xăng dầu, dầu khí</option>
+<option value="Cơ sở năng lượng">Cơ sở năng lượng</option>
+<option value="Cơ sở hóa chất">Cơ sở hóa chất</option>
+<option value="Cơ sở công nghiệp, nhà kho">Cơ sở công nghiệp, nhà kho</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label for="facilityAppendix">Phụ lục</label>
+<select id="facilityAppendix">
+<option selected="" value="I">I</option>
+<option value="II">II</option>
+</select>
+</div>
+</div>
+<div class="flex" style="margin-top:14px; gap:10px; flex-wrap:wrap">
+<button class="success" id="btnSaveFacility" onclick="handleSaveFacility()" type="button">Lưu cơ sở</button>
+</div>
+<div class="status info" id="facilitySaveStatus" style="margin-top:14px">Sẵn sàng cập nhật danh sách cơ sở.</div>
+</div>
+<div class="summary-grid facility-summary-grid">
+<div class="summary-box facility-summary-box">
+<div class="label">Tổng số cơ sở</div>
+<div class="value" id="facilityStatTotal">0</div>
+</div>
+<div class="summary-box facility-summary-box">
+<div class="label">Đã kiểm tra</div>
+<div class="value" id="facilityStatInspected">0</div>
+</div>
+<div class="summary-box facility-summary-box">
+<div class="label">Đã có bảo hiểm</div>
+<div class="value" id="facilityStatInsurance">0</div>
+</div>
+<div class="summary-box facility-summary-box">
+<div class="label">Đã bảo dưỡng</div>
+<div class="value" id="facilityStatMaintenance">0</div>
+</div>
+<div class="summary-box facility-summary-box">
+<div class="label">Đã thực tập</div>
+<div class="value" id="facilityStatDrill">0</div>
+</div>
+<div class="summary-box facility-summary-box">
+<div class="label">Đã bồi dưỡng</div>
+<div class="value" id="facilityStatTraining">0</div>
+</div>
+</div>
+<div class="panel-box" style="margin-bottom:16px">
+<div class="flex" style="justify-content:space-between; margin-bottom:10px; gap:10px; flex-wrap:wrap">
+<h3 style="margin:0;font-size:22px">Lọc danh sách cơ sở</h3>
+</div>
+<div class="filter-grid">
+<div>
+<label for="facilityFilterName">Tên cơ sở</label>
+<input id="facilityFilterName" placeholder="Tìm theo tên cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityFilterAddress">Địa chỉ</label>
+<input id="facilityFilterAddress" placeholder="Tìm theo địa chỉ" type="text"/>
+</div>
+<div>
+<label for="facilityFilterField">Lĩnh vực</label>
+<select id="facilityFilterField">
+<option value="">Tất cả lĩnh vực</option>
+<option value="Cơ sở thương mại, dịch vụ">Cơ sở thương mại, dịch vụ</option>
+<option value="Nhà ở, trụ sở làm việc, văn phòng, đa năng">Nhà ở, trụ sở làm việc, văn phòng, đa năng</option>
+<option value="Cơ sở giáo dục">Cơ sở giáo dục</option>
+<option value="Cơ sở y tế">Cơ sở y tế</option>
+<option value="Cơ sở văn hóa, thể thao, du lịch">Cơ sở văn hóa, thể thao, du lịch</option>
+<option value="Cơ sở giao thông, vận tải">Cơ sở giao thông, vận tải</option>
+<option value="Cơ sở xăng dầu, dầu khí">Cơ sở xăng dầu, dầu khí</option>
+<option value="Cơ sở năng lượng">Cơ sở năng lượng</option>
+<option value="Cơ sở hóa chất">Cơ sở hóa chất</option>
+<option value="Cơ sở công nghiệp, nhà kho">Cơ sở công nghiệp, nhà kho</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label for="facilityFilterAppendix">Phụ lục</label>
+<select id="facilityFilterAppendix">
+<option value="">Tất cả phụ lục</option>
+<option value="I">I</option>
+<option value="II">II</option>
+</select>
+</div>
+<div id="facilityFilterOwnerWrap" style="display:none">
+<label for="facilityFilterOwner">Người quản lý</label>
+<select id="facilityFilterOwner">
+<option value="">Tất cả người quản lý</option>
+<option value="Phạm Thái Sơn">Phạm Thái Sơn</option>
+<option value="Phan Văn Thanh">Phan Văn Thanh</option>
+<option value="Phạm Thanh Tùng">Phạm Thanh Tùng</option>
+<option value="Hoàng Minh Quang">Hoàng Minh Quang</option>
+<option value="Nguyễn Xuân Quang">Nguyễn Xuân Quang</option>
+<option value="Nguyễn Văn Nguyên">Nguyễn Văn Nguyên</option>
+<option value="Phạm Quyền Anh">Phạm Quyền Anh</option>
+<option value="Phí Văn Tuyển">Phí Văn Tuyển</option>
+<option value="Tạ Minh Phương">Tạ Minh Phương</option>
+</select>
+</div>
+<div>
+<label>&nbsp;</label>
+<button class="secondary" id="btnClearFacilityFilters" type="button">Xóa lọc</button>
+</div>
+</div>
+<div class="muted small" id="facilityFilterSummary" style="margin-top:12px">Đang hiển thị 0 cơ sở trong bảng.</div>
+</div>
+<div class="panel-box">
+<div class="flex" style="justify-content:space-between; margin-bottom:6px; gap:10px; flex-wrap:wrap">
+<h3 style="margin:0;font-size:22px">Danh sách cơ sở</h3>
+<div class="muted small" id="facilityTableHint">Nhấp đúp vào dòng để mở lại biểu mẫu sửa.</div>
+</div>
+<div class="table-wrap">
+<table class="facility-table">
+<thead>
+<tr>
+<th>STT</th>
+<th>Mã cơ sở</th>
+<th>Tên cơ sở</th>
+<th>Địa chỉ</th>
+<th>Lĩnh vực</th>
+<th>Phụ lục</th>
+<th>Người quản lý</th>
+<th>Ngày kiểm tra</th>
+<th>Bảo hiểm</th>
+<th>Bảo dưỡng</th>
+<th>Thực tập</th>
+<th>Bồi dưỡng</th>
+</tr>
+</thead>
+<tbody id="facilityBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="legacy-admin-shell hidden" style="display:none">
+<div class="admin-toolbar">
+<div class="flex">
+<button class="secondary" id="btnPrintWeeklyReportAdmin">In báo cáo</button>
+<button id="btnRefreshAdmin">Làm mới</button>
+<button class="secondary" id="btnExportCsv">Xuất Excel</button>
+<button class="secondary" id="btnLogoutAdmin">Đăng xuất</button>
+</div>
+</div>
+<div class="panel-box compact-form-panel" style="margin-bottom:16px">
+<h3 style="margin:0 0 6px;font-size:22px">Biểu mẫu công việc</h3>
+<div class="muted small">Nhập đầy đủ thông tin để tạo mới công việc.</div>
+<input id="taskId" type="hidden"/>
+<div class="form-grid" style="margin-top:10px">
+<div class="full-col">
+<label for="taskTitle">Tên công việc</label>
+<input id="taskTitle" placeholder="Ví dụ: Rà soát hồ sơ nghiệm thu PCCC tháng 3" type="text"/>
+</div>
+<div>
+<label for="taskAssignee">Người phụ trách</label>
+<select id="taskAssignee">
+<option value="">Chọn người phụ trách</option>
+<option value="Sơn">Sơn</option>
+<option value="Thanh">Thanh</option>
+<option value="Nam">Nam</option>
+<option value="Tùng">Tùng</option>
+<option value="Uyên">Uyên</option>
+<option value="M. Quang">M. Quang</option>
+<option value="X. Quang">X. Quang</option>
+<option value="Nguyên">Nguyên</option>
+<option value="Quyền Anh">Quyền Anh</option>
+<option value="Tuyển">Tuyển</option>
+<option value="Phương">Phương</option>
+<option value="__custom__">Tự điền</option>
+</select>
+<input class="hidden" id="taskAssigneeCustom" placeholder="Nhập người phụ trách" style="margin-top:8px" type="text"/>
+</div>
+<div>
+<label for="taskAssignedWeek">Thời gian giao (Tuần/Tháng)</label>
+<div class="week-input-wrap">
+<input id="taskAssignedWeek" type="week"/>
+<div class="week-input-display empty" id="taskAssignedWeekInlineDisplay">Chọn Tuần/Tháng</div>
+</div>
+<div class="week-preview" id="taskAssignedWeekDisplay">-</div>
+</div>
+<div>
+<label for="taskDueDate">Hạn hoàn thành</label>
+<input id="taskDueDate" type="date"/>
+</div>
+<div>
+<label for="taskStatus">Trạng thái</label>
+<select id="taskStatus">
+<option selected="" value="Đang thực hiện">Đang thực hiện</option>
+<option value="Hoàn thành">Hoàn thành</option>
+</select>
+</div>
+<div class="full-col split-field">
+<div class="field-box">
+<label for="taskDescription">Nội dung công việc</label>
+<textarea id="taskDescription" placeholder="Mô tả ngắn gọn yêu cầu, đầu việc, lưu ý thực hiện..."></textarea>
+</div>
+<div class="field-box">
+<label for="taskDescriptionImage">Tệp đính kèm</label>
+<div class="attachment-box">
+<input accept="image/*,application/pdf,.pdf" id="taskDescriptionImage" multiple="" type="file"/>
+<div class="attachment-actions">
+<button class="secondary" id="btnRemoveTaskImage" type="button">Xóa tệp</button>
+</div>
+<div class="image-preview-grid" id="taskImagePreview"></div>
+</div>
+</div>
+</div>
+<div class="full-col split-field">
+<div class="field-box">
+<label for="taskNote">Ghi chú</label>
+<textarea id="taskNote" placeholder="Nhập ghi chú bổ sung, yêu cầu phối hợp, văn bản liên quan..."></textarea>
+</div>
+<div class="field-box">
+<label for="taskNoteFile">Tệp đính kèm cho ghi chú</label>
+<div class="attachment-box">
+<input accept="image/*,application/pdf,.pdf" id="taskNoteFile" multiple="" type="file"/>
+<div class="attachment-actions">
+<button class="secondary" id="btnRemoveTaskNoteFile" type="button">Xóa tệp</button>
+</div>
+<div class="image-preview-grid" id="taskNotePreview"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex" style="margin-top:14px">
+<button class="success" id="btnSaveTask">Lưu công việc</button>
+<button class="secondary" id="btnResetForm">Tạo mới</button>
+</div>
+<div class="status info" id="adminSaveStatus" style="margin-top:14px">Sẵn sàng cập nhật dữ liệu.</div>
+</div>
+<div class="summary-grid">
+<div class="summary-box">
+<div class="label">Tổng công việc</div>
+<div class="value" id="adminStatTotal">0</div>
+</div>
+<div class="summary-box doing">
+<div class="label">Đang thực hiện</div>
+<div class="value" id="adminStatDoing">0</div>
+</div>
+<div class="summary-box done">
+<div class="label">Hoàn thành</div>
+<div class="value" id="adminStatDone">0</div>
+</div>
+<div class="summary-box overdue">
+<div class="label">Quá hạn</div>
+<div class="value" id="adminStatOverdue">0</div>
+</div>
+</div>
+<div class="panel-box">
+<div class="flex" style="justify-content:space-between; margin-bottom:6px">
+<h3 style="margin:0;font-size:22px">Danh sách quản trị</h3>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Công việc</th>
+<th>Tuần giao</th>
+<th>Hạn</th>
+<th>Trạng thái</th>
+<th>Ghi chú</th>
+<th>Thao tác</th>
+</tr>
+</thead>
+<tbody id="adminTaskBody"></tbody>
+</table>
+</div>
+</div>
+</div></div> </div>
+</div>
+</div>
+</div>
+
+<div class="modal-backdrop hidden" id="viewerLoginModal">
+<div class="modal-card">
+<div class="modal-head">
+<h3 style="margin:0;font-size:24px">Đăng nhập xem công việc</h3>
+<div class="muted small" style="margin-top:6px">Nhập mật khẩu để mở phần xem công việc.</div>
+</div>
+<div class="modal-body">
+<label for="viewerPasswordInput">Mật khẩu</label>
+<div class="password-row">
+<input id="viewerPasswordInput" placeholder="Nhập mật khẩu" type="password"/>
+<button class="secondary password-toggle" id="btnToggleViewerPassword" type="button">Hiện mật khẩu</button>
+</div>
+<div class="modal-error" id="viewerModalError"></div>
+<div class="flex" style="justify-content:flex-end; margin-top:8px">
+<button class="secondary" id="btnCancelViewerLogin">Hủy</button>
+<button id="btnSubmitViewerLogin">Đăng nhập</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-backdrop hidden" id="adminLoginModal">
+<div class="modal-card">
+<div class="modal-head">
+<h3 id="adminLoginTitle" style="margin:0;font-size:24px">Đăng nhập</h3>
+<div class="muted small" id="adminLoginDesc" style="margin-top:6px">Nhập mật khẩu để mở phần quản lý cơ sở.</div>
+</div>
+<div class="modal-body">
+<label for="adminPasswordInput">Mật khẩu</label>
+<div class="password-row">
+<input id="adminPasswordInput" placeholder="Nhập mật khẩu" type="password"/>
+<button class="secondary password-toggle" id="btnToggleAdminPassword" type="button">Hiện mật khẩu</button>
+</div>
+<div class="modal-error" id="adminModalError"></div>
+<div class="flex" style="justify-content:flex-end; margin-top:8px">
+<button class="secondary" id="btnCancelAdminLogin">Hủy</button>
+<button id="btnSubmitAdminLogin">Đăng nhập</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-backdrop hidden" id="editTaskModal">
+<div class="modal-card modal-large">
+<div class="modal-head">
+<h3 style="margin:0;font-size:24px">Chỉnh sửa công việc</h3>
+<div class="muted small" style="margin-top:6px">Cập nhật nội dung trực tiếp trong hộp thoại này rồi bấm lưu.</div>
+</div>
+<div class="modal-body">
+<input id="editTaskId" type="hidden"/>
+<div class="form-grid">
+<div class="full-col">
+<label for="editTaskTitle">Tên công việc</label>
+<input id="editTaskTitle" placeholder="Ví dụ: Rà soát hồ sơ nghiệm thu PCCC tháng 3" type="text"/>
+</div>
+<div>
+<label for="editTaskAssignee">Người phụ trách</label>
+<select id="editTaskAssignee">
+<option value="">Chọn người phụ trách</option>
+<option value="Sơn">Sơn</option>
+<option value="Thanh">Thanh</option>
+<option value="Nam">Nam</option>
+<option value="Tùng">Tùng</option>
+<option value="Uyên">Uyên</option>
+<option value="M. Quang">M. Quang</option>
+<option value="X. Quang">X. Quang</option>
+<option value="Nguyên">Nguyên</option>
+<option value="Quyền Anh">Quyền Anh</option>
+<option value="Tuyển">Tuyển</option>
+<option value="Phương">Phương</option>
+</select>
+</div>
+<div>
+<label for="editTaskAssignedWeek">Thời gian giao (Tuần/Tháng)</label>
+<div class="week-input-wrap">
+<input id="editTaskAssignedWeek" type="week"/>
+<div class="week-input-display empty" id="editTaskAssignedWeekInlineDisplay">Chọn Tuần/Tháng</div>
+</div>
+<div class="week-preview" id="editTaskAssignedWeekDisplay">-</div>
+</div>
+<div>
+<label for="editTaskDueDate">Hạn hoàn thành</label>
+<input id="editTaskDueDate" type="date"/>
+</div>
+<div>
+<label for="editTaskStatus">Trạng thái</label>
+<select id="editTaskStatus">
+<option value="Đang thực hiện">Đang thực hiện</option>
+<option value="Hoàn thành">Hoàn thành</option>
+</select>
+</div>
+<div class="full-col split-field">
+<div class="field-box">
+<label for="editTaskDescription">Nội dung công việc</label>
+<textarea id="editTaskDescription" placeholder="Mô tả ngắn gọn yêu cầu, đầu việc, lưu ý thực hiện..."></textarea>
+</div>
+<div class="field-box">
+<label for="editTaskDescriptionImage">Tệp đính kèm</label>
+<div class="attachment-box">
+<input accept="image/*,application/pdf,.pdf" id="editTaskDescriptionImage" multiple="" type="file"/>
+<div class="attachment-actions">
+<div class="attachment-inline-preview" id="editTaskImagePreview"></div>
+<button class="secondary" id="btnRemoveEditTaskImage" type="button">Xóa tệp</button>
+</div>
+</div>
+</div>
+</div>
+<div class="full-col split-field">
+<div class="field-box">
+<label for="editTaskNote">Ghi chú</label>
+<textarea id="editTaskNote" placeholder="Nhập ghi chú bổ sung, yêu cầu phối hợp, văn bản liên quan..."></textarea>
+</div>
+<div class="field-box">
+<label for="editTaskNoteFile">Tệp đính kèm cho ghi chú</label>
+<div class="attachment-box">
+<input accept="image/*,application/pdf,.pdf" id="editTaskNoteFile" multiple="" type="file"/>
+<div class="attachment-actions">
+<div class="attachment-inline-preview" id="editTaskNotePreview"></div>
+<button class="secondary" id="btnRemoveEditTaskNoteFile" type="button">Xóa tệp</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-error" id="editTaskModalError"></div>
+<div class="flex" style="justify-content:space-between; align-items:center; margin-top:8px; gap:10px; flex-wrap:wrap">
+<button class="danger" id="btnDeleteEditTask" type="button">Xóa việc</button>
+<div class="flex" style="justify-content:flex-end">
+<button class="secondary" id="btnCancelEditTask">Hủy</button>
+<button class="success" id="btnSaveEditTask">Lưu chỉnh sửa</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-backdrop hidden" id="facilityEditModal">
+<div class="modal-card modal-large">
+<div class="modal-head">
+<h3 style="margin:0;font-size:24px">Chỉnh sửa cơ sở</h3>
+<div class="muted small" style="margin-top:6px">Cập nhật thông tin cơ sở trong hộp thoại này rồi bấm lưu.</div>
+</div>
+<div class="modal-body">
+<input id="facilityEditId" type="hidden"/>
+<div class="form-grid">
+<div class="full-col">
+<label for="facilityEditName">Tên cơ sở</label>
+<input id="facilityEditName" placeholder="Nhập tên cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityEditCode">Mã cơ sở</label>
+<input id="facilityEditCode" placeholder="Nhập mã cơ sở" type="text"/>
+</div>
+<div class="full-col">
+<label for="facilityEditAddress">Địa chỉ</label>
+<input id="facilityEditAddress" placeholder="Nhập địa chỉ cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityEditField">Lĩnh vực</label>
+<select id="facilityEditField">
+<option value="Cơ sở thương mại, dịch vụ">Cơ sở thương mại, dịch vụ</option>
+<option value="Nhà ở, trụ sở làm việc, văn phòng, đa năng">Nhà ở, trụ sở làm việc, văn phòng, đa năng</option>
+<option value="Cơ sở giáo dục">Cơ sở giáo dục</option>
+<option value="Cơ sở y tế">Cơ sở y tế</option>
+<option value="Cơ sở văn hóa, thể thao, du lịch">Cơ sở văn hóa, thể thao, du lịch</option>
+<option value="Cơ sở giao thông, vận tải">Cơ sở giao thông, vận tải</option>
+<option value="Cơ sở xăng dầu, dầu khí">Cơ sở xăng dầu, dầu khí</option>
+<option value="Cơ sở năng lượng">Cơ sở năng lượng</option>
+<option value="Cơ sở hóa chất">Cơ sở hóa chất</option>
+<option value="Cơ sở công nghiệp, nhà kho">Cơ sở công nghiệp, nhà kho</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label for="facilityEditAppendix">Phụ lục</label>
+<select id="facilityEditAppendix">
+<option value="I">I</option>
+<option value="II">II</option>
+</select>
+</div>
+<div>
+<label for="facilityEditInspectionDate">Ngày kiểm tra</label>
+<input id="facilityEditInspectionDate" type="date"/>
+</div>
+<div>
+<label for="facilityEditInsurance">Bảo hiểm</label>
+<input id="facilityEditInsurance" placeholder="Nhập thông tin bảo hiểm" type="text"/>
+</div>
+<div>
+<label for="facilityEditMaintenance">Bảo dưỡng</label>
+<input id="facilityEditMaintenance" placeholder="Nhập thông tin bảo dưỡng" type="text"/>
+</div>
+<div>
+<label for="facilityEditDrill">Thực tập</label>
+<input id="facilityEditDrill" placeholder="Nhập thông tin thực tập" type="text"/>
+</div>
+<div>
+<label for="facilityEditTraining">Bồi dưỡng</label>
+<input id="facilityEditTraining" placeholder="Nhập thông tin bồi dưỡng" type="text"/>
+</div>
+</div>
+<div class="modal-error" id="facilityEditModalError"></div>
+<div class="flex" style="justify-content:space-between; align-items:center; margin-top:8px; gap:10px; flex-wrap:wrap">
+<button class="danger" id="btnDeleteFacilityModal" type="button">Xóa cơ sở</button>
+<div class="flex" style="justify-content:flex-end">
+<button class="secondary" id="btnCancelFacilityModal" type="button">Hủy</button>
+<button class="success" id="btnSaveFacilityModal" type="button">Lưu chỉnh sửa</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="copyright">Design by Đội 2, Phòng PC07 Quảng Ninh</div>
+<script>
+(() => {
+  // Dán link Web App Apps Script dạng /exec vào dòng dưới để cả đội cùng xem chung dữ liệu.
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRGsuqLYFX0uCnb1iLCskfDFmckJ-tzm3nkD0ogw-sjRm2fBpvgliK0TKgpOk3xT9q/exec";
+  const VIEWER_PASSWORD = "101212019";
+  const ADMIN_PASSWORD = "101212019";
+  const LOCAL_STORAGE_KEY = "pc07_team_tasks_v1";
+  const FACILITY_LOCAL_STORAGE_PREFIX = "pc07_facility_manager_v2";
+  const TEAM_FACILITY_LABEL = "Cơ sở Đội 2";
+  const INDIVIDUAL_FACILITY_MANAGERS = [
+    "Phạm Thái Sơn",
+    "Phan Văn Thanh",
+    "Phạm Thanh Tùng",
+    "Hoàng Minh Quang",
+    "Nguyễn Xuân Quang",
+    "Nguyễn Văn Nguyên",
+    "Phạm Quyền Anh",
+    "Phí Văn Tuyển",
+    "Tạ Minh Phương"
+  ];
+  const MANAGER_STORAGE_IDS = {
+    "Phạm Thái Sơn": "pham_thai_son",
+    "Phan Văn Thanh": "phan_van_thanh",
+    "Phạm Thanh Tùng": "pham_thanh_tung",
+    "Hoàng Minh Quang": "hoang_minh_quang",
+    "Nguyễn Xuân Quang": "nguyen_xuan_quang",
+    "Nguyễn Văn Nguyên": "nguyen_van_nguyen",
+    "Phạm Quyền Anh": "pham_quyen_anh",
+    "Phí Văn Tuyển": "phi_van_tuyen",
+    "Tạ Minh Phương": "ta_minh_phuong"
+  };
+  const DESCRIPTION_IMAGE_PREFIX = "__TASKDESCIMG__";
+  const NOTE_ATTACHMENT_PREFIX = "__TASKNOTEFILE__";
+
+  function makeEmptyAttachment() {
+    return {
+      file: null,
+      previewUrl: "",
+      attachmentData: "",
+      attachmentUrl: "",
+      attachmentPreviewUrl: "",
+      attachmentName: "",
+      attachmentType: "",
+      attachmentFileId: "",
+      attachmentMimeType: ""
+    };
+  }
+
+  const state = {
+    tasks: [],
+    syncMode: "local",
+    lastLoadSource: "local",
+    createAttachments: [],
+    createNoteAttachments: [],
+    editAttachments: [],
+    editNoteAttachments: [],
+    viewerCreateAttachments: [],
+    facilities: [],
+    currentFacilityManager: "Nguyễn Văn Nguyên",
+    pendingFacilityManager: "",
+    selectedFacilityId: "",
+    facilityFilters: {
+      name: "",
+      address: "",
+      field: "",
+      appendix: "",
+      owner: "",
+      inspectionDate: "",
+      insurance: "",
+      maintenance: "",
+      drill: "",
+      training: ""
+    }
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function getCurrentFacilityManager() {
+    return state.currentFacilityManager || "Nguyễn Văn Nguyên";
+  }
+
+  function isTeamFacilityView(managerName = getCurrentFacilityManager()) {
+    return managerName === TEAM_FACILITY_LABEL;
+  }
+
+  function getIndividualFacilityManagers() {
+    return [...INDIVIDUAL_FACILITY_MANAGERS];
+  }
+
+  function getFacilityStorageKey(managerName = getCurrentFacilityManager()) {
+    const manager = managerName || getCurrentFacilityManager();
+    const suffix = MANAGER_STORAGE_IDS[manager] || manager.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_");
+    return `${FACILITY_LOCAL_STORAGE_PREFIX}_${suffix}`;
+  }
+
+  function updateFacilityManagerLabel() {
+    const label = $("facilityManagerLabel");
+    const hint = $("facilityTableHint");
+    if (label) label.textContent = getCurrentFacilityManager();
+    if (hint) {
+      hint.textContent = isTeamFacilityView()
+        ? "Chỉ xem dữ liệu tổng hợp từ 9 bảng cá nhân."
+        : "Nhấp đúp vào dòng để mở lại biểu mẫu sửa.";
+    }
+  }
+
+  function updateFacilityCreateModeUI() {
+    const isTeamView = isTeamFacilityView();
+    const saveButton = $("btnSaveFacility");
+    const refreshButton = $("btnFacilityRefresh");
+    const formPanel = $("facilityFormPanel");
+    const saveStatus = $("facilitySaveStatus");
+    const ownerFilterWrap = $("facilityFilterOwnerWrap");
+    const ownerFilter = $("facilityFilterOwner");
+    const codeInput = $("facilityCode");
+    const nameInput = $("facilityName");
+    const addressInput = $("facilityAddress");
+    const fieldInput = $("facilityField");
+    const appendixInput = $("facilityAppendix");
+    [codeInput, nameInput, addressInput, fieldInput, appendixInput].forEach(input => {
+      if (!input) return;
+      input.disabled = isTeamView;
+    });
+    if (formPanel) formPanel.style.display = isTeamView ? "none" : "";
+    if (refreshButton) refreshButton.style.display = "none";
+    if (ownerFilterWrap) ownerFilterWrap.style.display = isTeamView ? "" : "none";
+    if (!isTeamView && ownerFilter) ownerFilter.value = '';
+    if (saveStatus) saveStatus.textContent = isTeamView
+      ? "Cơ sở Đội 2 chỉ dùng để xem dữ liệu tổng hợp từ 9 danh sách cá nhân."
+      : "Sẵn sàng cập nhật danh sách cơ sở.";
+    if (saveButton) {
+      saveButton.disabled = isTeamView;
+      saveButton.title = isTeamView ? "Mục này chỉ tổng hợp dữ liệu từ 9 danh sách cá nhân." : "";
+    }
+  }
+
+  function setStatus(type, html) {
+    const box = $("loadStatus");
+    box.className = "status " + type;
+    box.innerHTML = html;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function safeAttachmentDataUrl(value) {
+    const text = String(value || "").trim();
+    return /^(data:image\/|data:application\/pdf)/i.test(text) ? text : "";
+  }
+
+  function safeAttachmentUrl(value) {
+    const text = String(value || "").trim();
+    return /^https?:\/\//i.test(text) ? text : "";
+  }
+
+  function getAttachmentKind(source = "", fileName = "", mimeType = "") {
+    const text = String(source || "").trim();
+    const name = String(fileName || "").trim().toLowerCase();
+    const mime = String(mimeType || "").trim().toLowerCase();
+    if (/^data:image\//i.test(text) || mime.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(name)) return "image";
+    if (/^data:application\/pdf/i.test(text) || mime === "application/pdf" || name.endsWith('.pdf')) return "pdf";
+    return "";
+  }
+
+  function hasAttachment(item) {
+    if (!item) return false;
+    return !!(item.file || item.attachmentData || item.attachmentUrl || item.attachmentPreviewUrl || item.attachmentFileId);
+  }
+
+  function normalizeAttachment(data) {
+    const raw = data || {};
+    const attachmentData = safeAttachmentDataUrl(raw.attachmentData || raw.image || "");
+    const attachmentUrl = safeAttachmentUrl(raw.attachmentUrl || raw.fileUrl || "");
+    const attachmentPreviewUrl = safeAttachmentUrl(raw.attachmentPreviewUrl || raw.previewUrl || attachmentUrl);
+    const attachmentName = String(raw.attachmentName || raw.imageName || raw.fileName || "").trim();
+    const attachmentMimeType = String(raw.attachmentMimeType || raw.mimeType || "").trim();
+    const attachmentFileId = String(raw.attachmentFileId || raw.fileId || "").trim();
+    const attachmentType = String(raw.attachmentType || getAttachmentKind(attachmentData || attachmentPreviewUrl || attachmentUrl, attachmentName, attachmentMimeType) || "").trim();
+    return {
+      file: raw.file || null,
+      previewUrl: String(raw.previewUrl || "").trim(),
+      attachmentData,
+      attachmentUrl,
+      attachmentPreviewUrl,
+      attachmentName,
+      attachmentType,
+      attachmentFileId,
+      attachmentMimeType
+    };
+  }
+
+  function normalizeAttachmentList(source) {
+    if (!source) return [];
+    const rawList = Array.isArray(source)
+      ? source
+      : Array.isArray(source.attachments)
+        ? source.attachments
+        : [source];
+    return rawList
+      .map(normalizeAttachment)
+      .filter(hasAttachment);
+  }
+
+  function hasAttachments(list) {
+    return normalizeAttachmentList(list).length > 0;
+  }
+
+  function hasPendingAttachmentFiles(list) {
+    return normalizeAttachmentList(list).some(item => !!item.file);
+  }
+
+  function getAttachmentFileIds(list) {
+    return normalizeAttachmentList(list)
+      .map(item => String(item.attachmentFileId || "").trim())
+      .filter(Boolean);
+  }
+
+  function cloneAttachmentForStorage(item) {
+    const normalized = normalizeAttachment(item);
+    return {
+      attachmentData: normalized.attachmentData,
+      attachmentUrl: normalized.attachmentUrl,
+      attachmentPreviewUrl: normalized.attachmentPreviewUrl,
+      attachmentName: normalized.attachmentName,
+      attachmentType: normalized.attachmentType,
+      attachmentFileId: normalized.attachmentFileId,
+      attachmentMimeType: normalized.attachmentMimeType
+    };
+  }
+
+  function attachmentPayloadObject(attachments) {
+    const normalized = normalizeAttachmentList(attachments).map(cloneAttachmentForStorage);
+    const first = normalized[0] || {};
+    return {
+      attachments: normalized,
+      attachmentData: first.attachmentData || "",
+      attachmentUrl: first.attachmentUrl || "",
+      attachmentPreviewUrl: first.attachmentPreviewUrl || "",
+      attachmentName: first.attachmentName || "",
+      attachmentType: first.attachmentType || "",
+      attachmentFileId: first.attachmentFileId || "",
+      attachmentMimeType: first.attachmentMimeType || ""
+    };
+  }
+
+  function parseTaskDescription(rawDescription) {
+    const raw = String(rawDescription || "").trim();
+    if (!raw.startsWith(DESCRIPTION_IMAGE_PREFIX)) {
+      return { text: raw, attachments: [] };
+    }
+    try {
+      const jsonText = decodeURIComponent(raw.slice(DESCRIPTION_IMAGE_PREFIX.length));
+      const parsed = JSON.parse(jsonText);
+      return {
+        text: String(parsed.text || "").trim(),
+        attachments: normalizeAttachmentList(parsed)
+      };
+    } catch (err) {
+      return { text: raw, attachments: [] };
+    }
+  }
+
+  function buildTaskDescriptionPayload(text, attachments) {
+    const cleanText = String(text || "").trim();
+    const normalized = normalizeAttachmentList(attachments);
+    if (!normalized.length) return cleanText;
+    return DESCRIPTION_IMAGE_PREFIX + encodeURIComponent(JSON.stringify({
+      text: cleanText,
+      ...attachmentPayloadObject(normalized)
+    }));
+  }
+
+  function getTaskDescriptionText(rawDescription) {
+    return parseTaskDescription(rawDescription).text;
+  }
+
+  function getAttachmentOpenUrl(data) {
+    const normalized = normalizeAttachment(data);
+    return safeAttachmentUrl(normalized.attachmentUrl) || safeAttachmentDataUrl(normalized.attachmentData);
+  }
+
+  function getAttachmentPreviewUrl(data) {
+    const normalized = normalizeAttachment(data);
+    return safeAttachmentDataUrl(normalized.attachmentData) || safeAttachmentUrl(normalized.attachmentPreviewUrl) || safeAttachmentUrl(normalized.attachmentUrl);
+  }
+
+  function buildAttachmentHtmlList(attachments, mode = "description") {
+    return normalizeAttachmentList(attachments).map(item => {
+      const openUrl = getAttachmentOpenUrl(item);
+      const previewUrl = getAttachmentPreviewUrl(item);
+      if (item.attachmentType === "image" && previewUrl) {
+        const imageClass = mode === "note" ? "task-note-image" : "task-desc-image";
+        const wrapperClass = mode === "note" ? "task-note-attachment" : "task-desc-attachment";
+        const altText = mode === "note" ? "Ảnh ghi chú" : "Ảnh đính kèm";
+        const href = openUrl || previewUrl || "#";
+        return `<div class="${wrapperClass}"><a href="${href}" target="_blank" rel="noopener noreferrer"><img class="${imageClass}" src="${previewUrl}" alt="${escapeHtml(item.attachmentName || altText)}"></a></div>`;
+      }
+      const wrapperClass = mode === "note" ? "task-note-attachment" : "task-desc-attachment";
+      const linkClass = mode === "note" ? "task-note-file-link" : "task-desc-file-link";
+      const label = mode === "note" ? "PDF ghi chú" : "PDF đính kèm";
+      return `<div class="${wrapperClass}"><a class="${linkClass}" href="${openUrl || '#'}" target="_blank" rel="noopener noreferrer">${label}: ${escapeHtml(item.attachmentName || (mode === "note" ? "tep-ghi-chu.pdf" : "tep-dinh-kem.pdf"))}</a></div>`;
+    }).join("");
+  }
+
+  function buildTaskDescriptionHtml(rawDescription) {
+    const data = parseTaskDescription(rawDescription);
+    const textHtml = `<div class="task-desc">${escapeHtml(data.text || "Không có mô tả")}</div>`;
+    return textHtml + buildAttachmentHtmlList(data.attachments, "description");
+  }
+
+  function parseTaskNote(rawNote) {
+    const raw = String(rawNote || "").trim();
+    if (!raw.startsWith(NOTE_ATTACHMENT_PREFIX)) {
+      return { text: raw, attachments: [] };
+    }
+    try {
+      const jsonText = decodeURIComponent(raw.slice(NOTE_ATTACHMENT_PREFIX.length));
+      const parsed = JSON.parse(jsonText);
+      return {
+        text: String(parsed.text || "").trim(),
+        attachments: normalizeAttachmentList(parsed)
+      };
+    } catch (err) {
+      return { text: raw, attachments: [] };
+    }
+  }
+
+  function buildTaskNotePayload(text, attachments) {
+    const cleanText = String(text || "").trim();
+    const normalized = normalizeAttachmentList(attachments);
+    if (!normalized.length) return cleanText;
+    return NOTE_ATTACHMENT_PREFIX + encodeURIComponent(JSON.stringify({
+      text: cleanText,
+      ...attachmentPayloadObject(normalized)
+    }));
+  }
+
+  function getTaskNoteText(rawNote) {
+    return parseTaskNote(rawNote).text;
+  }
+
+  function buildTaskNoteHtml(rawNote) {
+    const data = parseTaskNote(rawNote);
+    const parts = [];
+    if (data.text) {
+      parts.push(`<div class="task-note-text">${escapeHtml(data.text)}</div>`);
+    }
+    const attachmentHtml = buildAttachmentHtmlList(data.attachments, "note");
+    if (attachmentHtml) parts.push(attachmentHtml);
+    return parts.join("") || `<span class="muted">-</span>`;
+  }
+
+  function buildNoteCellHtml(task) {
+    if (isOverdue(task)) return '<span class="state-tag state-overdue">Quá hạn</span>';
+    if (isDueSoon(task)) return escapeHtml("Sắp hết hạn");
+    if (task.status === "Hoàn thành") {
+      const noteData = parseTaskNote(task.note);
+      if (noteData.text || hasAttachments(noteData.attachments)) {
+        return buildTaskNoteHtml(task.note);
+      }
+    }
+    return `<span class="muted">-</span>`;
+  }
+
+  function revokePreviewUrl(url) {
+    if (String(url || "").startsWith("blob:")) {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function revokeAttachmentPreviewUrls(list) {
+    normalizeAttachmentList(list).forEach(item => revokePreviewUrl(item.previewUrl));
+  }
+
+  function renderImagePreview(containerId, attachments) {
+    const box = $(containerId);
+    if (!box) return;
+    const items = normalizeAttachmentList(attachments);
+    if (!items.length) {
+      box.innerHTML = "";
+      return;
+    }
+    if (["viewerQuickAttachmentPreview", "editTaskImagePreview", "editTaskNotePreview"].includes(containerId)) {
+      box.innerHTML = items.map(item => {
+        const typeLabel = item.attachmentType === "image" ? "Ảnh" : "PDF";
+        const fileLabel = escapeHtml(item.attachmentName || (item.attachmentType === "image" ? "anh-dinh-kem.jpg" : "tep-dinh-kem.pdf"));
+        return `<div class="viewer-quick-file-chip"><strong>${typeLabel}</strong><span title="${fileLabel}">${fileLabel}</span></div>`;
+      }).join("");
+      return;
+    }
+    box.innerHTML = items.map(item => {
+      const previewUrl = String(item.previewUrl || "").trim() || getAttachmentPreviewUrl(item);
+      if (item.attachmentType === "image" && previewUrl) {
+        return `<div class="image-preview-card"><img src="${previewUrl}" alt="${escapeHtml(item.attachmentName || "Ảnh đính kèm")}"><div class="image-preview-name">${escapeHtml(item.attachmentName || "Ảnh đính kèm")}</div></div>`;
+      }
+      return `<div class="image-preview-card"><div class="image-preview-file">PDF</div><div class="image-preview-name">${escapeHtml(item.attachmentName || "tep-dinh-kem.pdf")}</div></div>`;
+    }).join("");
+  }
+
+  function clearCreateImageSelection() {
+    revokeAttachmentPreviewUrls(state.createAttachments);
+    state.createAttachments = [];
+    if ($("taskDescriptionImage")) $("taskDescriptionImage").value = "";
+    renderImagePreview("taskImagePreview", state.createAttachments);
+  }
+
+  function clearCreateNoteAttachmentSelection() {
+    revokeAttachmentPreviewUrls(state.createNoteAttachments);
+    state.createNoteAttachments = [];
+    if ($("taskNoteFile")) $("taskNoteFile").value = "";
+    renderImagePreview("taskNotePreview", state.createNoteAttachments);
+  }
+
+  function clearViewerQuickAttachmentSelection() {
+    revokeAttachmentPreviewUrls(state.viewerCreateAttachments);
+    state.viewerCreateAttachments = [];
+    if ($("viewerQuickAttachment")) $("viewerQuickAttachment").value = "";
+    renderImagePreview("viewerQuickAttachmentPreview", state.viewerCreateAttachments);
+  }
+
+  function clearEditImageSelection() {
+    revokeAttachmentPreviewUrls(state.editAttachments);
+    state.editAttachments = [];
+    if ($("editTaskDescriptionImage")) $("editTaskDescriptionImage").value = "";
+    renderImagePreview("editTaskImagePreview", state.editAttachments);
+  }
+
+  function clearEditNoteAttachmentSelection() {
+    revokeAttachmentPreviewUrls(state.editNoteAttachments);
+    state.editNoteAttachments = [];
+    if ($("editTaskNoteFile")) $("editTaskNoteFile").value = "";
+    renderImagePreview("editTaskNotePreview", state.editNoteAttachments);
+  }
+
+  function validateAttachmentFile(file) {
+    if (!file) return { ok: true };
+    const isImage = /^image\//i.test(file.type || "");
+    const isPdf = /^application\/pdf$/i.test(file.type || "") || /\.pdf$/i.test(file.name || "");
+    if (!isImage && !isPdf) {
+      return { ok: false, message: "Chỉ hỗ trợ tải lên ảnh hoặc file PDF." };
+    }
+    if ((file.size || 0) > 50 * 1024 * 1024) {
+      return { ok: false, message: "Tệp đính kèm quá lớn. Hãy dùng tệp nhỏ hơn 50MB." };
+    }
+    return { ok: true, attachmentType: isPdf ? "pdf" : "image" };
+  }
+
+  function fileToUploadPayload(file) {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        resolve(null);
+        return;
+      }
+
+      const check = validateAttachmentFile(file);
+      if (!check.ok) {
+        reject(new Error(check.message));
+        return;
+      }
+
+      const isPdf = check.attachmentType === "pdf";
+      if (isPdf) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = String(reader.result || "");
+          const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : "";
+          if (!base64Data) {
+            reject(new Error("Không đọc được file PDF tải lên."));
+            return;
+          }
+          resolve({
+            fileName: file.name || "tep-dinh-kem.pdf",
+            mimeType: "application/pdf",
+            attachmentType: "pdf",
+            base64Data
+          });
+        };
+        reader.onerror = () => reject(new Error("Không đọc được file PDF tải lên."));
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxWidth = 1600;
+          const maxHeight = 1600;
+          let { width, height } = img;
+          const scale = Math.min(1, maxWidth / width, maxHeight / height);
+          width = Math.max(1, Math.round(width * scale));
+          height = Math.max(1, Math.round(height * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          let quality = 0.9;
+          let dataUrl = canvas.toDataURL("image/jpeg", quality);
+          while (dataUrl.length > 4_500_000 && quality > 0.5) {
+            quality -= 0.08;
+            dataUrl = canvas.toDataURL("image/jpeg", quality);
+          }
+          const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : "";
+          if (!base64Data) {
+            reject(new Error("Không đọc được ảnh tải lên."));
+            return;
+          }
+          resolve({
+            fileName: (file.name || "anh-dinh-kem.jpg").replace(/\.[^.]+$/, '') + ".jpg",
+            mimeType: "image/jpeg",
+            attachmentType: "image",
+            base64Data
+          });
+        };
+        img.onerror = () => reject(new Error("Không đọc được ảnh tải lên."));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error("Không đọc được tệp ảnh."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function appendAttachmentsFromFiles(existingAttachments, files, defaultBaseName = "tep-dinh-kem") {
+    const next = normalizeAttachmentList(existingAttachments);
+    Array.from(files || []).forEach(file => {
+      if (!file) return;
+      const check = validateAttachmentFile(file);
+      if (!check.ok) throw new Error(check.message);
+      next.push(normalizeAttachment({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        attachmentName: file.name || defaultBaseName,
+        attachmentType: check.attachmentType,
+        attachmentMimeType: file.type || (check.attachmentType === "pdf" ? "application/pdf" : "image/jpeg")
+      }));
+    });
+    return next;
+  }
+
+  function setCreateAttachmentsFromFiles(files) {
+    state.createAttachments = appendAttachmentsFromFiles(state.createAttachments, files, "tep-dinh-kem");
+    renderImagePreview("taskImagePreview", state.createAttachments);
+  }
+
+  function setCreateNoteAttachmentsFromFiles(files) {
+    state.createNoteAttachments = appendAttachmentsFromFiles(state.createNoteAttachments, files, "tep-ghi-chu");
+    renderImagePreview("taskNotePreview", state.createNoteAttachments);
+  }
+
+  function setViewerQuickAttachmentsFromFiles(files) {
+    state.viewerCreateAttachments = appendAttachmentsFromFiles(state.viewerCreateAttachments, files, "tep-dinh-kem");
+    renderImagePreview("viewerQuickAttachmentPreview", state.viewerCreateAttachments);
+  }
+
+  function setEditAttachmentsFromFiles(files) {
+    state.editAttachments = appendAttachmentsFromFiles(state.editAttachments, files, "tep-dinh-kem");
+    renderImagePreview("editTaskImagePreview", state.editAttachments);
+  }
+
+  function setEditNoteAttachmentsFromFiles(files) {
+    state.editNoteAttachments = appendAttachmentsFromFiles(state.editNoteAttachments, files, "tep-ghi-chu");
+    renderImagePreview("editTaskNotePreview", state.editNoteAttachments);
+  }
+
+  async function handleCreateImageUpload() {
+    const input = $("taskDescriptionImage");
+    const files = input && input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
+    try {
+      setCreateAttachmentsFromFiles(files);
+    } catch (err) {
+      alert(err.message || "Không tải được tệp đính kèm.");
+    } finally {
+      if (input) input.value = "";
+    }
+  }
+
+  async function handleCreateNoteFileUpload() {
+    const input = $("taskNoteFile");
+    const files = input && input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
+    try {
+      setCreateNoteAttachmentsFromFiles(files);
+    } catch (err) {
+      alert(err.message || "Không tải được tệp ghi chú.");
+    } finally {
+      if (input) input.value = "";
+    }
+  }
+
+  async function handleViewerQuickAttachmentUpload() {
+    const input = $("viewerQuickAttachment");
+    const files = input && input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
+    try {
+      setViewerQuickAttachmentsFromFiles(files);
+    } catch (err) {
+      alert(err.message || "Không tải được tệp đính kèm.");
+    } finally {
+      if (input) input.value = "";
+    }
+  }
+
+  async function handleEditImageUpload() {
+    const input = $("editTaskDescriptionImage");
+    const files = input && input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
+    try {
+      setEditAttachmentsFromFiles(files);
+    } catch (err) {
+      alert(err.message || "Không tải được tệp đính kèm.");
+    } finally {
+      if (input) input.value = "";
+    }
+  }
+
+  async function handleEditNoteFileUpload() {
+    const input = $("editTaskNoteFile");
+    const files = input && input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
+    try {
+      setEditNoteAttachmentsFromFiles(files);
+    } catch (err) {
+      alert(err.message || "Không tải được tệp ghi chú.");
+    } finally {
+      if (input) input.value = "";
+    }
+  }
+
+  function setMain(title, sub) {
+    $("mainTitle").textContent = title;
+    $("mainSub").textContent = sub;
+  }
+
+  function showOnly(sectionId) {
+    ["welcomePanel", "viewerPanel", "adminPanel"].forEach(id => $(id).classList.add("hidden"));
+    $(sectionId).classList.remove("hidden");
+    document.body.classList.toggle("facility-manager-open", sectionId === "adminPanel");
+  }
+
+  function enterWorkMode() {
+    $("accessCard").classList.add("hidden");
+    $("mainGrid").classList.add("expanded");
+  }
+
+  function backToRoleSelection() {
+    $("accessCard").classList.remove("hidden");
+    $("mainGrid").classList.remove("expanded");
+    $("adminPassword").value = "";
+    $("viewerPassword").value = "";
+    if ($("viewerLoginModal")) closeViewerLoginModal();
+    if ($("adminLoginModal")) closeAdminLoginModal();
+    if ($("editTaskModal")) closeEditTaskModal();
+    document.body.classList.remove("facility-manager-open");
+  }
+
+  function openFacilityManager(managerName = "Nguyễn Văn Nguyên") {
+    state.currentFacilityManager = managerName || "Nguyễn Văn Nguyên";
+    enterWorkMode();
+    resetForm();
+    loadFacilities();
+    setMain(state.currentFacilityManager, "");
+    showOnly("adminPanel");
+    setTimeout(() => {
+      if ($("facilityName")) $("facilityName").focus();
+    }, 30);
+  }
+
+  function closeFacilityManager() {
+    backToRoleSelection();
+    resetForm();
+    resetFacilityForm();
+    state.pendingFacilityManager = "";
+    setMain("Sẵn sàng sử dụng", "");
+    showOnly("welcomePanel");
+  }
+
+  function makeId() {
+    return "TASK-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+  }
+
+  function normalizeTask(raw) {
+    const dueDate = normalizeDate(raw.dueDate || raw.deadline || "");
+    return {
+      id: String(raw.id || raw.taskId || makeId()).trim(),
+      title: String(raw.title || raw.name || "").trim(),
+      description: String(raw.description || raw.content || "").trim(),
+      assignee: String(raw.assignee || raw.owner || "").trim(),
+      assignedWeek: normalizeWeek(raw.assignedWeek || raw.assignWeek || raw.assignmentWeek || raw.thoiGianGiao || "", dueDate),
+      dueDate,
+      status: normalizeTaskStatus(raw.status),
+      note: String(raw.note || raw.notes || "").trim(),
+      createdAt: normalizeIso(raw.createdAt || raw.created_at || new Date().toISOString()),
+      updatedAt: normalizeIso(raw.updatedAt || raw.updated_at || new Date().toISOString())
+    };
+  }
+
+
+  function normalizeTaskStatus(value) {
+    const v = String(value || "").trim();
+    if (["Hoàn thành", "Hoan thanh"].includes(v)) return "Hoàn thành";
+    return "Đang thực hiện";
+  }
+
+  function normalizeDate(value) {
+    if (!value) return "";
+    const text = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+    const d = new Date(text);
+    if (isNaN(d)) return "";
+    return d.toISOString().slice(0, 10);
+  }
+
+  function getAssignedWeekYearHint(value) {
+    const text = String(value || "").trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return Number(text.slice(0, 4));
+    if (/^\d{4}-W\d{2}$/.test(text)) return Number(text.slice(0, 4));
+    if (/^\d{4}$/.test(text)) return Number(text);
+    return new Date().getFullYear();
+  }
+
+  function dateToIsoWeekString(date) {
+    const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const dayNr = utcDate.getUTCDay() || 7;
+    utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNr);
+    const isoYear = utcDate.getUTCFullYear();
+    const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+    const weekNo = Math.ceil((((utcDate - yearStart) / 86400000) + 1) / 7);
+    return `${isoYear}-W${String(weekNo).padStart(2, "0")}`;
+  }
+
+  function getTodayAssignedWeek() {
+    const now = new Date();
+    const todayUtc = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    return dateToIsoWeekString(todayUtc);
+  }
+
+  function monthWeekToIsoWeek(year, month, weekOfMonth) {
+    const safeYear = Number(year) || new Date().getFullYear();
+    const safeMonth = Math.min(12, Math.max(1, Number(month) || 1));
+    const safeWeek = Math.min(5, Math.max(1, Number(weekOfMonth) || 1));
+    const lastDay = new Date(Date.UTC(safeYear, safeMonth, 0)).getUTCDate();
+    const startDay = Math.min(lastDay, ((safeWeek - 1) * 7) + 1);
+    const date = new Date(Date.UTC(safeYear, safeMonth - 1, startDay));
+    return dateToIsoWeekString(date);
+  }
+
+  function normalizeWeek(value, fallbackYearOrDate = "") {
+    if (!value) return "";
+    const text = String(value).trim();
+    if (/^\d{4}-W\d{2}$/.test(text)) return text;
+
+    let match = text.match(/^(\d{4})[-\/](\d{1,2})$/);
+    if (match) {
+      return `${match[1]}-W${String(match[2]).padStart(2, "0")}`;
+    }
+
+    const fallbackYear = getAssignedWeekYearHint(fallbackYearOrDate);
+
+    match = text.match(/^Y(\d{4})-M(\d{2})-W([1-5])$/i);
+    if (match) {
+      return monthWeekToIsoWeek(Number(match[1]), Number(match[2]), Number(match[3]));
+    }
+
+    match = text.match(/^M(\d{2})-W([1-5])$/i);
+    if (match) {
+      return monthWeekToIsoWeek(fallbackYear, Number(match[1]), Number(match[2]));
+    }
+
+    match = text.match(/^Tuần\s*([1-5])\s*\/\s*Tháng\s*(\d{1,2})$/i);
+    if (match) {
+      return monthWeekToIsoWeek(fallbackYear, Number(match[2]), Number(match[1]));
+    }
+
+    return "";
+  }
+
+  function normalizeIso(value) {
+    const d = new Date(value || new Date());
+    return isNaN(d) ? new Date().toISOString() : d.toISOString();
+  }
+
+  function readLocalTasks() {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.map(normalizeTask).filter(task => task.title) : [];
+    } catch (err) {
+      console.warn("Không đọc được dữ liệu cục bộ:", err);
+      return [];
+    }
+  }
+
+  function saveLocalTasks(tasks) {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
+    } catch (err) {
+      console.warn("Không lưu được dữ liệu cục bộ:", err);
+    }
+  }
+
+  function sortTasks(tasks) {
+    const statusOrder = { "Đang thực hiện": 0, "Hoàn thành": 1 };
+    return [...tasks].sort((a, b) => {
+      const statusDiff = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9);
+      if (statusDiff !== 0) return statusDiff;
+
+      const aOverdue = isOverdue(a) ? 0 : 1;
+      const bOverdue = isOverdue(b) ? 0 : 1;
+      if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+
+      const aDueSoon = isDueSoon(a) ? 0 : 1;
+      const bDueSoon = isDueSoon(b) ? 0 : 1;
+      if (aDueSoon !== bDueSoon) return aDueSoon - bDueSoon;
+
+      if (a.dueDate && b.dueDate) {
+        const dueDiff = a.dueDate.localeCompare(b.dueDate);
+        if (dueDiff !== 0) return dueDiff;
+      } else if (a.dueDate || b.dueDate) {
+        return a.dueDate ? -1 : 1;
+      }
+
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    });
+  }
+
+  function isOverdue(task) {
+    if (!task.dueDate || task.status === "Hoàn thành") return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const due = new Date(task.dueDate + "T00:00:00");
+    return due < today;
+  }
+
+  function isDueSoon(task) {
+    if (!task.dueDate || task.status === "Hoàn thành") return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const due = new Date(task.dueDate + "T00:00:00");
+    if (due < today) return false;
+    const diffDays = Math.ceil((due - today) / 86400000);
+    return diffDays <= 3;
+  }
+
+  function getDisplayNote(task) {
+    if (isOverdue(task)) return "Quá hạn";
+    if (isDueSoon(task)) return "Sắp hết hạn";
+    if (task.status === "Hoàn thành") return getTaskNoteText(task.note);
+    return "";
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+    const d = new Date(dateString + "T00:00:00");
+    if (isNaN(d)) return dateString;
+    return d.toLocaleDateString("vi-VN");
+  }
+
+  function getWeekMonthDisplayData(weekString) {
+    const range = getIsoWeekDateRange(weekString);
+    if (!range) return null;
+    const monday = range.start;
+    const month = monday.getUTCMonth() + 1;
+    const weekOfMonth = Math.floor((monday.getUTCDate() - 1) / 7) + 1;
+    return { weekOfMonth, month, year: monday.getUTCFullYear() };
+  }
+
+  function formatWeek(weekString) {
+    if (!weekString) return "-";
+    const data = getWeekMonthDisplayData(weekString);
+    if (!data) return weekString;
+    return `Tuần ${data.weekOfMonth}/Tháng ${data.month}`;
+  }
+
+  function formatWeekStackedHtml(weekString) {
+    if (!weekString) return '<span class="muted">-</span>';
+    const data = getWeekMonthDisplayData(weekString);
+    if (!data) return escapeHtml(weekString);
+    return `<div class="week-stacked"><span>Tuần ${data.weekOfMonth}</span><span class="month-line">/Tháng ${data.month}</span></div>`;
+  }
+
+  function updateWeekDisplay(inputId, outputId, inlineId) {
+    const input = $(inputId);
+    const output = $(outputId);
+    const inline = inlineId ? $(inlineId) : null;
+    if (!input || !output) return;
+    const formatted = input.value ? formatWeek(input.value) : "-";
+    output.textContent = formatted;
+    if (inline) {
+      const hasValue = !!input.value;
+      inline.textContent = hasValue ? formatWeek(input.value) : "Chọn Tuần/Tháng";
+      inline.classList.toggle("empty", !hasValue);
+    }
+  }
+
+  function ensureSelectOption(selectId, value) {
+    const select = $(selectId);
+    const normalized = String(value || "").trim();
+    if (!select || !normalized) return;
+    const exists = [...select.options].some(option => option.value === normalized);
+    if (!exists) {
+      const option = document.createElement("option");
+      option.value = normalized;
+      option.textContent = normalized;
+      select.appendChild(option);
+    }
+  }
+
+  function getIsoWeekDateRange(weekString) {
+    const match = String(weekString || "").match(/^(\d{4})-W(\d{2})$/);
+    if (!match) return null;
+    const year = Number(match[1]);
+    const week = Number(match[2]);
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const jan4Day = jan4.getUTCDay() || 7;
+    const monday = new Date(jan4);
+    monday.setUTCDate(jan4.getUTCDate() - jan4Day + 1 + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6);
+    return { start: monday, end: sunday };
+  }
+
+  function formatWeekRangeText(weekString) {
+    const range = getIsoWeekDateRange(weekString);
+    if (!range) return "";
+    return formatRangeText(range.start, range.end);
+  }
+
+  function formatRangeText(startDate, endDate) {
+    if (!startDate || !endDate) return "";
+    const startText = new Date(startDate).toLocaleDateString("vi-VN", { timeZone: "UTC" });
+    const endText = new Date(endDate).toLocaleDateString("vi-VN", { timeZone: "UTC" });
+    return `Từ ngày ${startText} đến ngày ${endText}`;
+  }
+
+  function getDisplayedTasksForPrint() {
+    if (!$("viewerPanel").classList.contains("hidden")) {
+      return sortTasks(getFilteredTasks());
+    }
+    if (!$("adminPanel").classList.contains("hidden")) {
+      return sortTasks(state.tasks);
+    }
+    return sortTasks(state.tasks);
+  }
+
+  function getDisplayedRangeText(tasks) {
+    if (!Array.isArray(tasks) || !tasks.length) return "";
+
+    const weekRanges = tasks.map(task => getIsoWeekDateRange(task.assignedWeek)).filter(Boolean);
+    if (weekRanges.length) {
+      let minStart = weekRanges[0].start;
+      let maxEnd = weekRanges[0].end;
+      weekRanges.forEach(range => {
+        if (range.start < minStart) minStart = range.start;
+        if (range.end > maxEnd) maxEnd = range.end;
+      });
+      return formatRangeText(minStart, maxEnd);
+    }
+
+    const dueDates = tasks.map(task => task.dueDate).filter(Boolean).sort();
+    if (dueDates.length) {
+      const start = new Date(dueDates[0] + "T00:00:00");
+      const end = new Date(dueDates[dueDates.length - 1] + "T00:00:00");
+      return formatRangeText(start, end);
+    }
+
+    return "";
+  }
+
+  function formatDateTime(isoString) {
+    if (!isoString) return "-";
+    const d = new Date(isoString);
+    if (isNaN(d)) return isoString;
+    return d.toLocaleString("vi-VN");
+  }
+
+
+  function statusClass(status) {
+    if (status === "Hoàn thành") return "state-done";
+    return "state-doing";
+  }
+
+  function updateSyncUI() {
+    const isCloud = state.syncMode === "cloud";
+    if ($("dataModeView")) $("dataModeView").textContent = isCloud ? "Dùng chung" : "Cục bộ";
+    if ($("dataModeAdmin")) $("dataModeAdmin").textContent = isCloud ? "Dùng chung" : "Cục bộ";
+  }
+
+  async function loadTasks(showToast = false) {
+    setStatus("info", "Đang tải danh sách công việc...");
+
+    const localTasks = sortTasks(readLocalTasks());
+
+    if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
+      state.tasks = localTasks;
+      state.syncMode = "local";
+      state.lastLoadSource = "local";
+      saveLocalTasks(state.tasks);
+      afterTaskLoad(showToast ? "warning" : "info", state.tasks.length
+        ? "Chưa cấu hình Apps Script. Hệ thống đang dùng dữ liệu cục bộ trên máy này."
+        : "Chưa có công việc nào. Hệ thống đang dùng dữ liệu cục bộ trên máy này.");
+      return;
+    }
+
+    try {
+      const url = SCRIPT_URL + (SCRIPT_URL.includes("?") ? "&" : "?") + "action=listTasks&_ts=" + Date.now();
+      const resp = await fetch(url);
+      const data = await resp.json();
+      const rows = Array.isArray(data.rows) ? data.rows : [];
+      state.tasks = sortTasks(rows.map(normalizeTask).filter(task => task.title));
+      state.syncMode = "cloud";
+      state.lastLoadSource = "cloud";
+      saveLocalTasks(state.tasks);
+      afterTaskLoad("success", "Đã đồng bộ <b>" + state.tasks.length + "</b> công việc từ hệ thống.");
+    } catch (err) {
+      console.error(err);
+      state.tasks = localTasks;
+      state.syncMode = "local";
+      state.lastLoadSource = "local";
+      saveLocalTasks(state.tasks);
+      afterTaskLoad("warning", state.tasks.length
+        ? "Không kết nối được Apps Script, đang dùng dữ liệu cục bộ gần nhất trên máy này."
+        : "Không kết nối được Apps Script và chưa có dữ liệu cục bộ. Hãy đăng nhập admin để tạo công việc đầu tiên.");
+    }
+  }
+
+  function afterTaskLoad(statusType, message) {
+    updateSyncUI();
+    setStatus(statusType, message);
+    renderAll();
+  }
+
+  function buildFacilityCode(raw = {}) {
+    const direct = String(raw.code || raw.facilityCode || raw.maCoSo || raw.facility_code || '').trim();
+    if (direct) return direct;
+    const idSource = String(raw.id || '').trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const tail = (idSource.slice(-6) || String(Date.now()).slice(-6)).padStart(6, '0');
+    return 'CS-' + tail;
+  }
+
+  function normalizeFacility(raw = {}) {
+    return {
+      id: String(raw.id || makeId()).trim(),
+      code: buildFacilityCode(raw),
+      name: String(raw.name || '').trim(),
+      address: String(raw.address || '').trim(),
+      field: String(raw.field || '').trim(),
+      appendix: String(raw.appendix || '').trim(),
+      inspectionDate: String(raw.inspectionDate || '').trim(),
+      insurance: String(raw.insurance || '').trim(),
+      maintenance: String(raw.maintenance || '').trim(),
+      drill: String(raw.drill || '').trim(),
+      training: String(raw.training || '').trim(),
+      owner: String(raw.owner || raw.ownerManager || raw.manager || '').trim(),
+      createdAt: String(raw.createdAt || new Date().toISOString()).trim(),
+      updatedAt: String(raw.updatedAt || raw.createdAt || new Date().toISOString()).trim()
+    };
+  }
+
+  function sortFacilities(items) {
+    return [...items].sort((a, b) => {
+      const nameCompare = String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+      if (nameCompare !== 0) return nameCompare;
+      return String(a.address || '').localeCompare(String(b.address || ''), 'vi');
+    });
+  }
+
+  function loadLocalFacilities(managerName = getCurrentFacilityManager()) {
+    if (isTeamFacilityView(managerName)) {
+      return sortFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+    }
+    try {
+      const raw = localStorage.getItem(getFacilityStorageKey(managerName));
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed)
+        ? sortFacilities(parsed.map(item => normalizeFacility({ ...item, owner: item?.owner || managerName })).filter(item => item.name))
+        : [];
+    } catch (err) {
+      console.warn('Không đọc được dữ liệu cơ sở cục bộ:', err);
+      return [];
+    }
+  }
+
+  function saveLocalFacilities(items, managerName = getCurrentFacilityManager()) {
+    if (isTeamFacilityView(managerName)) return;
+    try {
+      const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: managerName })));
+      localStorage.setItem(getFacilityStorageKey(managerName), JSON.stringify(normalized));
+    } catch (err) {
+      console.warn('Không lưu được dữ liệu cơ sở cục bộ:', err);
+    }
+  }
+
+  function loadFacilities() {
+    updateFacilityManagerLabel();
+    updateFacilityCreateModeUI();
+    if (isTeamFacilityView()) closeFacilityEditModal();
+    state.facilities = loadLocalFacilities();
+    renderFacilities();
+  }
+
+  function setFacilityStatus(type, message) {
+    const statusBox = $('facilitySaveStatus');
+    if (!statusBox) return;
+    statusBox.className = 'status ' + type;
+    statusBox.textContent = message;
+  }
+
+  function resetFacilityForm(options = {}) {
+    const preserveStatus = !!options.preserveStatus;
+    if (!$('facilityId')) return;
+    $('facilityId').value = '';
+    $('facilityCode').value = '';
+    $('facilityName').value = '';
+    $('facilityAddress').value = '';
+    $('facilityField').value = 'Cơ sở thương mại, dịch vụ';
+    $('facilityAppendix').value = 'I';
+    const hiddenInspection = $('facilityInspectionDate');
+    const hiddenInsurance = $('facilityInsurance');
+    const hiddenMaintenance = $('facilityMaintenance');
+    const hiddenDrill = $('facilityDrill');
+    const hiddenTraining = $('facilityTraining');
+    if (hiddenInspection) hiddenInspection.value = '';
+    if (hiddenInsurance) hiddenInsurance.value = '';
+    if (hiddenMaintenance) hiddenMaintenance.value = '';
+    if (hiddenDrill) hiddenDrill.value = '';
+    if (hiddenTraining) hiddenTraining.value = '';
+    state.selectedFacilityId = '';
+    updateFacilityCreateModeUI();
+    if (!preserveStatus) {
+      setFacilityStatus('info', isTeamFacilityView() ? 'Cơ sở Đội 2 đang tổng hợp dữ liệu từ 9 danh sách cá nhân.' : 'Sẵn sàng cập nhật danh sách cơ sở.');
+    }
+    renderFacilities();
+  }
+
+  function fillFacilityEditModal(item) {
+    if (!item) return;
+    $('facilityEditId').value = item.id || '';
+    $('facilityEditCode').value = item.code || '';
+    $('facilityEditName').value = item.name || '';
+    $('facilityEditAddress').value = item.address || '';
+    $('facilityEditField').value = Array.from($('facilityEditField').options).some(opt => opt.value === item.field) ? item.field : 'Khác';
+    $('facilityEditAppendix').value = Array.from($('facilityEditAppendix').options).some(opt => opt.value === item.appendix) ? item.appendix : 'I';
+    $('facilityEditInspectionDate').value = item.inspectionDate || '';
+    $('facilityEditInsurance').value = item.insurance || '';
+    $('facilityEditMaintenance').value = item.maintenance || '';
+    $('facilityEditDrill').value = item.drill || '';
+    $('facilityEditTraining').value = item.training || '';
+    $('facilityEditModalError').textContent = '';
+  }
+
+  function openFacilityEditModal(facilityId) {
+    if (isTeamFacilityView()) return;
+    const item = state.facilities.find(entry => entry.id === facilityId);
+    if (!item || !$('facilityEditModal')) return;
+    fillFacilityEditModal(item);
+    state.selectedFacilityId = item.id;
+    renderFacilities();
+    $('facilityEditModal').classList.remove('hidden');
+    const modalBody = $('facilityEditModal').querySelector('.modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
+    setTimeout(() => $('facilityEditName').focus(), 30);
+  }
+
+  function closeFacilityEditModal() {
+    if (!$('facilityEditModal')) return;
+    $('facilityEditModal').classList.add('hidden');
+    $('facilityEditId').value = '';
+    $('facilityEditCode').value = '';
+    $('facilityEditName').value = '';
+    $('facilityEditAddress').value = '';
+    $('facilityEditField').value = 'Cơ sở thương mại, dịch vụ';
+    $('facilityEditAppendix').value = 'I';
+    $('facilityEditInspectionDate').value = '';
+    $('facilityEditInsurance').value = '';
+    $('facilityEditMaintenance').value = '';
+    $('facilityEditDrill').value = '';
+    $('facilityEditTraining').value = '';
+    $('facilityEditModalError').textContent = '';
+  }
+
+  function openFacilityForEdit(facilityId) {
+    openFacilityEditModal(facilityId);
+  }
+
+  function readFacilityFiltersFromInputs() {
+    state.facilityFilters = {
+      name: $('facilityFilterName') ? $('facilityFilterName').value.trim().toLowerCase() : '',
+      address: $('facilityFilterAddress') ? $('facilityFilterAddress').value.trim().toLowerCase() : '',
+      field: $('facilityFilterField') ? $('facilityFilterField').value.trim() : '',
+      appendix: $('facilityFilterAppendix') ? $('facilityFilterAppendix').value.trim() : '',
+      owner: $('facilityFilterOwner') ? $('facilityFilterOwner').value.trim() : ''
+    };
+  }
+
+  function getFilteredFacilities() {
+    const filters = state.facilityFilters || {};
+    return state.facilities.filter(item => {
+      const nameOk = !filters.name || String(item.name || '').toLowerCase().includes(filters.name);
+      const addressOk = !filters.address || String(item.address || '').toLowerCase().includes(filters.address);
+      const fieldOk = !filters.field || String(item.field || '') === filters.field;
+      const appendixOk = !filters.appendix || String(item.appendix || '') === filters.appendix;
+      const ownerOk = !filters.owner || String(item.owner || '') === filters.owner;
+      return nameOk && addressOk && fieldOk && appendixOk && ownerOk;
+    });
+  }
+
+  function updateFacilityFilterSummary(filteredFacilities) {
+    const box = $('facilityFilterSummary');
+    if (!box) return;
+    const filters = state.facilityFilters || {};
+    const hasFilter = Object.values(filters).some(value => String(value || '').trim() !== '');
+    if (!state.facilities.length) {
+      box.textContent = 'Chưa có dữ liệu cơ sở để lọc.';
+      return;
+    }
+    if (!hasFilter) {
+      box.textContent = `Bảng đang hiển thị ${filteredFacilities.length} cơ sở.`;
+      return;
+    }
+    box.textContent = `Bảng đang hiển thị ${filteredFacilities.length}/${state.facilities.length} cơ sở theo điều kiện lọc.`;
+  }
+
+  function resetFacilityFilters(options = {}) {
+    if ($('facilityFilterName')) $('facilityFilterName').value = '';
+    if ($('facilityFilterAddress')) $('facilityFilterAddress').value = '';
+    if ($('facilityFilterField')) $('facilityFilterField').value = '';
+    if ($('facilityFilterAppendix')) $('facilityFilterAppendix').value = '';
+    if ($('facilityFilterOwner')) $('facilityFilterOwner').value = '';
+    state.facilityFilters = {
+      name: '',
+      address: '',
+      field: '',
+      appendix: '',
+      owner: ''
+    };
+    if (!options.skipRender) renderFacilities();
+  }
+
+  function applyFacilityFilters() {
+    readFacilityFiltersFromInputs();
+    renderFacilities();
+  }
+
+  function renderFacilities() {
+    const body = $('facilityBody');
+    const totalBox = $('facilityStatTotal');
+    const inspectedBox = $('facilityStatInspected');
+    const insuranceBox = $('facilityStatInsurance');
+    const maintenanceBox = $('facilityStatMaintenance');
+    const drillBox = $('facilityStatDrill');
+    const trainingBox = $('facilityStatTraining');
+    if (!body || !totalBox) return;
+    body.innerHTML = '';
+
+    const allFacilities = Array.isArray(state.facilities) ? state.facilities : [];
+    const countFilled = (key) => allFacilities.filter(item => String(item?.[key] || '').trim() !== '').length;
+
+    totalBox.textContent = String(allFacilities.length);
+    if (inspectedBox) inspectedBox.textContent = String(countFilled('inspectionDate'));
+    if (insuranceBox) insuranceBox.textContent = String(countFilled('insurance'));
+    if (maintenanceBox) maintenanceBox.textContent = String(countFilled('maintenance'));
+    if (drillBox) drillBox.textContent = String(countFilled('drill'));
+    if (trainingBox) trainingBox.textContent = String(countFilled('training'));
+
+    if (!allFacilities.length) {
+      updateFacilityFilterSummary([]);
+      body.innerHTML = '<tr><td colspan="12"><div class="empty-state">' + (isTeamFacilityView() ? 'Chưa có dữ liệu ở 9 danh sách cá nhân.' : 'Chưa có cơ sở nào. Hãy nhập cơ sở đầu tiên.') + '</div></td></tr>';
+      return;
+    }
+
+    const filteredFacilities = getFilteredFacilities();
+    updateFacilityFilterSummary(filteredFacilities);
+
+    if (!filteredFacilities.length) {
+      body.innerHTML = '<tr><td colspan="12"><div class="empty-state">Không có cơ sở phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
+      return;
+    }
+
+    filteredFacilities.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      tr.dataset.id = item.id;
+      tr.title = isTeamFacilityView()
+        ? ('Dữ liệu tổng hợp - ' + (item.owner || ''))
+        : ('Nhấp đúp để chỉnh sửa cơ sở' + (item.owner ? ' - ' + item.owner : ''));
+      if (state.selectedFacilityId && state.selectedFacilityId === item.id) {
+        tr.classList.add('facility-row-active');
+      }
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${escapeHtml(item.code || '-')}</td>
+        <td><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div></td>
+        <td>${escapeHtml(item.address || '-')}</td>
+        <td>${escapeHtml(item.field || '-')}</td>
+        <td>${escapeHtml(item.appendix || '-')}</td>
+        <td>${escapeHtml(item.owner || '-')}</td>
+        <td>${escapeHtml(formatDate(item.inspectionDate) || '-')}</td>
+        <td>${escapeHtml(item.insurance || '-')}</td>
+        <td>${escapeHtml(item.maintenance || '-')}</td>
+        <td>${escapeHtml(item.drill || '-')}</td>
+        <td>${escapeHtml(item.training || '-')}</td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  function handleSaveFacility() {
+    if (isTeamFacilityView()) {
+      return;
+    }
+    const id = makeId();
+    const code = $('facilityCode').value.trim();
+    const name = $('facilityName').value.trim();
+    const address = $('facilityAddress').value.trim();
+    const field = $('facilityField').value.trim() || 'Cơ sở thương mại, dịch vụ';
+    const appendix = ($('facilityAppendix').value || 'I').trim();
+
+    if (!name) {
+      setFacilityStatus('error', 'Vui lòng nhập tên cơ sở.');
+      $('facilityName').focus();
+      return;
+    }
+
+    const facility = normalizeFacility({
+      id,
+      code,
+      name,
+      address,
+      field,
+      appendix,
+      inspectionDate: '',
+      insurance: '',
+      maintenance: '',
+      drill: '',
+      training: '',
+      owner: getCurrentFacilityManager(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    state.facilities = sortFacilities([
+      ...state.facilities,
+      facility
+    ]);
+    saveLocalFacilities(state.facilities, getCurrentFacilityManager());
+    state.selectedFacilityId = facility.id;
+    renderFacilities();
+    resetFacilityForm({ preserveStatus: false });
+    setTimeout(() => $('facilityCode').focus(), 30);
+  }
+
+  function handleSaveFacilityModal() {
+    const id = $('facilityEditId').value.trim();
+    const code = $('facilityEditCode').value.trim();
+    const name = $('facilityEditName').value.trim();
+    const address = $('facilityEditAddress').value.trim();
+    const field = $('facilityEditField').value.trim() || 'Cơ sở thương mại, dịch vụ';
+    const appendix = ($('facilityEditAppendix').value || 'I').trim();
+    const inspectionDate = $('facilityEditInspectionDate').value;
+    const insurance = $('facilityEditInsurance').value.trim();
+    const maintenance = $('facilityEditMaintenance').value.trim();
+    const drill = $('facilityEditDrill').value.trim();
+    const training = $('facilityEditTraining').value.trim();
+
+    if (!id) {
+      $('facilityEditModalError').textContent = 'Không tìm thấy cơ sở cần sửa.';
+      return;
+    }
+    if (!name) {
+      $('facilityEditModalError').textContent = 'Vui lòng nhập Tên cơ sở.';
+      $('facilityEditName').focus();
+      return;
+    }
+
+    const existing = state.facilities.find(item => item.id === id);
+    const ownerName = existing?.owner || getCurrentFacilityManager();
+    const targetFacilities = loadLocalFacilities(ownerName);
+    const localExisting = targetFacilities.find(item => item.id === id);
+    const facility = normalizeFacility({
+      id,
+      code,
+      name,
+      address,
+      field,
+      appendix,
+      inspectionDate,
+      insurance,
+      maintenance,
+      drill,
+      training,
+      owner: ownerName,
+      createdAt: localExisting ? localExisting.createdAt : (existing ? existing.createdAt : new Date().toISOString()),
+      updatedAt: new Date().toISOString()
+    });
+
+    const updatedFacilities = sortFacilities([
+      ...targetFacilities.filter(item => item.id !== id),
+      facility
+    ]);
+    saveLocalFacilities(updatedFacilities, ownerName);
+    state.selectedFacilityId = facility.id;
+    loadFacilities();
+    closeFacilityEditModal();
+  }
+
+  function handleDeleteFacilityModal() {
+    const id = $('facilityEditId').value.trim() || state.selectedFacilityId;
+    if (!id) return;
+    const facility = state.facilities.find(item => item.id === id);
+    if (!facility) return;
+    if (!confirm('Bạn chắc chắn muốn xóa cơ sở "' + facility.name + '"?')) return;
+
+    const ownerName = facility.owner || getCurrentFacilityManager();
+    const targetFacilities = loadLocalFacilities(ownerName).filter(item => item.id !== id);
+    saveLocalFacilities(targetFacilities, ownerName);
+    state.selectedFacilityId = '';
+    loadFacilities();
+    closeFacilityEditModal();
+    resetFacilityForm({ preserveStatus: true });
+    setFacilityStatus('success', 'Đã xóa cơ sở thành công.');
+  }
+
+  function exportFacilitiesCsv() {
+    if (!state.facilities.length) {
+      alert('Chưa có dữ liệu cơ sở để xuất.');
+      return;
+    }
+    const lines = [
+      ['STT','Mã cơ sở','Tên cơ sở','Địa chỉ','Lĩnh vực','Phụ lục','Người quản lý','Ngày kiểm tra','Bảo hiểm','Bảo dưỡng','Thực tập','Bồi dưỡng'].join(','),
+      ...state.facilities.map((item, idx) => [
+        idx + 1,
+        item.code,
+        item.name,
+        item.address,
+        item.field,
+        item.appendix,
+        item.owner,
+        formatDate(item.inspectionDate),
+        item.insurance,
+        item.maintenance,
+        item.drill,
+        item.training
+      ].map(value => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(','))
+    ];
+    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : (MANAGER_STORAGE_IDS[getCurrentFacilityManager()] || 'co_so');
+    link.download = `danh_sach_co_so_${exportSlug}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function refreshFacilitiesPanel() {
+    loadFacilities();
+    resetFacilityForm({ preserveStatus: true });
+    closeFacilityEditModal();
+    setFacilityStatus('info', isTeamFacilityView() ? 'Đã làm mới dữ liệu tổng hợp của Cơ sở Đội 2 từ 9 danh sách cá nhân trên trình duyệt này.' : 'Đã làm mới danh sách cơ sở của ' + getCurrentFacilityManager() + ' từ dữ liệu cục bộ trên trình duyệt này.');
+  }
+
+  window.handleSaveFacility = handleSaveFacility;
+  window.handleSaveFacilityModal = handleSaveFacilityModal;
+  window.handleDeleteFacilityModal = handleDeleteFacilityModal;
+  window.refreshFacilitiesPanel = refreshFacilitiesPanel;
+  window.exportFacilitiesCsv = exportFacilitiesCsv;
+  window.closeFacilityManager = closeFacilityManager;
+
+  if ($('btnSaveFacility')) $('btnSaveFacility').addEventListener('click', handleSaveFacility);
+  if ($('btnSaveFacilityModal')) $('btnSaveFacilityModal').addEventListener('click', handleSaveFacilityModal);
+  if ($('btnDeleteFacilityModal')) $('btnDeleteFacilityModal').addEventListener('click', handleDeleteFacilityModal);
+  if ($('btnCancelFacilityModal')) $('btnCancelFacilityModal').addEventListener('click', closeFacilityEditModal);
+  if ($('btnFacilityExport')) $('btnFacilityExport').addEventListener('click', exportFacilitiesCsv);
+  if ($('btnFacilityLogout')) $('btnFacilityLogout').addEventListener('click', closeFacilityManager);
+  if ($('facilityBody')) $('facilityBody').addEventListener('dblclick', (event) => {
+    if (isTeamFacilityView()) return;
+    const row = event.target.closest('tr[data-id]');
+    if (!row) return;
+    openFacilityForEdit(row.dataset.id);
+  });
+  ['facilityCode','facilityName','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
+    if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
+  });
+  ['facilityEditCode','facilityEditName','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditInspectionDate','facilityEditInsurance','facilityEditMaintenance','facilityEditDrill','facilityEditTraining'].forEach(id => {
+    if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
+  });
+  ['facilityFilterName','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterOwner'].forEach(id => {
+    if (!$(id)) return;
+    const eventName = $(id).tagName === 'SELECT' || $(id).type === 'date' ? 'change' : 'input';
+    $(id).addEventListener(eventName, applyFacilityFilters);
+    if (eventName !== 'change') $(id).addEventListener('change', applyFacilityFilters);
+  });
+  if ($('btnClearFacilityFilters')) $('btnClearFacilityFilters').addEventListener('click', () => resetFacilityFilters());
+
+  function populateFilters() {
+    const assigneeSelect = $("filterAssignee");
+    const currentAssignee = assigneeSelect.value;
+    const assignees = [...new Set(state.tasks.map(task => task.assignee).filter(Boolean))].sort((a, b) => a.localeCompare(b, "vi"));
+    assigneeSelect.innerHTML = '<option value="">Tất cả</option>' + assignees.map(name => '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>').join("");
+    if (["", ...assignees].includes(currentAssignee)) assigneeSelect.value = currentAssignee;
+
+    const weekSelect = $("filterWeek");
+    const currentWeek = weekSelect.value;
+    const weeks = [...new Set(state.tasks.map(task => task.assignedWeek).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    weekSelect.innerHTML = '<option value="">Tất cả</option>' + weeks.map(week => '<option value="' + escapeHtml(week) + '">' + escapeHtml(formatWeek(week)) + '</option>').join("");
+    if (["", ...weeks].includes(currentWeek)) weekSelect.value = currentWeek;
+  }
+
+  function getFilteredTasks() {
+    const keyword = $("filterKeyword").value.trim().toLowerCase();
+    const assignee = $("filterAssignee").value.trim();
+    const week = $("filterWeek").value.trim();
+    const status = $("filterStatus").value.trim();
+    const soonDue = $("filterSoonDue").value.trim();
+
+    return state.tasks.filter(task => {
+      const dueSoon = isDueSoon(task);
+      const overdue = isOverdue(task);
+      const haystack = [task.title, getTaskDescriptionText(task.description), task.assignee, getTaskNoteText(task.note), formatWeek(task.assignedWeek), dueSoon ? "sắp hết hạn" : "", overdue ? "quá hạn" : ""].join(" ").toLowerCase();
+      if (keyword && !haystack.includes(keyword)) return false;
+      if (assignee && task.assignee !== assignee) return false;
+      if (week && task.assignedWeek !== week) return false;
+      if (status && task.status !== status) return false;
+      if (soonDue === "yes" && !dueSoon) return false;
+      if (soonDue === "overdue" && !overdue) return false;
+      return true;
+    });
+  }
+
+  function renderSummary(targetPrefix = "") {
+    const total = state.tasks.length;
+    const doing = state.tasks.filter(task => task.status === "Đang thực hiện").length;
+    const done = state.tasks.filter(task => task.status === "Hoàn thành").length;
+    const overdue = state.tasks.filter(task => isOverdue(task)).length;
+
+    const idMap = targetPrefix === "admin"
+      ? {
+          total: "adminStatTotal",
+          doing: "adminStatDoing",
+          overdue: "adminStatOverdue",
+          done: "adminStatDone"
+        }
+      : {
+          total: "statTotal",
+          doing: "statDoing",
+          overdue: "statOverdue",
+          done: "statDone"
+        };
+
+    $(idMap.total).textContent = String(total);
+    $(idMap.doing).textContent = String(doing);
+    $(idMap.overdue).textContent = String(overdue);
+    $(idMap.done).textContent = String(done);
+  }
+
+  function renderViewerTasks() {
+    const tasks = getFilteredTasks();
+    const body = $("viewerTaskBody");
+    body.innerHTML = "";
+
+    if (!tasks.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">Không có công việc phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
+      return;
+    }
+
+    tasks.forEach((task, idx) => {
+      const overdue = isOverdue(task);
+      const dueSoonClass = isDueSoon(task) ? 'due-soon-date' : '';
+      const noteHtml = buildNoteCellHtml(task);
+      const tr = document.createElement("tr");
+      tr.classList.add("task-row-editable");
+      tr.dataset.id = task.id;
+      tr.title = "Nhấp đúp để chỉnh sửa công việc";
+      if (overdue) tr.classList.add("task-row-overdue");
+      else if (isDueSoon(task)) tr.classList.add("task-row-soon");
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>
+          <div class="task-title">${escapeHtml(task.title)}</div>
+          ${buildTaskDescriptionHtml(task.description)}
+        </td>
+        <td>${formatWeekStackedHtml(task.assignedWeek)}</td>
+        <td><span class="${dueSoonClass}">${escapeHtml(formatDate(task.dueDate))}</span></td>
+        <td><span class="state-tag ${statusClass(task.status)}">${escapeHtml(task.status)}</span></td>
+        <td class="task-note-cell">${noteHtml}</td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  function renderAdminTasks() {
+    const body = $("adminTaskBody");
+    body.innerHTML = "";
+
+    if (!state.tasks.length) {
+      body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Chưa có công việc nào. Hãy tạo công việc đầu tiên.</div></td></tr>';
+      return;
+    }
+
+    state.tasks.forEach((task, idx) => {
+      const noteHtml = buildNoteCellHtml(task);
+      const dueSoonClass = isDueSoon(task) ? 'due-soon-date' : '';
+      const overdue = isOverdue(task);
+      const tr = document.createElement("tr");
+      if (overdue) tr.classList.add("task-row-overdue");
+      else if (isDueSoon(task)) tr.classList.add("task-row-soon");
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>
+          <div class="task-title">${escapeHtml(task.title)}</div>
+          ${buildTaskDescriptionHtml(task.description)}
+        </td>
+        <td>${formatWeekStackedHtml(task.assignedWeek)}</td>
+        <td><span class="${dueSoonClass}">${escapeHtml(formatDate(task.dueDate))}</span></td>
+        <td><span class="state-tag ${statusClass(task.status)}">${escapeHtml(task.status)}</span></td>
+        <td class="task-note-cell">${noteHtml}</td>
+        <td>
+          <div class="flex">
+            <button class="secondary" data-action="edit" data-id="${escapeHtml(task.id)}">Sửa</button>
+            <button class="danger" data-action="delete" data-id="${escapeHtml(task.id)}">Xóa</button>
+          </div>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  function renderAll() {
+    populateFilters();
+    renderSummary("");
+    renderSummary("admin");
+    renderViewerTasks();
+    renderAdminTasks();
+    renderFacilities();
+  }
+
+  function toggleCustomAssigneeInput() {
+    const select = $("taskAssignee");
+    const input = $("taskAssigneeCustom");
+    const useCustom = select.value === "__custom__";
+    input.classList.toggle("hidden", !useCustom);
+    if (!useCustom) input.value = "";
+  }
+
+  function getCreateTaskAssignee() {
+    const selected = $("taskAssignee").value.trim();
+    if (selected === "__custom__") return $("taskAssigneeCustom").value.trim();
+    return selected;
+  }
+
+  function setDefaultAssignedWeek() {
+    $("taskAssignedWeek").value = getTodayAssignedWeek();
+    updateWeekDisplay("taskAssignedWeek", "taskAssignedWeekDisplay", "taskAssignedWeekInlineDisplay");
+  }
+
+  function resetForm() {
+    $("taskId").value = "";
+    $("taskTitle").value = "";
+    $("taskAssignee").value = "";
+    $("taskAssigneeCustom").value = "";
+    toggleCustomAssigneeInput();
+    setDefaultAssignedWeek();
+    $("taskDueDate").value = "";
+    $("taskStatus").value = "Đang thực hiện";
+    $("taskDescription").value = "";
+    clearCreateImageSelection();
+    $("taskNote").value = "";
+    clearCreateNoteAttachmentSelection();
+    $("adminSaveStatus").className = "status info";
+    $("adminSaveStatus").textContent = "Sẵn sàng cập nhật dữ liệu.";
+  }
+
+  function openEditTaskModal(taskId) {
+    const task = state.tasks.find(item => item.id === taskId);
+    if (!task) return;
+    $("editTaskId").value = task.id;
+    $("editTaskTitle").value = task.title;
+    ensureSelectOption("editTaskAssignee", task.assignee);
+    $("editTaskAssignee").value = task.assignee;
+    $("editTaskAssignedWeek").value = task.assignedWeek || "";
+    updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
+    $("editTaskDueDate").value = task.dueDate;
+    $("editTaskStatus").value = normalizeTaskStatus(task.status);
+    const descriptionData = parseTaskDescription(task.description);
+    $("editTaskDescription").value = descriptionData.text;
+    revokeAttachmentPreviewUrls(state.editAttachments);
+    state.editAttachments = normalizeAttachmentList(descriptionData.attachments);
+    renderImagePreview("editTaskImagePreview", state.editAttachments);
+    const noteData = parseTaskNote(task.note);
+    $("editTaskNote").value = noteData.text;
+    revokeAttachmentPreviewUrls(state.editNoteAttachments);
+    state.editNoteAttachments = normalizeAttachmentList(noteData.attachments);
+    renderImagePreview("editTaskNotePreview", state.editNoteAttachments);
+    $("editTaskModalError").textContent = "";
+    $("editTaskModal").classList.remove("hidden");
+    const modalBody = $("editTaskModal").querySelector(".modal-body");
+    if (modalBody) modalBody.scrollTop = 0;
+    setTimeout(() => $("editTaskTitle").focus(), 30);
+  }
+
+  function closeEditTaskModal() {
+    $("editTaskModal").classList.add("hidden");
+    const modalBody = $("editTaskModal").querySelector(".modal-body");
+    if (modalBody) modalBody.scrollTop = 0;
+    $("editTaskId").value = "";
+    $("editTaskTitle").value = "";
+    $("editTaskAssignee").value = "";
+    $("editTaskAssignedWeek").value = "";
+    updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
+    $("editTaskDueDate").value = "";
+    $("editTaskStatus").value = "Đang thực hiện";
+    $("editTaskDescription").value = "";
+    clearEditImageSelection();
+    $("editTaskNote").value = "";
+    clearEditNoteAttachmentSelection();
+    $("editTaskModalError").textContent = "";
+  }
+
+  async function saveTaskRemote(task) {
+    if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
+      return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
+    }
+
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "saveTask", task }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      });
+      const data = await resp.json().catch(() => ({ ok: true }));
+      return data && typeof data.ok !== "undefined" ? data : { ok: true };
+    } catch (err) {
+      console.error("Không lưu được lên Apps Script:", err);
+      return { ok: false, message: err.message || "Không lưu được lên hệ thống" };
+    }
+  }
+
+  async function uploadAttachmentRemote(file) {
+    if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
+      return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
+    }
+
+    try {
+      const payload = await fileToUploadPayload(file);
+      if (!payload) {
+        return { ok: true };
+      }
+      const resp = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "uploadAttachment",
+          fileName: payload.fileName,
+          mimeType: payload.mimeType,
+          attachmentType: payload.attachmentType,
+          base64Data: payload.base64Data
+        }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      });
+      const data = await resp.json().catch(() => ({ ok: false, message: "Không nhận được phản hồi hợp lệ khi tải tệp lên." }));
+      return data && typeof data.ok !== "undefined" ? data : { ok: false, message: "Không nhận được phản hồi hợp lệ khi tải tệp lên." };
+    } catch (err) {
+      console.error("Không tải được tệp lên Apps Script:", err);
+      return { ok: false, message: err.message || "Không tải được tệp lên Google Drive" };
+    }
+  }
+
+  async function deleteAttachmentRemote(fileId) {
+    const id = String(fileId || "").trim();
+    if (!id) return { ok: true };
+    if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
+      return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
+    }
+
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "deleteAttachment", fileId: id }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      });
+      const data = await resp.json().catch(() => ({ ok: true }));
+      return data && typeof data.ok !== "undefined" ? data : { ok: true };
+    } catch (err) {
+      console.error("Không xóa được tệp trên Apps Script:", err);
+      return { ok: false, message: err.message || "Không xóa được tệp trên Google Drive" };
+    }
+  }
+
+  async function deleteTaskRemote(taskId) {
+    if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR")) {
+      return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
+    }
+
+    try {
+      const resp = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "deleteTask", id: taskId }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      });
+      const data = await resp.json().catch(() => ({ ok: true }));
+      return data && typeof data.ok !== "undefined" ? data : { ok: true };
+    } catch (err) {
+      console.error("Không xóa được trên Apps Script:", err);
+      return { ok: false, message: err.message || "Không xóa được trên hệ thống" };
+    }
+  }
+
+  async function uploadAttachmentList(attachments) {
+    const normalized = normalizeAttachmentList(attachments);
+    const uploadedItems = [];
+
+    for (const item of normalized) {
+      if (!item.file) {
+        uploadedItems.push(normalizeAttachment(item));
+        continue;
+      }
+
+      const uploaded = await uploadAttachmentRemote(item.file);
+      if (!uploaded.ok) {
+        return { ok: false, message: uploaded.message || "Lỗi chưa xác định" };
+      }
+
+      revokePreviewUrl(item.previewUrl);
+      uploadedItems.push(normalizeAttachment({
+        attachmentUrl: uploaded.url,
+        attachmentPreviewUrl: uploaded.previewUrl || uploaded.url,
+        attachmentName: uploaded.name || item.attachmentName,
+        attachmentType: uploaded.attachmentType || item.attachmentType,
+        attachmentFileId: uploaded.fileId,
+        attachmentMimeType: uploaded.mimeType || item.attachmentMimeType
+      }));
+    }
+
+    return { ok: true, attachments: uploadedItems };
+  }
+
+  function buildViewerQuickTaskTitle(content) {
+    const cleaned = String(content || "").replace(/\s+/g, " ").trim();
+    if (!cleaned) return "";
+    return cleaned.length > 80 ? cleaned.slice(0, 77).trimEnd() + "..." : cleaned;
+  }
+
+  function resetViewerQuickForm() {
+    $("viewerQuickContent").value = "";
+    $("viewerQuickDescription").value = "";
+    $("viewerQuickDueDate").value = "";
+    clearViewerQuickAttachmentSelection();
+    $("viewerQuickSaveStatus").className = "status info";
+    $("viewerQuickSaveStatus").textContent = "Sẵn sàng nhập công việc mới.";
+  }
+
+  async function handleSaveViewerQuickTask() {
+    const content = $("viewerQuickContent").value.trim();
+    const descriptionText = $("viewerQuickDescription").value.trim();
+    const dueDate = $("viewerQuickDueDate").value;
+    const title = buildViewerQuickTaskTitle(content);
+    if (!title) {
+      alert("Vui lòng nhập nội dung công việc.");
+      return;
+    }
+
+    const statusBox = $("viewerQuickSaveStatus");
+    statusBox.className = "status info";
+    statusBox.textContent = hasPendingAttachmentFiles(state.viewerCreateAttachments)
+      ? "Đang tải tệp đính kèm lên Google Drive..."
+      : "Đang lưu công việc...";
+
+    let attachments = normalizeAttachmentList(state.viewerCreateAttachments);
+    if (hasPendingAttachmentFiles(attachments)) {
+      const uploaded = await uploadAttachmentList(attachments);
+      if (!uploaded.ok) {
+        statusBox.className = "status warning";
+        statusBox.textContent = "Không tải được tệp đính kèm lên Google Drive: " + (uploaded.message || "Lỗi chưa xác định") + ". Công việc chưa được lưu.";
+        setStatus("warning", "Không tải được tệp đính kèm lên Google Drive nên chưa lưu công việc.");
+        return;
+      }
+      attachments = uploaded.attachments;
+      state.viewerCreateAttachments = attachments;
+      renderImagePreview("viewerQuickAttachmentPreview", state.viewerCreateAttachments);
+    }
+
+    const now = new Date().toISOString();
+    const task = normalizeTask({
+      id: makeId(),
+      title,
+      assignee: "",
+      assignedWeek: getTodayAssignedWeek(),
+      dueDate,
+      status: "Đang thực hiện",
+      description: buildTaskDescriptionPayload(descriptionText, attachments),
+      note: "",
+      createdAt: now,
+      updatedAt: now
+    });
+
+    state.tasks = sortTasks([
+      ...state.tasks.filter(item => item.id !== task.id),
+      task
+    ]);
+    saveLocalTasks(state.tasks);
+    renderAll();
+
+    statusBox.className = "status info";
+    statusBox.textContent = "Đang lưu công việc...";
+
+    const remote = await saveTaskRemote(task);
+    if (remote.ok) {
+      state.syncMode = "cloud";
+      updateSyncUI();
+      statusBox.className = "status success";
+      statusBox.textContent = "Đã thêm công việc mới thành công.";
+      setStatus("success", "Đã đồng bộ dữ liệu công việc lên hệ thống dùng chung.");
+      await loadTasks(false);
+      resetViewerQuickForm();
+    } else {
+      state.syncMode = "local";
+      updateSyncUI();
+      statusBox.className = "status warning";
+      statusBox.textContent = "Đã thêm công việc trên máy này nhưng chưa đồng bộ tập trung: " + (remote.message || "Lỗi chưa xác định") + ".";
+      setStatus("warning", "Đã lưu công việc trên máy này nhưng chưa đồng bộ lên hệ thống dùng chung.");
+      resetViewerQuickForm();
+    }
+  }
+
+  async function handleSaveTask() {
+    const id = makeId();
+    const title = $("taskTitle").value.trim();
+    const assignee = getCreateTaskAssignee();
+    const assignedWeek = $("taskAssignedWeek").value || getTodayAssignedWeek();
+    const dueDate = $("taskDueDate").value;
+    const status = "Đang thực hiện";
+    const descriptionText = $("taskDescription").value.trim();
+    const noteText = $("taskNote").value.trim();
+
+    if (!title) {
+      alert("Vui lòng nhập tên công việc.");
+      return;
+    }
+    if (!assignee) {
+      alert("Vui lòng nhập người phụ trách.");
+      return;
+    }
+
+    const statusBox = $("adminSaveStatus");
+    statusBox.className = "status info";
+    statusBox.textContent = hasPendingAttachmentFiles(state.createAttachments) || hasPendingAttachmentFiles(state.createNoteAttachments)
+      ? "Đang tải tệp đính kèm lên Google Drive..."
+      : "Đang lưu công việc...";
+
+    let attachments = normalizeAttachmentList(state.createAttachments);
+    let noteAttachments = normalizeAttachmentList(state.createNoteAttachments);
+    if (hasPendingAttachmentFiles(attachments)) {
+      const uploaded = await uploadAttachmentList(attachments);
+      if (!uploaded.ok) {
+        statusBox.className = "status warning";
+        statusBox.textContent = "Không tải được tệp đính kèm lên Google Drive: " + (uploaded.message || "Lỗi chưa xác định") + ". Công việc chưa được lưu.";
+        setStatus("warning", "Không tải được tệp đính kèm lên Google Drive nên chưa lưu công việc.");
+        return;
+      }
+      attachments = uploaded.attachments;
+      state.createAttachments = attachments;
+      renderImagePreview("taskImagePreview", state.createAttachments);
+    }
+
+    if (hasPendingAttachmentFiles(noteAttachments)) {
+      const uploadedNote = await uploadAttachmentList(noteAttachments);
+      if (!uploadedNote.ok) {
+        statusBox.className = "status warning";
+        statusBox.textContent = "Không tải được tệp ghi chú lên Google Drive: " + (uploadedNote.message || "Lỗi chưa xác định") + ". Công việc chưa được lưu.";
+        setStatus("warning", "Không tải được tệp ghi chú lên Google Drive nên chưa lưu công việc.");
+        return;
+      }
+      noteAttachments = uploadedNote.attachments;
+      state.createNoteAttachments = noteAttachments;
+      renderImagePreview("taskNotePreview", state.createNoteAttachments);
+    }
+
+    const description = buildTaskDescriptionPayload(descriptionText, attachments);
+    const note = buildTaskNotePayload(noteText, noteAttachments);
+    const now = new Date().toISOString();
+    const task = normalizeTask({
+      id,
+      title,
+      assignee,
+      assignedWeek,
+      dueDate,
+      status,
+      description,
+      note,
+      createdAt: now,
+      updatedAt: now
+    });
+
+    state.tasks = sortTasks([
+      ...state.tasks.filter(item => item.id !== id),
+      task
+    ]);
+    saveLocalTasks(state.tasks);
+    renderAll();
+
+    statusBox.className = "status info";
+    statusBox.textContent = "Đang lưu công việc...";
+
+    const remote = await saveTaskRemote(task);
+    if (remote.ok) {
+      state.syncMode = "cloud";
+      updateSyncUI();
+      statusBox.className = "status success";
+      statusBox.textContent = "Đã thêm công việc mới thành công.";
+      setStatus("success", "Đã đồng bộ dữ liệu công việc lên hệ thống dùng chung.");
+      await loadTasks(false);
+      resetForm();
+    } else {
+      state.syncMode = "local";
+      updateSyncUI();
+      statusBox.className = "status warning";
+      statusBox.textContent = "Đã thêm công việc trên máy này nhưng chưa đồng bộ tập trung: " + (remote.message || "Lỗi chưa xác định") + ".";
+      setStatus("warning", "Đã lưu công việc trên máy này nhưng chưa đồng bộ lên hệ thống dùng chung.");
+      resetForm();
+    }
+  }
+
+  async function handleSaveEditedTask() {
+    const id = $("editTaskId").value.trim();
+    const title = $("editTaskTitle").value.trim();
+    const assignee = $("editTaskAssignee").value.trim();
+    const assignedWeek = $("editTaskAssignedWeek").value;
+    const dueDate = $("editTaskDueDate").value;
+    const status = normalizeTaskStatus($("editTaskStatus").value.trim());
+    const descriptionText = $("editTaskDescription").value.trim();
+    const noteText = $("editTaskNote").value.trim();
+
+    const existing = state.tasks.find(task => task.id === id);
+    if (!existing) {
+      $("editTaskModalError").textContent = "Không tìm thấy công việc cần sửa.";
+      return;
+    }
+    if (!title) {
+      $("editTaskModalError").textContent = "Vui lòng nhập tên công việc.";
+      return;
+    }
+    if (!assignee) {
+      $("editTaskModalError").textContent = "Vui lòng nhập người phụ trách.";
+      return;
+    }
+
+    $("editTaskModalError").textContent = "";
+    const oldAttachments = normalizeAttachmentList(parseTaskDescription(existing.description).attachments);
+    const oldNoteAttachments = normalizeAttachmentList(parseTaskNote(existing.note).attachments);
+    let attachments = normalizeAttachmentList(state.editAttachments);
+    let noteAttachments = normalizeAttachmentList(state.editNoteAttachments);
+
+    const statusBox = $("adminSaveStatus");
+    statusBox.className = "status info";
+    statusBox.textContent = hasPendingAttachmentFiles(attachments) || hasPendingAttachmentFiles(noteAttachments)
+      ? "Đang tải tệp đính kèm mới lên Google Drive..."
+      : "Đang lưu chỉnh sửa công việc...";
+
+    if (hasPendingAttachmentFiles(attachments)) {
+      const uploaded = await uploadAttachmentList(attachments);
+      if (!uploaded.ok) {
+        $("editTaskModalError").textContent = "Không tải được tệp đính kèm nội dung lên Google Drive: " + (uploaded.message || "Lỗi chưa xác định");
+        statusBox.className = "status warning";
+        statusBox.textContent = "Không tải được tệp đính kèm mới lên Google Drive.";
+        return;
+      }
+      attachments = uploaded.attachments;
+      state.editAttachments = attachments;
+      renderImagePreview("editTaskImagePreview", state.editAttachments);
+    }
+
+    if (hasPendingAttachmentFiles(noteAttachments)) {
+      const uploadedNote = await uploadAttachmentList(noteAttachments);
+      if (!uploadedNote.ok) {
+        $("editTaskModalError").textContent = "Không tải được tệp đính kèm ghi chú lên Google Drive: " + (uploadedNote.message || "Lỗi chưa xác định");
+        statusBox.className = "status warning";
+        statusBox.textContent = "Không tải được tệp ghi chú lên Google Drive.";
+        return;
+      }
+      noteAttachments = uploadedNote.attachments;
+      state.editNoteAttachments = noteAttachments;
+      renderImagePreview("editTaskNotePreview", state.editNoteAttachments);
+    }
+
+    const description = buildTaskDescriptionPayload(descriptionText, attachments);
+    const note = buildTaskNotePayload(noteText, noteAttachments);
+    const task = normalizeTask({
+      id,
+      title,
+      assignee,
+      assignedWeek,
+      dueDate,
+      status,
+      description,
+      note,
+      createdAt: existing.createdAt,
+      updatedAt: new Date().toISOString()
+    });
+
+    state.tasks = sortTasks([
+      ...state.tasks.filter(item => item.id !== id),
+      task
+    ]);
+    saveLocalTasks(state.tasks);
+    renderAll();
+    closeEditTaskModal();
+
+    statusBox.className = "status info";
+    statusBox.textContent = "Đang lưu chỉnh sửa công việc...";
+
+    const remote = await saveTaskRemote(task);
+    if (remote.ok) {
+      state.syncMode = "cloud";
+      updateSyncUI();
+      statusBox.className = "status success";
+      statusBox.textContent = "Đã cập nhật công việc thành công.";
+      setStatus("success", "Đã đồng bộ dữ liệu công việc lên hệ thống dùng chung.");
+
+      const newAttachmentIds = new Set(getAttachmentFileIds(attachments));
+      for (const fileId of getAttachmentFileIds(oldAttachments)) {
+        if (!newAttachmentIds.has(fileId)) await deleteAttachmentRemote(fileId);
+      }
+      const newNoteAttachmentIds = new Set(getAttachmentFileIds(noteAttachments));
+      for (const fileId of getAttachmentFileIds(oldNoteAttachments)) {
+        if (!newNoteAttachmentIds.has(fileId)) await deleteAttachmentRemote(fileId);
+      }
+
+      await loadTasks(false);
+    } else {
+      state.syncMode = "local";
+      updateSyncUI();
+      statusBox.className = "status warning";
+      statusBox.textContent = "Đã cập nhật công việc trên máy này nhưng chưa đồng bộ tập trung: " + (remote.message || "Lỗi chưa xác định") + ".";
+      setStatus("warning", "Đã lưu công việc trên máy này nhưng chưa đồng bộ lên hệ thống dùng chung.");
+    }
+  }
+
+  async function handleDeleteTask(taskId) {
+    const task = state.tasks.find(item => item.id === taskId);
+    if (!task) return;
+    const ok = confirm('Bạn chắc chắn muốn xóa công việc "' + task.title + '"?');
+    if (!ok) return;
+
+    const attachments = normalizeAttachmentList(parseTaskDescription(task.description).attachments);
+    const noteAttachments = normalizeAttachmentList(parseTaskNote(task.note).attachments);
+
+    state.tasks = sortTasks(state.tasks.filter(item => item.id !== taskId));
+    saveLocalTasks(state.tasks);
+    renderAll();
+
+    const statusBox = $("adminSaveStatus");
+    statusBox.className = "status info";
+    statusBox.textContent = "Đang xóa công việc...";
+
+    const remote = await deleteTaskRemote(taskId);
+    if (remote.ok) {
+      state.syncMode = "cloud";
+      updateSyncUI();
+      statusBox.className = "status success";
+      statusBox.textContent = "Đã xóa công việc thành công.";
+      setStatus("success", "Đã xóa công việc trên hệ thống dùng chung.");
+      for (const fileId of getAttachmentFileIds(attachments)) {
+        await deleteAttachmentRemote(fileId);
+      }
+      for (const fileId of getAttachmentFileIds(noteAttachments)) {
+        await deleteAttachmentRemote(fileId);
+      }
+      await loadTasks(false);
+    } else {
+      state.syncMode = "local";
+      updateSyncUI();
+      statusBox.className = "status warning";
+      statusBox.textContent = "Đã xóa công việc trên máy này nhưng chưa đồng bộ tập trung: " + (remote.message || "Lỗi chưa xác định") + ".";
+      setStatus("warning", "Đã xóa công việc trên máy này nhưng chưa đồng bộ lên hệ thống dùng chung.");
+    }
+  }
+
+  function exportCsv() {
+    if (!state.tasks.length) {
+      alert("Chưa có dữ liệu để xuất.");
+      return;
+    }
+
+    const rows = state.tasks.map((task, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${escapeHtml(task.title)}</td>
+        <td>${escapeHtml(formatWeek(task.assignedWeek))}</td>
+        <td>${escapeHtml(formatDate(task.dueDate))}</td>
+        <td>${escapeHtml(task.status)}</td>
+        <td>${escapeHtml(getTaskDescriptionText(task.description) || "")}${hasAttachment(parseTaskDescription(task.description)) ? " (Có tệp đính kèm)" : ""}</td>
+        <td>${escapeHtml(getDisplayNote(task) || getTaskNoteText(task.note) || "")}${hasAttachment(parseTaskNote(task.note)) ? " (Có tệp đính kèm)" : ""}</td>
+        <td>${escapeHtml(formatDateTime(task.updatedAt))}</td>
+      </tr>
+    `).join("");
+
+    const workbookHtml = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<!--[if gte mso 9]><xml>
+<x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+    <x:ExcelWorksheet>
+      <x:Name>Cong viec doi</x:Name>
+      <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+    </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+</x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+table{border-collapse:collapse;font-family:"Times New Roman",Times,serif}
+th,td{border:1px solid #000;padding:6px 8px;vertical-align:middle}
+th{font-weight:700;background:#f1f1f1}
+</style>
+</head>
+<body>
+<table>
+  <thead>
+    <tr>
+      <th>STT</th>
+      <th>Tên công việc</th>
+      <th>Tuần giao</th>
+      <th>Hạn hoàn thành</th>
+      <th>Trạng thái</th>
+      <th>Nội dung</th>
+      <th>Ghi chú</th>
+      <th>Cập nhật cuối</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+</body>
+</html>`;
+
+    const blob = new Blob(["\ufeff" + workbookHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "quan_ly_cong_viec_doi.xls";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function buildPrintTableRows(tasks) {
+    return tasks.map((task, idx) => {
+      const noteText = getDisplayNote(task) || (task.status === "Hoàn thành" && hasAttachment(parseTaskNote(task.note)) ? "Có tệp đính kèm" : "-");
+      return `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${escapeHtml(task.title)}</td>
+          <td>${escapeHtml(formatWeek(task.assignedWeek))}</td>
+          <td>${escapeHtml(formatDate(task.dueDate))}</td>
+          <td>${escapeHtml(task.status)}</td>
+          <td>${escapeHtml(noteText)}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function printWeeklyReport() {
+    const tasks = getDisplayedTasksForPrint();
+    if (!tasks.length) {
+      alert("Không có dữ liệu phù hợp để in báo cáo.");
+      return;
+    }
+
+    const total = tasks.length;
+    const doing = tasks.filter(task => task.status === "Đang thực hiện").length;
+    const done = tasks.filter(task => task.status === "Hoàn thành").length;
+    const overdue = tasks.filter(task => isOverdue(task)).length;
+    const dueSoon = tasks.filter(task => isDueSoon(task)).length;
+    const reportTitle = "BÁO CÁO CÔNG VIỆC";
+    const rangeText = getDisplayedRangeText(tasks);
+    const printWindow = window.open("", "_blank", "width=1100,height=800");
+    if (!printWindow) {
+      alert("Trình duyệt đang chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại.");
+      return;
+    }
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>${reportTitle}</title>
+<style>
+  body{font-family:"Times New Roman",Times,serif;margin:28px;color:#111;}
+  .admin-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:18px;}
+  .admin-head .col{width:48%;text-align:center;line-height:1.4;}
+  .admin-head .line1,.admin-head .line2{font-weight:700;}
+  .admin-head .line1{text-transform:uppercase;font-size:17px;}
+  .admin-head .line2{font-size:16px;}
+  .admin-head .line-rule{width:120px;border-top:1px solid #111;margin:6px auto 0;}
+  h1{text-align:center;font-size:24px;margin:12px 0 8px;}
+  .meta{text-align:center;font-size:14px;margin-bottom:16px;line-height:1.6;}
+  .stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+  .stats span{border:1px solid #333;padding:6px 10px;border-radius:999px;font-size:14px;}
+  table{width:100%;border-collapse:collapse;margin-top:8px;}
+  th,td{border:1px solid #333;padding:8px 6px;font-size:14px;vertical-align:middle;text-align:center;}
+  th{background:#f1f1f1;}
+  @media print{body{margin:16px;}}
+</style>
+</head>
+<body>
+  <div class="admin-head">
+    <div class="col left">
+      <div class="line1">PHÒNG PC07</div>
+      <div class="line2">ĐỘI CÔNG TÁC PHÒNG CHÁY</div>
+      <div class="line-rule"></div>
+    </div>
+    <div class="col right">
+      <div class="line1">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+      <div class="line2">Độc lập - Tự do - Hạnh phúc</div>
+      <div class="line-rule"></div>
+    </div>
+  </div>
+  <h1>${reportTitle}</h1>
+  <div class="meta">Ngày in: ${escapeHtml(new Date().toLocaleString("vi-VN"))}${rangeText ? `<br>${escapeHtml(rangeText)}` : ""}</div>
+  <div class="stats">
+    <span>Tổng công việc: <b>${total}</b></span>
+    <span>Đang thực hiện: <b>${doing}</b></span>
+    <span>Hoàn thành: <b>${done}</b></span>
+    <span>Quá hạn: <b>${overdue}</b></span>
+    <span>Sắp hết hạn: <b>${dueSoon}</b></span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>Công việc</th>
+        <th>Tuần giao</th>
+        <th>Hạn hoàn thành</th>
+        <th>Trạng thái</th>
+        <th>Ghi chú</th>
+      </tr>
+    </thead>
+    <tbody>${buildPrintTableRows(tasks)}</tbody>
+  </table>
+</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  }
+
+  function clearFilters() {
+    $("filterKeyword").value = "";
+    $("filterAssignee").value = "";
+    $("filterWeek").value = "";
+    $("filterStatus").value = "";
+    $("filterSoonDue").value = "";
+    renderViewerTasks();
+  }
+
+  function openViewerLoginModal() {
+    enterWorkMode();
+    setMain("Danh sách công việc của đội", "");
+    showOnly("viewerPanel");
+  }
+
+  function closeViewerLoginModal() {
+    if ($("viewerLoginModal")) $("viewerLoginModal").classList.add("hidden");
+  }
+
+  function handleViewerLogin() {
+    openViewerLoginModal();
+  }
+
+  if ($("btnViewerMode")) $("btnViewerMode").addEventListener("click", openViewerLoginModal);
+
+  function openAdminLoginModal(managerName = "Nguyễn Văn Nguyên") {
+    state.pendingFacilityManager = managerName || "Nguyễn Văn Nguyên";
+    openFacilityManager(state.pendingFacilityManager);
+  }
+
+  function closeAdminLoginModal() {
+    if ($("adminLoginModal")) $("adminLoginModal").classList.add("hidden");
+  }
+
+  function setPasswordVisibility(inputId, buttonId, visible) {
+    const input = $(inputId);
+    const button = $(buttonId);
+    if (!input || !button) return;
+    input.type = visible ? "text" : "password";
+    button.textContent = visible ? "Ẩn mật khẩu" : "Hiện mật khẩu";
+  }
+
+  function togglePasswordVisibility(inputId, buttonId) {
+    const input = $(inputId);
+    if (!input) return;
+    setPasswordVisibility(inputId, buttonId, input.type === "password");
+    input.focus();
+  }
+
+  function handleEnterToSave(event, saveFn, options = {}) {
+    const isTextarea = event.target.tagName === "TEXTAREA";
+    if (event.key === "Escape") {
+      if (typeof options.onEscape === "function") options.onEscape();
+      return;
+    }
+    if (event.key !== "Enter") return;
+    if (event.shiftKey) return;
+    if (isTextarea && event.altKey) return;
+    event.preventDefault();
+    saveFn();
+  }
+
+  function handleAdminLogin() {
+    const managerName = state.pendingFacilityManager || "Nguyễn Văn Nguyên";
+    openFacilityManager(managerName);
+  }
+
+  document.querySelectorAll(".manager-entry-btn").forEach(btn => {
+    btn.addEventListener("click", () => openAdminLoginModal(btn.dataset.manager || "Nguyễn Văn Nguyên"));
+  });
+
+  $("btnBackHome").addEventListener("click", () => {
+    backToRoleSelection();
+    setMain("Sẵn sàng sử dụng", "");
+    showOnly("welcomePanel");
+  });
+
+  if ($("btnLogoutAdmin")) $("btnLogoutAdmin").addEventListener("click", closeFacilityManager);
+
+  $("btnPrintWeeklyReportViewer").addEventListener("click", printWeeklyReport);
+  $("btnPrintWeeklyReportAdmin").addEventListener("click", printWeeklyReport);
+  $("btnRefreshViewer").addEventListener("click", () => loadTasks(true));
+  $("btnRefreshAdmin").addEventListener("click", () => loadTasks(true));
+  $("btnExportCsv").addEventListener("click", exportCsv);
+  $("btnSaveViewerQuickTask").addEventListener("click", handleSaveViewerQuickTask);
+  $("btnSaveTask").addEventListener("click", handleSaveTask);
+  $("btnResetForm").addEventListener("click", resetForm);
+  $("taskAssignee").addEventListener("change", toggleCustomAssigneeInput);
+  $("taskDescriptionImage").addEventListener("change", handleCreateImageUpload);
+  $("taskNoteFile").addEventListener("change", handleCreateNoteFileUpload);
+  $("viewerQuickAttachment").addEventListener("change", handleViewerQuickAttachmentUpload);
+  $("editTaskDescriptionImage").addEventListener("change", handleEditImageUpload);
+  $("editTaskNoteFile").addEventListener("change", handleEditNoteFileUpload);
+  $("btnRemoveTaskImage").addEventListener("click", clearCreateImageSelection);
+  $("btnRemoveTaskNoteFile").addEventListener("click", clearCreateNoteAttachmentSelection);
+  $("btnRemoveViewerQuickAttachment").addEventListener("click", clearViewerQuickAttachmentSelection);
+  $("btnRemoveEditTaskImage").addEventListener("click", clearEditImageSelection);
+  $("btnRemoveEditTaskNoteFile").addEventListener("click", clearEditNoteAttachmentSelection);
+  $("taskAssignedWeek").addEventListener("input", () => updateWeekDisplay("taskAssignedWeek", "taskAssignedWeekDisplay", "taskAssignedWeekInlineDisplay"));
+  $("taskAssignedWeek").addEventListener("change", () => updateWeekDisplay("taskAssignedWeek", "taskAssignedWeekDisplay", "taskAssignedWeekInlineDisplay"));
+  $("editTaskAssignedWeek").addEventListener("input", () => updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay"));
+  $("editTaskAssignedWeek").addEventListener("change", () => updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay"));
+  $("btnClearFilters").addEventListener("click", clearFilters);
+
+  ["filterKeyword", "filterAssignee", "filterWeek", "filterStatus", "filterSoonDue"].forEach(id => {
+    $(id).addEventListener("input", renderViewerTasks);
+    $(id).addEventListener("change", renderViewerTasks);
+  });
+
+  $("btnSubmitViewerLogin").addEventListener("click", handleViewerLogin);
+  $("btnCancelViewerLogin").addEventListener("click", closeViewerLoginModal);
+  $("btnToggleViewerPassword").addEventListener("click", () => togglePasswordVisibility("viewerPasswordInput", "btnToggleViewerPassword"));
+  $("btnSubmitAdminLogin").addEventListener("click", handleAdminLogin);
+  $("btnCancelAdminLogin").addEventListener("click", closeAdminLoginModal);
+  $("btnToggleAdminPassword").addEventListener("click", () => togglePasswordVisibility("adminPasswordInput", "btnToggleAdminPassword"));
+  $("btnSaveEditTask").addEventListener("click", handleSaveEditedTask);
+  $("btnCancelEditTask").addEventListener("click", closeEditTaskModal);
+  $("viewerPasswordInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleViewerLogin();
+    } else if (event.key === "Escape") {
+      closeViewerLoginModal();
+    }
+  });
+  $("viewerLoginModal").addEventListener("click", (event) => {
+    if (event.target === $("viewerLoginModal")) closeViewerLoginModal();
+  });
+  $("adminPasswordInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAdminLogin();
+    } else if (event.key === "Escape") {
+      closeAdminLoginModal();
+    }
+  });
+  $("adminLoginModal").addEventListener("click", (event) => {
+    if (event.target === $("adminLoginModal")) closeAdminLoginModal();
+  });
+  $("editTaskModal").addEventListener("click", (event) => {
+    if (event.target === $("editTaskModal")) closeEditTaskModal();
+  });
+  if ($("facilityEditModal")) {
+    $("facilityEditModal").addEventListener("click", (event) => {
+      if (event.target === $("facilityEditModal")) closeFacilityEditModal();
+    });
+  }
+  const editModalCard = $("editTaskModal").querySelector(".modal-card");
+  const editModalBody = $("editTaskModal").querySelector(".modal-body");
+  if (editModalCard && editModalBody) {
+    editModalCard.addEventListener("wheel", (event) => {
+      if ($("editTaskModal").classList.contains("hidden")) return;
+      if (editModalBody.scrollHeight <= editModalBody.clientHeight) return;
+      if (!event.target.closest(".modal-body")) {
+        event.preventDefault();
+        editModalBody.scrollTop += event.deltaY;
+      }
+    }, { passive: false });
+  }
+  ["taskTitle", "taskAssignee", "taskAssigneeCustom", "taskAssignedWeek", "taskDueDate", "taskStatus", "taskDescription", "taskNote"].forEach(id => {
+    $(id).addEventListener("keydown", (event) => handleEnterToSave(event, handleSaveTask));
+  });
+  ["viewerQuickContent", "viewerQuickDescription", "viewerQuickDueDate", "viewerQuickAttachment"].forEach(id => {
+    $(id).addEventListener("keydown", (event) => handleEnterToSave(event, handleSaveViewerQuickTask));
+  });
+  ["editTaskTitle", "editTaskAssignee", "editTaskAssignedWeek", "editTaskDueDate", "editTaskStatus", "editTaskDescription", "editTaskNote", "editTaskNoteFile"].forEach(id => {
+    $(id).addEventListener("keydown", (event) => handleEnterToSave(event, handleSaveEditedTask, { onEscape: closeEditTaskModal }));
+  });
+
+  $("adminTaskBody").addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const action = button.getAttribute("data-action");
+    const taskId = button.getAttribute("data-id");
+    if (action === "edit") {
+      openEditTaskModal(taskId);
+    } else if (action === "delete") {
+      handleDeleteTask(taskId);
+    }
+  });
+
+  $("viewerTaskBody").addEventListener("dblclick", (event) => {
+    if (event.target.closest("a, button, input, textarea, select, label")) return;
+    const row = event.target.closest("tr[data-id]");
+    if (!row) return;
+    openEditTaskModal(row.dataset.id);
+  });
+
+  $("btnDeleteEditTask").addEventListener("click", async () => {
+    const taskId = $("editTaskId").value.trim();
+    if (!taskId) return;
+    closeEditTaskModal();
+    await handleDeleteTask(taskId);
+  });
+
+  loadFacilities();
+  updateSyncUI();
+  toggleCustomAssigneeInput();
+  setDefaultAssignedWeek();
+  updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
+  renderAll();
+  loadTasks();
+})();
+</script>
+</body>
+</html>
