@@ -856,12 +856,63 @@
     .facility-summary-box{
       background:linear-gradient(180deg,#fff8ec,#fff);
       border-color:#f0d7b3;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .facility-summary-box:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 18px rgba(16,24,40,.08);
+      border-color:#d8b07d;
+    }
+    .facility-summary-box.active{
+      background:linear-gradient(180deg,#fff0cf,#fff7ea);
+      border-color:#c98a2e;
+      box-shadow:0 0 0 2px rgba(201,138,46,.14);
     }
     .facility-table tbody tr{cursor:pointer}
     .facility-table tbody tr:nth-child(odd) td{background:rgba(255,255,255,.96)}
     .facility-table tbody tr:nth-child(even) td{background:rgba(255,245,204,.72)}
     .facility-table tbody tr:hover td{background:#fff7f0 !important}
     .facility-row-active td{background:#fff1e8 !important}
+    .facility-flag-mark{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:24px;
+      min-height:24px;
+      padding:1px 7px;
+      border-radius:999px;
+      font-weight:700;
+      cursor:help;
+      border:1px solid #d7deea;
+      background:#f8fafc;
+      color:#344054;
+    }
+    .facility-date-mark{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:88px;
+      min-height:24px;
+      padding:1px 8px;
+      border-radius:10px;
+      font-weight:700;
+      cursor:help;
+      border:1px solid #d7deea;
+      background:#f8fafc;
+      color:#344054;
+      white-space:nowrap;
+    }
+    .facility-flag-soon{
+      background:#fff8e8;
+      border-color:#f5e2a8;
+      color:#8b5a00;
+    }
+    .facility-flag-expired{
+      background:#fff1f1;
+      border-color:#f0c7c7;
+      color:#a12626;
+    }
     .facility-cell-main{font-weight:700;color:#7d1010;line-height:1.35}
     .facility-cell-sub{margin-top:4px;color:#667085;font-size:14px;line-height:1.4}
     #adminPanel{position:relative; z-index:20;}
@@ -898,7 +949,68 @@
       table-layout:auto;
     }
     .legacy-admin-shell{display:none !important; pointer-events:none !important;}
+    .facility-notice-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      margin-top:8px;
+    }
+    .facility-notice-section{
+      border:1px solid #e4e9f1;
+      border-radius:16px;
+      background:#fcfdff;
+      padding:14px;
+      min-width:0;
+    }
+    .facility-notice-section.warning{
+      background:#fff8e8;
+      border-color:#f5e2a8;
+    }
+    .facility-notice-section h4{
+      margin:0 0 8px;
+      font-size:18px;
+      color:#7d1010;
+    }
+    .facility-notice-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:grid;
+      gap:8px;
+      max-height:280px;
+      overflow:auto;
+    }
+    .facility-notice-item{
+      border:1px solid #eadfbe;
+      border-radius:12px;
+      background:#fff;
+      padding:10px 12px;
+      line-height:1.45;
+    }
+    .facility-notice-item strong{
+      color:#7d1010;
+      display:block;
+      margin-bottom:3px;
+    }
+    .facility-notice-empty{
+      padding:14px 12px;
+      border:1px dashed #d7deea;
+      border-radius:12px;
+      color:#667085;
+      background:#fff;
+    }
+    .facility-notice-sub{
+      color:#667085;
+      font-size:14px;
+      margin-bottom:8px;
+    }
+    @media (max-width: 720px){
+      .facility-notice-grid{
+        grid-template-columns:1fr;
+      }
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="top-unit">
@@ -1089,7 +1201,8 @@
 <div class="admin-toolbar facility-toolbar" style="justify-content:space-between">
 <div class="facility-toolbar-title" id="facilityManagerLabel"></div>
 <div class="flex" style="justify-content:flex-end; width:100%">
-<button class="secondary" id="btnFacilityExport" onclick="exportFacilitiesCsv()" type="button">Xuất Excel</button>
+<button class="secondary" id="btnFacilityPrint" onclick="printVisibleFacilities()" type="button">In danh sách</button>
+<button class="secondary" id="btnFacilityExport" onclick="exportFacilitiesExcel()" type="button">Xuất Excel</button>
 <button class="secondary" id="btnFacilityLogout" onclick="closeFacilityManager()" type="button">Quay lại</button>
 </div>
 </div>
@@ -1143,27 +1256,27 @@
 <div class="status info" id="facilitySaveStatus" style="margin-top:14px">Sẵn sàng cập nhật danh sách cơ sở.</div>
 </div>
 <div class="summary-grid facility-summary-grid">
-<div class="summary-box facility-summary-box">
+<div class="summary-box facility-summary-box active" data-view="all" id="facilityBoxTotal" title="Bấm để xem toàn bộ cơ sở">
 <div class="label">Tổng số cơ sở</div>
 <div class="value" id="facilityStatTotal">0</div>
 </div>
-<div class="summary-box facility-summary-box">
+<div class="summary-box facility-summary-box" data-view="inspection" id="facilityBoxInspected" title="Bấm để xem danh sách cơ sở đã kiểm tra">
 <div class="label">Đã kiểm tra</div>
 <div class="value" id="facilityStatInspected">0</div>
 </div>
-<div class="summary-box facility-summary-box">
+<div class="summary-box facility-summary-box" data-view="insurance" id="facilityBoxInsurance" title="Bấm để xem danh sách cơ sở đã có bảo hiểm">
 <div class="label">Đã có bảo hiểm</div>
 <div class="value" id="facilityStatInsurance">0</div>
 </div>
-<div class="summary-box facility-summary-box">
+<div class="summary-box facility-summary-box" data-view="maintenance" id="facilityBoxMaintenance" title="Bấm để xem danh sách cơ sở đã bảo dưỡng">
 <div class="label">Đã bảo dưỡng</div>
 <div class="value" id="facilityStatMaintenance">0</div>
 </div>
-<div class="summary-box facility-summary-box">
+<div class="summary-box facility-summary-box" data-view="drill" id="facilityBoxDrill" title="Bấm để xem danh sách cơ sở đã thực tập">
 <div class="label">Đã thực tập</div>
 <div class="value" id="facilityStatDrill">0</div>
 </div>
-<div class="summary-box facility-summary-box">
+<div class="summary-box facility-summary-box" data-view="training" id="facilityBoxTraining" title="Bấm để xem danh sách cơ sở đã bồi dưỡng">
 <div class="label">Đã bồi dưỡng</div>
 <div class="value" id="facilityStatTraining">0</div>
 </div>
@@ -1577,12 +1690,20 @@
 <input id="facilityEditInspectionDate" type="date"/>
 </div>
 <div>
-<label for="facilityEditInsurance">Bảo hiểm</label>
-<input id="facilityEditInsurance" placeholder="Nhập thông tin bảo hiểm" type="text"/>
+<label for="facilityEditInsuranceDate">Bảo hiểm - Ngày mua</label>
+<input id="facilityEditInsuranceDate" type="date"/>
 </div>
 <div>
-<label for="facilityEditMaintenance">Bảo dưỡng</label>
-<input id="facilityEditMaintenance" placeholder="Nhập thông tin bảo dưỡng" type="text"/>
+<label for="facilityEditInsuranceCompany">Bảo hiểm - Công ty</label>
+<input id="facilityEditInsuranceCompany" placeholder="Nhập công ty bảo hiểm" type="text"/>
+</div>
+<div>
+<label for="facilityEditMaintenanceDate">Bảo dưỡng - Ngày mua</label>
+<input id="facilityEditMaintenanceDate" type="date"/>
+</div>
+<div>
+<label for="facilityEditMaintenanceCompany">Bảo dưỡng - Công ty</label>
+<input id="facilityEditMaintenanceCompany" placeholder="Nhập đơn vị/công ty bảo dưỡng" type="text"/>
 </div>
 <div>
 <label for="facilityEditDrill">Thực tập</label>
@@ -1601,6 +1722,33 @@
 <button class="success" id="btnSaveFacilityModal" type="button">Lưu chỉnh sửa</button>
 </div>
 </div>
+</div>
+</div>
+</div>
+
+<div class="modal-backdrop hidden" id="facilityNoticeModal">
+<div class="modal-card modal-large">
+<div class="modal-head">
+<h3 id="facilityNoticeTitle" style="margin:0;font-size:24px">Thông báo cơ sở sắp đến hạn</h3>
+<div class="muted small" id="facilityNoticeDesc" style="margin-top:6px">Tổng hợp nhanh các cơ sở cần theo dõi trước khi vào danh sách quản lý.</div>
+</div>
+<div class="modal-body">
+<div class="facility-notice-grid">
+<div class="facility-notice-section warning">
+<h4 id="facilityNoticeInsuranceHeading">Các cơ sở sắp hết hạn bảo hiểm</h4>
+<div class="facility-notice-sub" id="facilityNoticeInsuranceCount"></div>
+<ul class="facility-notice-list" id="facilityNoticeInsuranceList"></ul>
+</div>
+<div class="facility-notice-section warning">
+<h4 id="facilityNoticeMaintenanceHeading">Các cơ sở sắp đến hạn bảo dưỡng</h4>
+<div class="facility-notice-sub" id="facilityNoticeMaintenanceCount"></div>
+<ul class="facility-notice-list" id="facilityNoticeMaintenanceList"></ul>
+</div>
+</div>
+</div>
+<div class="flex" style="justify-content:flex-end; padding:0 20px 20px; gap:10px">
+<button class="secondary" id="btnCloseFacilityNotice" type="button">Đóng</button>
+<button class="success" id="btnContinueFacilityNotice" type="button">Tiếp tục</button>
 </div>
 </div>
 </div>
@@ -2270,19 +2418,25 @@
     document.body.classList.remove("facility-manager-open");
   }
 
-  function openFacilityManager(managerName = "Nguyễn Văn Nguyên") {
+  async function openFacilityManager(managerName = "Nguyễn Văn Nguyên", options = {}) {
     state.currentFacilityManager = managerName || "Nguyễn Văn Nguyên";
+    state.facilityQuickView = 'all';
+    const shouldShowNotice = !!options.showNotice;
     enterWorkMode();
     resetForm();
-    void loadFacilities();
     setMain(state.currentFacilityManager, "");
     showOnly("adminPanel");
+    await loadFacilities();
+    if (shouldShowNotice) {
+      openFacilityNoticeModal(state.currentFacilityManager);
+    }
     setTimeout(() => {
-      if ($("facilityName")) $("facilityName").focus();
+      if (!isTeamFacilityView() && $("facilityName")) $("facilityName").focus();
     }, 30);
   }
 
   function closeFacilityManager() {
+    closeFacilityNoticeModal();
     backToRoleSelection();
     resetForm();
     resetFacilityForm();
@@ -2466,11 +2620,163 @@
     return "";
   }
 
+  function parseFlexibleDate(dateValue) {
+    const value = String(dateValue || '').trim();
+    if (!value) return null;
+
+    let match = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/);
+    if (match) {
+      const year = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const day = Number(match[3]);
+      const date = new Date(year, month, day);
+      return isNaN(date) ? null : date;
+    }
+
+    match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const year = Number(match[3]);
+      const date = new Date(year, month, day);
+      return isNaN(date) ? null : date;
+    }
+
+    const date = new Date(value);
+    if (isNaN(date)) return null;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function toInputDateValue(dateValue) {
+    const parsed = parseFlexibleDate(dateValue);
+    if (!parsed) return '';
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${year}-${month}-${day}`;
+  }
+
   function formatDate(dateString) {
-    if (!dateString) return "-";
-    const d = new Date(dateString + "T00:00:00");
-    if (isNaN(d)) return dateString;
-    return d.toLocaleDateString("vi-VN");
+    const value = String(dateString || '').trim();
+    if (!value) return "-";
+    const parsed = parseFlexibleDate(value);
+    if (!parsed) return value;
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function parseFacilityMetaValue(rawValue) {
+    if (rawValue && typeof rawValue === 'object') {
+      const dateValue = toInputDateValue(rawValue.date || rawValue.purchaseDate || rawValue.ngayMua || rawValue.inspectionDate || '');
+      const companyValue = String(rawValue.company || rawValue.vendor || rawValue.congTy || '').trim();
+      return {
+        raw: rawValue,
+        hasValue: !!(dateValue || companyValue),
+        date: dateValue,
+        company: companyValue,
+        displayDate: dateValue ? formatDate(dateValue) : '',
+        parsedDate: parseFlexibleDate(dateValue)
+      };
+    }
+
+    const value = String(rawValue || '').trim();
+    if (!value) {
+      return { raw: '', hasValue: false, date: '', company: '', displayDate: '', parsedDate: null };
+    }
+
+    try {
+      const parsedJson = JSON.parse(value);
+      if (parsedJson && typeof parsedJson === 'object' && !Array.isArray(parsedJson)) {
+        return parseFacilityMetaValue(parsedJson);
+      }
+    } catch (_) {}
+
+    const detectedDate = toInputDateValue(value);
+    if (detectedDate) {
+      return {
+        raw: value,
+        hasValue: true,
+        date: detectedDate,
+        company: '',
+        displayDate: formatDate(detectedDate),
+        parsedDate: parseFlexibleDate(detectedDate)
+      };
+    }
+
+    return {
+      raw: value,
+      hasValue: true,
+      date: '',
+      company: value,
+      displayDate: value,
+      parsedDate: null
+    };
+  }
+
+  function encodeFacilityMetaValue(dateValue, companyValue) {
+    const date = toInputDateValue(dateValue);
+    const company = String(companyValue || '').trim();
+    if (!date && !company) return '';
+    return JSON.stringify({ date, company });
+  }
+
+  function addYearsToDate(date, years) {
+    const clone = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    clone.setFullYear(clone.getFullYear() + years);
+    return clone;
+  }
+
+  function addMonthsToDate(date, months) {
+    const clone = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    clone.setMonth(clone.getMonth() + months);
+    return clone;
+  }
+
+  function getFacilityExpiryInfo(rawValue) {
+    const info = parseFacilityMetaValue(rawValue);
+    if (!info.hasValue) return { hasValue: false, canCompute: false, isSoon: false, isExpired: false, expiryDate: null, company: '', displayDate: '' };
+
+    const purchasedDate = info.parsedDate;
+    if (!purchasedDate) {
+      return {
+        hasValue: true,
+        canCompute: false,
+        isSoon: false,
+        isExpired: false,
+        expiryDate: null,
+        purchasedDate: null,
+        rawValue: String(rawValue || '').trim(),
+        company: info.company || '',
+        displayDate: info.displayDate || ''
+      };
+    }
+
+    const expiryDate = addYearsToDate(purchasedDate, 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const warningDate = addMonthsToDate(today, 3);
+
+    return {
+      hasValue: true,
+      canCompute: true,
+      isSoon: expiryDate >= today && expiryDate <= warningDate,
+      isExpired: expiryDate < today,
+      expiryDate,
+      purchasedDate,
+      rawValue: String(rawValue || '').trim(),
+      company: info.company || '',
+      displayDate: info.displayDate || formatDate(purchasedDate)
+    };
+  }
+
+  function countFacilitiesByExpiry(items, key, mode = 'soon') {
+    return (Array.isArray(items) ? items : []).filter(item => {
+      const info = getFacilityExpiryInfo(item?.[key]);
+      if (!info.hasValue || !info.canCompute) return false;
+      return mode === 'expired' ? info.isExpired : info.isSoon;
+    }).length;
   }
 
   function getWeekMonthDisplayData(weekString) {
@@ -2628,7 +2934,7 @@
       state.syncMode = "cloud";
       state.lastLoadSource = "cloud";
       saveLocalTasks(state.tasks);
-      afterTaskLoad("success", "Đã đồng bộ <b>" + state.tasks.length + "</b> công việc từ hệ thống.");
+      afterTaskLoad("info", "Sẵn sàng sử dụng hệ thống.");
     } catch (err) {
       console.error(err);
       state.tasks = localTasks;
@@ -2663,7 +2969,7 @@
       address: String(raw.address || '').trim(),
       field: String(raw.field || '').trim(),
       appendix: String(raw.appendix || '').trim(),
-      inspectionDate: String(raw.inspectionDate || '').trim(),
+      inspectionDate: toInputDateValue(raw.inspectionDate),
       insurance: String(raw.insurance || '').trim(),
       maintenance: String(raw.maintenance || '').trim(),
       drill: String(raw.drill || '').trim(),
@@ -2870,8 +3176,12 @@
     $('facilityEditField').value = Array.from($('facilityEditField').options).some(opt => opt.value === item.field) ? item.field : 'Khác';
     $('facilityEditAppendix').value = Array.from($('facilityEditAppendix').options).some(opt => opt.value === item.appendix) ? item.appendix : 'I';
     $('facilityEditInspectionDate').value = item.inspectionDate || '';
-    $('facilityEditInsurance').value = item.insurance || '';
-    $('facilityEditMaintenance').value = item.maintenance || '';
+    const insuranceInfo = parseFacilityMetaValue(item.insurance);
+    const maintenanceInfo = parseFacilityMetaValue(item.maintenance);
+    $('facilityEditInsuranceDate').value = insuranceInfo.date || '';
+    $('facilityEditInsuranceCompany').value = insuranceInfo.company || '';
+    $('facilityEditMaintenanceDate').value = maintenanceInfo.date || '';
+    $('facilityEditMaintenanceCompany').value = maintenanceInfo.company || '';
     $('facilityEditDrill').value = item.drill || '';
     $('facilityEditTraining').value = item.training || '';
     $('facilityEditModalError').textContent = '';
@@ -2900,8 +3210,10 @@
     $('facilityEditField').value = 'Cơ sở thương mại, dịch vụ';
     $('facilityEditAppendix').value = 'I';
     $('facilityEditInspectionDate').value = '';
-    $('facilityEditInsurance').value = '';
-    $('facilityEditMaintenance').value = '';
+    $('facilityEditInsuranceDate').value = '';
+    $('facilityEditInsuranceCompany').value = '';
+    $('facilityEditMaintenanceDate').value = '';
+    $('facilityEditMaintenanceCompany').value = '';
     $('facilityEditDrill').value = '';
     $('facilityEditTraining').value = '';
     $('facilityEditModalError').textContent = '';
@@ -2933,6 +3245,52 @@
     });
   }
 
+  function getFacilityQuickViewLabel(view = state.facilityQuickView || 'all') {
+    switch (view) {
+      case 'inspection': return 'Đã kiểm tra';
+      case 'insurance': return 'Đã có bảo hiểm';
+      case 'maintenance': return 'Đã bảo dưỡng';
+      case 'drill': return 'Đã thực tập';
+      case 'training': return 'Đã bồi dưỡng';
+      default: return 'Tổng số cơ sở';
+    }
+  }
+
+  function facilityFieldHasValue(item, key) {
+    return parseFacilityMetaValue(item?.[key]).hasValue || String(item?.[key] || '').trim() !== '';
+  }
+
+  function applyFacilityQuickView(items) {
+    const rows = Array.isArray(items) ? items : [];
+    switch (state.facilityQuickView || 'all') {
+      case 'inspection':
+        return rows.filter(item => facilityFieldHasValue(item, 'inspectionDate'));
+      case 'insurance':
+        return rows.filter(item => facilityFieldHasValue(item, 'insurance'));
+      case 'maintenance':
+        return rows.filter(item => facilityFieldHasValue(item, 'maintenance'));
+      case 'drill':
+        return rows.filter(item => facilityFieldHasValue(item, 'drill'));
+      case 'training':
+        return rows.filter(item => facilityFieldHasValue(item, 'training'));
+      default:
+        return rows;
+    }
+  }
+
+  function updateFacilityQuickViewBoxes() {
+    document.querySelectorAll('.facility-summary-box[data-view]').forEach(box => {
+      const active = (box.dataset.view || 'all') === (state.facilityQuickView || 'all');
+      box.classList.toggle('active', active);
+    });
+  }
+
+  function setFacilityQuickView(view = 'all') {
+    state.facilityQuickView = view || 'all';
+    updateFacilityQuickViewBoxes();
+    renderFacilities();
+  }
+
   function updateFacilityFilterSummary(filteredFacilities) {
     const box = $('facilityFilterSummary');
     if (!box) return;
@@ -2942,11 +3300,94 @@
       box.textContent = 'Chưa có dữ liệu cơ sở để lọc.';
       return;
     }
-    if (!hasFilter) {
-      box.textContent = `Bảng đang hiển thị ${filteredFacilities.length} cơ sở.`;
+
+    const quickViewLabel = getFacilityQuickViewLabel();
+    const quickViewActive = (state.facilityQuickView || 'all') !== 'all';
+    let baseText = hasFilter
+      ? `Bảng đang hiển thị ${filteredFacilities.length}/${state.facilities.length} cơ sở theo điều kiện lọc.`
+      : `Bảng đang hiển thị ${filteredFacilities.length} cơ sở.`;
+
+    if (quickViewActive) {
+      baseText += ` Đang xem danh sách: ${quickViewLabel}.`;
+    }
+
+    const insuranceSoon = countFacilitiesByExpiry(state.facilities, 'insurance', 'soon');
+    const maintenanceSoon = countFacilitiesByExpiry(state.facilities, 'maintenance', 'soon');
+    const warningParts = [];
+    if (insuranceSoon) warningParts.push(`${insuranceSoon} cơ sở sắp hết hạn bảo hiểm`);
+    if (maintenanceSoon) warningParts.push(`${maintenanceSoon} cơ sở sắp hết hạn bảo dưỡng`);
+
+    if (warningParts.length) {
+      baseText += ` Cảnh báo: ${warningParts.join(' và ')} trong 3 tháng tới.`;
+    }
+
+    box.textContent = baseText;
+  }
+
+
+  function getFacilitiesByExpiry(items, key, mode = 'soon') {
+    return sortFacilities((Array.isArray(items) ? items : []).filter(item => {
+      const info = getFacilityExpiryInfo(item?.[key]);
+      if (!info.hasValue || !info.canCompute) return false;
+      return mode === 'expired' ? info.isExpired : info.isSoon;
+    }));
+  }
+
+  function buildFacilityExpiryNoticeItem(item, key) {
+    const info = getFacilityExpiryInfo(item?.[key]);
+    const parts = [];
+    if (item?.address) parts.push(`Địa chỉ: ${escapeHtml(item.address)}`);
+    if (info.displayDate) parts.push(`Ngày mua: ${escapeHtml(info.displayDate)}`);
+    if (info.expiryDate) parts.push(`Hết hạn: ${escapeHtml(formatDate(info.expiryDate))}`);
+    if (info.company) parts.push(`Công ty: ${escapeHtml(info.company)}`);
+    return `<li class="facility-notice-item"><strong>${escapeHtml(item?.name || 'Chưa có tên cơ sở')}</strong>${parts.join('<br>')}</li>`;
+  }
+
+  function renderFacilityNoticeList(listId, countId, items, key, emptyMessage) {
+    const listEl = $(listId);
+    const countEl = $(countId);
+    if (!listEl) return;
+    const rows = Array.isArray(items) ? items : [];
+    if (countEl) {
+      countEl.textContent = rows.length ? `Có ${rows.length} cơ sở cần theo dõi.` : `Không có cơ sở nào.`;
+    }
+    if (!rows.length) {
+      listEl.innerHTML = `<li class="facility-notice-empty">${escapeHtml(emptyMessage)}</li>`;
       return;
     }
-    box.textContent = `Bảng đang hiển thị ${filteredFacilities.length}/${state.facilities.length} cơ sở theo điều kiện lọc.`;
+    listEl.innerHTML = rows.map(item => buildFacilityExpiryNoticeItem(item, key)).join('');
+  }
+
+  function openFacilityNoticeModal(managerName = getCurrentFacilityManager()) {
+    const modal = $('facilityNoticeModal');
+    if (!modal) return;
+    const label = managerName || getCurrentFacilityManager();
+    const title = $('facilityNoticeTitle');
+    const desc = $('facilityNoticeDesc');
+    if (title) title.textContent = `Thông báo theo dõi cơ sở - ${label}`;
+    if (desc) desc.textContent = 'Danh sách dưới đây gồm các cơ sở sắp hết hạn trong 3 tháng tới, tách riêng theo bảo hiểm và bảo dưỡng.';
+    const insuranceSoonItems = getFacilitiesByExpiry(state.facilities, 'insurance', 'soon');
+    const maintenanceSoonItems = getFacilitiesByExpiry(state.facilities, 'maintenance', 'soon');
+    renderFacilityNoticeList(
+      'facilityNoticeInsuranceList',
+      'facilityNoticeInsuranceCount',
+      insuranceSoonItems,
+      'insurance',
+      'Hiện chưa có cơ sở nào sắp hết hạn bảo hiểm trong 3 tháng tới.'
+    );
+    renderFacilityNoticeList(
+      'facilityNoticeMaintenanceList',
+      'facilityNoticeMaintenanceCount',
+      maintenanceSoonItems,
+      'maintenance',
+      'Hiện chưa có cơ sở nào sắp đến hạn bảo dưỡng trong 3 tháng tới.'
+    );
+    modal.classList.remove('hidden');
+  }
+
+  function closeFacilityNoticeModal() {
+    const modal = $('facilityNoticeModal');
+    if (modal) modal.classList.add('hidden');
   }
 
   function resetFacilityFilters(options = {}) {
@@ -2962,6 +3403,8 @@
       appendix: '',
       owner: ''
     };
+    state.facilityQuickView = 'all';
+    updateFacilityQuickViewBoxes();
     if (!options.skipRender) renderFacilities();
   }
 
@@ -2982,7 +3425,31 @@
     body.innerHTML = '';
 
     const allFacilities = Array.isArray(state.facilities) ? state.facilities : [];
-    const countFilled = (key) => allFacilities.filter(item => String(item?.[key] || '').trim() !== '').length;
+    const countFilled = (key) => allFacilities.filter(item => facilityFieldHasValue(item, key)).length;
+    const renderFlagWithHover = (value, label, options = {}) => {
+      const useExpiry = !!options.useExpiry;
+      const info = useExpiry ? getFacilityExpiryInfo(value) : null;
+      const meta = parseFacilityMetaValue(value);
+      if (!meta.hasValue) return '-';
+
+      if (useExpiry) {
+        let className = 'facility-date-mark';
+        let tooltip = meta.company ? `Công ty: ${meta.company}` : 'Chưa nhập công ty';
+        if (info && info.canCompute && info.expiryDate) {
+          tooltip += `\nHết hạn: ${formatDate(info.expiryDate)}`;
+          if (info.isExpired) {
+            className += ' facility-flag-expired';
+            tooltip += `\nTrạng thái: Đã hết hạn`;
+          } else if (info.isSoon) {
+            className += ' facility-flag-soon';
+            tooltip += `\nTrạng thái: Sắp hết hạn trong 3 tháng tới`;
+          }
+        }
+        return `<span class="${className}" title="${escapeHtml(tooltip)}">${escapeHtml(meta.displayDate || '-')}</span>`;
+      }
+
+      return `<span class="facility-flag-mark" title="${escapeHtml(`${label}: ${String(value || '').trim()}`)}">X</span>`;
+    };
 
     totalBox.textContent = String(allFacilities.length);
     if (inspectedBox) inspectedBox.textContent = String(countFilled('inspectionDate'));
@@ -2997,7 +3464,8 @@
       return;
     }
 
-    const filteredFacilities = getFilteredFacilities();
+    const filteredFacilities = applyFacilityQuickView(getFilteredFacilities());
+    updateFacilityQuickViewBoxes();
     updateFacilityFilterSummary(filteredFacilities);
 
     if (!filteredFacilities.length) {
@@ -3014,6 +3482,13 @@
       if (state.selectedFacilityId && state.selectedFacilityId === item.id) {
         tr.classList.add('facility-row-active');
       }
+      const insuranceInfo = getFacilityExpiryInfo(item.insurance);
+      const maintenanceInfo = getFacilityExpiryInfo(item.maintenance);
+      if (insuranceInfo.isExpired || maintenanceInfo.isExpired) {
+        tr.classList.add('task-row-overdue');
+      } else if (insuranceInfo.isSoon || maintenanceInfo.isSoon) {
+        tr.classList.add('task-row-soon');
+      }
       tr.innerHTML = `
         <td>${idx + 1}</td>
         <td>${escapeHtml(item.code || '-')}</td>
@@ -3023,10 +3498,10 @@
         <td>${escapeHtml(item.appendix || '-')}</td>
         <td>${escapeHtml(item.owner || '-')}</td>
         <td>${escapeHtml(formatDate(item.inspectionDate) || '-')}</td>
-        <td>${escapeHtml(item.insurance || '-')}</td>
-        <td>${escapeHtml(item.maintenance || '-')}</td>
-        <td>${escapeHtml(item.drill || '-')}</td>
-        <td>${escapeHtml(item.training || '-')}</td>
+        <td>${renderFlagWithHover(item.insurance, 'Bảo hiểm', { useExpiry: true })}</td>
+        <td>${renderFlagWithHover(item.maintenance, 'Bảo dưỡng', { useExpiry: true })}</td>
+        <td>${renderFlagWithHover(item.drill, 'Thực tập')}</td>
+        <td>${renderFlagWithHover(item.training, 'Bồi dưỡng')}</td>
       `;
       body.appendChild(tr);
     });
@@ -3111,8 +3586,8 @@
     const field = $('facilityEditField').value.trim() || 'Cơ sở thương mại, dịch vụ';
     const appendix = ($('facilityEditAppendix').value || 'I').trim();
     const inspectionDate = $('facilityEditInspectionDate').value;
-    const insurance = $('facilityEditInsurance').value.trim();
-    const maintenance = $('facilityEditMaintenance').value.trim();
+    const insurance = encodeFacilityMetaValue($('facilityEditInsuranceDate').value, $('facilityEditInsuranceCompany').value);
+    const maintenance = encodeFacilityMetaValue($('facilityEditMaintenanceDate').value, $('facilityEditMaintenanceCompany').value);
     const drill = $('facilityEditDrill').value.trim();
     const training = $('facilityEditTraining').value.trim();
 
@@ -3217,40 +3692,179 @@
   }
 
 
-  function exportFacilitiesCsv() {
-    if (!state.facilities.length) {
-      alert('Chưa có dữ liệu cơ sở để xuất.');
-      return;
-    }
-    const lines = [
-      ['STT','Mã cơ sở','Tên cơ sở','Địa chỉ','Lĩnh vực','Phụ lục','Người quản lý','Ngày kiểm tra','Bảo hiểm','Bảo dưỡng','Thực tập','Bồi dưỡng'].join(','),
-      ...state.facilities.map((item, idx) => [
-        idx + 1,
-        item.code,
-        item.name,
-        item.address,
-        item.field,
-        item.appendix,
-        item.owner,
-        formatDate(item.inspectionDate),
-        item.insurance,
-        item.maintenance,
-        item.drill,
-        item.training
-      ].map(value => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(','))
-    ];
-    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  function getVisibleFacilityRows() {
+    const body = $('facilityBody');
+    if (!body) return [];
+    return Array.from(body.querySelectorAll('tr')).filter(row => {
+      const cells = row.querySelectorAll('td');
+      return cells.length === 12 && !row.querySelector('.empty-state');
+    });
+  }
+
+  function getVisibleFacilityTableData() {
+    const table = document.querySelector('.facility-table');
+    if (!table) return { headers: [], rows: [] };
+    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+    const rows = getVisibleFacilityRows().map(row => Array.from(row.querySelectorAll('td')).map(td => td.textContent.replace(/\s+/g, ' ').trim()));
+    return { headers, rows };
+  }
+
+  function downloadBlobFile(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : (MANAGER_STORAGE_IDS[getCurrentFacilityManager()] || 'co_so');
-    link.download = `danh_sach_co_so_${exportSlug}.csv`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1200);
   }
 
+  function exportFacilitiesExcelFallback(headers, rows, exportSlug) {
+    const subtitle = $('facilityFilterSummary') ? $('facilityFilterSummary').textContent.trim() : '';
+    const managerLabel = getCurrentFacilityManager();
+    const html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!--[if gte mso 9]><xml>
+<x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Danh sách cơ sở</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+  body{font-family:"Times New Roman",serif;}
+  h2,p{margin:0 0 8px 0;}
+  table{border-collapse:collapse;width:100%;}
+  th,td{border:1px solid #000;padding:6px 8px;text-align:center;vertical-align:middle;word-wrap:break-word;}
+  th{background:#f3f3f3;font-weight:700;}
+</style>
+</head>
+<body>
+  <h2>Danh sách cơ sở - ${escapeHtml(managerLabel)}</h2>
+  <p>${escapeHtml(subtitle)}</p>
+  <table>
+    <thead>
+      <tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr>
+    </thead>
+    <tbody>
+      ${rows.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}
+    </tbody>
+  </table>
+</body>
+</html>`;
+    const blob = new Blob(['\ufeff', html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    downloadBlobFile(blob, `danh_sach_co_so_${exportSlug}.xls`);
+  }
+
+  function exportFacilitiesExcel() {
+    const { headers, rows } = getVisibleFacilityTableData();
+    if (!rows.length) {
+      alert('Chưa có dữ liệu cơ sở để xuất.');
+      return;
+    }
+
+    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : (MANAGER_STORAGE_IDS[getCurrentFacilityManager()] || 'co_so');
+    if (typeof XLSX === 'undefined') {
+      exportFacilitiesExcelFallback(headers, rows, exportSlug);
+      return;
+    }
+
+    const worksheetData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    const colCount = headers.length;
+    const widths = [];
+    for (let c = 0; c < colCount; c++) {
+      let maxLen = headers[c] ? headers[c].length : 10;
+      for (let r = 0; r < rows.length; r++) {
+        const cell = rows[r][c] || '';
+        maxLen = Math.max(maxLen, String(cell).length);
+      }
+      widths.push({ wch: Math.min(Math.max(maxLen + 2, 8), c === 4 ? 24 : 32) });
+    }
+    ws['!cols'] = widths;
+
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c });
+      if (ws[cellRef]) {
+        ws[cellRef].s = {
+          font: { bold: true },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true }
+        };
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách cơ sở');
+    try {
+      XLSX.writeFile(wb, `danh_sach_co_so_${exportSlug}.xlsx`);
+    } catch (error) {
+      console.error('Xuat XLSX that bai, chuyen sang xuat XLS:', error);
+      exportFacilitiesExcelFallback(headers, rows, exportSlug);
+    }
+  }
+
+  function printVisibleFacilities() {
+    const { headers, rows } = getVisibleFacilityTableData();
+    if (!rows.length) {
+      alert('Chưa có dữ liệu cơ sở để in.');
+      return;
+    }
+
+    const managerLabel = getCurrentFacilityManager();
+    const subtitle = $('facilityFilterSummary') ? $('facilityFilterSummary').textContent.trim() : '';
+    const printWindow = window.open('', '_blank', 'width=1280,height=860');
+    if (!printWindow) {
+      alert('Trình duyệt đã chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại.');
+      return;
+    }
+
+    const tableHtml = `
+      <table>
+        <thead>
+          <tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>In danh sách cơ sở</title>
+  <style>
+    body{font-family:"Times New Roman",Times,serif;margin:24px;color:#111}
+    .head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+    .head-left,.head-right{text-align:center;line-height:1.5;font-weight:700}
+    .head-right{min-width:320px}
+    .title{text-align:center;margin:12px 0 6px;font-size:24px;font-weight:700;text-transform:uppercase}
+    .sub{text-align:center;margin:0 0 14px;font-size:16px}
+    .note{text-align:center;margin:0 0 16px;font-size:14px;font-style:italic}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border:1px solid #555;padding:6px 8px;vertical-align:middle;text-align:center;word-break:break-word}
+    th{background:#f3f3f3;font-weight:700}
+    @media print{body{margin:12mm}}
+  </style>
+</head>
+<body>
+  <div class="head">
+    <div class="head-left">PHÒNG CẢNH SÁT PCCC VÀ CNCH<br>ĐỘI CÔNG TÁC PHÒNG CHÁY</div>
+    <div class="head-right">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>
+  </div>
+  <div class="title">DANH SÁCH CƠ SỞ</div>
+  <div class="sub">${escapeHtml(managerLabel)}</div>
+  <div class="note">${escapeHtml(subtitle)}</div>
+  ${tableHtml}
+</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 250);
+  }
 
   async function refreshFacilitiesPanel() {
     await loadFacilities();
@@ -3265,14 +3879,17 @@
   window.handleSaveFacilityModal = handleSaveFacilityModal;
   window.handleDeleteFacilityModal = handleDeleteFacilityModal;
   window.refreshFacilitiesPanel = refreshFacilitiesPanel;
-  window.exportFacilitiesCsv = exportFacilitiesCsv;
+  window.exportFacilitiesExcel = exportFacilitiesExcel;
+  window.exportFacilitiesCsv = exportFacilitiesExcel;
+  window.printVisibleFacilities = printVisibleFacilities;
   window.closeFacilityManager = closeFacilityManager;
 
   if ($('btnSaveFacility')) $('btnSaveFacility').addEventListener('click', handleSaveFacility);
   if ($('btnSaveFacilityModal')) $('btnSaveFacilityModal').addEventListener('click', handleSaveFacilityModal);
   if ($('btnDeleteFacilityModal')) $('btnDeleteFacilityModal').addEventListener('click', handleDeleteFacilityModal);
   if ($('btnCancelFacilityModal')) $('btnCancelFacilityModal').addEventListener('click', closeFacilityEditModal);
-  if ($('btnFacilityExport')) $('btnFacilityExport').addEventListener('click', exportFacilitiesCsv);
+  if ($('btnFacilityExport')) $('btnFacilityExport').addEventListener('click', exportFacilitiesExcel);
+  if ($('btnFacilityPrint')) $('btnFacilityPrint').addEventListener('click', printVisibleFacilities);
   if ($('btnFacilityLogout')) $('btnFacilityLogout').addEventListener('click', closeFacilityManager);
   if ($('facilityBody')) $('facilityBody').addEventListener('dblclick', (event) => {
     if (isTeamFacilityView()) return;
@@ -3283,7 +3900,7 @@
   ['facilityCode','facilityName','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
   });
-  ['facilityEditCode','facilityEditName','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditInspectionDate','facilityEditInsurance','facilityEditMaintenance','facilityEditDrill','facilityEditTraining'].forEach(id => {
+  ['facilityEditCode','facilityEditName','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
   ['facilityFilterName','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterOwner'].forEach(id => {
@@ -3293,6 +3910,9 @@
     if (eventName !== 'change') $(id).addEventListener('change', applyFacilityFilters);
   });
   if ($('btnClearFacilityFilters')) $('btnClearFacilityFilters').addEventListener('click', () => resetFacilityFilters());
+  document.querySelectorAll('.facility-summary-box[data-view]').forEach(box => {
+    box.addEventListener('click', () => setFacilityQuickView(box.dataset.view || 'all'));
+  });
 
   function populateFilters() {
     const assigneeSelect = $("filterAssignee");
@@ -3710,7 +4330,7 @@
       updateSyncUI();
       statusBox.className = "status success";
       statusBox.textContent = "Đã thêm công việc mới thành công.";
-      setStatus("success", "Đã đồng bộ dữ liệu công việc lên hệ thống dùng chung.");
+      setStatus("success", "Đã lưu dữ liệu công việc lên hệ thống.");
       await loadTasks(false);
       resetViewerQuickForm();
     } else {
@@ -3808,7 +4428,7 @@
       updateSyncUI();
       statusBox.className = "status success";
       statusBox.textContent = "Đã thêm công việc mới thành công.";
-      setStatus("success", "Đã đồng bộ dữ liệu công việc lên hệ thống dùng chung.");
+      setStatus("success", "Đã lưu dữ liệu công việc lên hệ thống.");
       await loadTasks(false);
       resetForm();
     } else {
@@ -3915,7 +4535,7 @@
       updateSyncUI();
       statusBox.className = "status success";
       statusBox.textContent = "Đã cập nhật công việc thành công.";
-      setStatus("success", "Đã đồng bộ dữ liệu công việc lên hệ thống dùng chung.");
+      setStatus("success", "Đã lưu dữ liệu công việc lên hệ thống.");
 
       const newAttachmentIds = new Set(getAttachmentFileIds(attachments));
       for (const fileId of getAttachmentFileIds(oldAttachments)) {
@@ -4175,7 +4795,7 @@ th{font-weight:700;background:#f1f1f1}
 
   function openAdminLoginModal(managerName = "Nguyễn Văn Nguyên") {
     state.pendingFacilityManager = managerName || "Nguyễn Văn Nguyên";
-    openFacilityManager(state.pendingFacilityManager);
+    void openFacilityManager(state.pendingFacilityManager, { showNotice: true });
   }
 
   function closeAdminLoginModal() {
@@ -4212,7 +4832,7 @@ th{font-weight:700;background:#f1f1f1}
 
   function handleAdminLogin() {
     const managerName = state.pendingFacilityManager || "Nguyễn Văn Nguyên";
-    openFacilityManager(managerName);
+    void openFacilityManager(managerName, { showNotice: true });
   }
 
   document.querySelectorAll(".manager-entry-btn").forEach(btn => {
@@ -4290,6 +4910,13 @@ th{font-weight:700;background:#f1f1f1}
   $("editTaskModal").addEventListener("click", (event) => {
     if (event.target === $("editTaskModal")) closeEditTaskModal();
   });
+  if ($("btnCloseFacilityNotice")) $("btnCloseFacilityNotice").addEventListener("click", closeFacilityNoticeModal);
+  if ($("btnContinueFacilityNotice")) $("btnContinueFacilityNotice").addEventListener("click", closeFacilityNoticeModal);
+  if ($("facilityNoticeModal")) {
+    $("facilityNoticeModal").addEventListener("click", (event) => {
+      if (event.target === $("facilityNoticeModal")) closeFacilityNoticeModal();
+    });
+  }
   if ($("facilityEditModal")) {
     $("facilityEditModal").addEventListener("click", (event) => {
       if (event.target === $("facilityEditModal")) closeFacilityEditModal();
