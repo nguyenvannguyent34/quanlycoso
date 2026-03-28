@@ -325,6 +325,15 @@
       align-items:end;
       margin:10px 0 16px;
     }
+    .filter-grid .filter-action{
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-start;
+      padding-top:34px;
+    }
+    .filter-grid .filter-action button{
+      margin-top:0;
+    }
     .task-layout{
       display:grid;
       grid-template-columns:1.05fr .95fr;
@@ -915,8 +924,56 @@
     }
     .facility-cell-main{font-weight:700;color:#7d1010;line-height:1.35}
     .facility-cell-sub{margin-top:4px;color:#667085;font-size:14px;line-height:1.4}
+
+    .facility-history-box{
+      margin-top:14px;
+      border:1px solid #e4e9f1;
+      border-radius:14px;
+      background:#fcfdff;
+      padding:12px 14px;
+    }
+    .facility-history-box h4{
+      margin:0 0 8px;
+      font-size:18px;
+      color:#7d1010;
+    }
+    .facility-history-list{
+      display:grid;
+      gap:8px;
+      max-height:220px;
+      overflow:auto;
+    }
+    .facility-history-item{
+      border:1px solid #e7ecf3;
+      border-radius:12px;
+      background:#fff;
+      padding:10px 12px;
+      line-height:1.45;
+    }
+    .facility-history-time{
+      font-size:13px;
+      color:#667085;
+      margin-bottom:4px;
+    }
+    .facility-history-action{
+      font-weight:700;
+      color:#7d1010;
+    }
+    .facility-history-empty{
+      color:#667085;
+      font-style:italic;
+    }
     .facility-owner-col{white-space:nowrap}
     .facility-owner-col.is-hidden{display:none}
+    .facility-table{table-layout:auto; min-width:1420px;}
+    .facility-table thead th{position:static; top:auto; z-index:auto; background:#f8fafc;}
+    .facility-table .facility-col-stt{position:static; left:auto; z-index:auto; min-width:58px; width:58px; background:inherit;}
+    .facility-table .facility-col-code{position:static; left:auto; z-index:auto; min-width:76px; width:76px; max-width:112px; white-space:nowrap; background:inherit; padding-left:8px; padding-right:8px;}
+    .facility-table .facility-col-name{position:static; left:auto; z-index:auto; min-width:300px; width:300px; background:inherit; text-align:center;}
+    .facility-table tbody td.facility-col-name{box-shadow:2px 0 0 rgba(221,227,238,.75);}
+    .facility-table thead th.facility-col-name{box-shadow:2px 0 0 rgba(221,227,238,.9);}
+    .facility-table .facility-col-name .facility-cell-main,.facility-table .facility-col-name .facility-cell-sub{text-align:center;}
+    .report-grid.report-grid-3{grid-template-columns:repeat(2,minmax(0,1fr));}
     #adminPanel{position:relative; z-index:20;}
     .facility-admin-shell{position:relative; z-index:21; isolation:isolate;}
     .facility-admin-shell,
@@ -1011,6 +1068,158 @@
         grid-template-columns:1fr;
       }
     }
+  
+    .system-ribbon{
+      max-width:1180px;
+      margin:12px auto 0;
+      padding:0 16px;
+    }
+    .system-ribbon-inner{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(221,227,238,.9);
+      border-radius:16px;
+      box-shadow:0 10px 28px rgba(16,24,40,.08);
+      padding:12px 16px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      backdrop-filter:blur(8px);
+    }
+    .system-ribbon-group{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .system-chip{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:160px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:#fffaf0;
+      border:1px solid #f0dfb3;
+    }
+    .system-chip span{
+      font-size:12px;
+      color:#667085;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .system-chip strong{
+      font-size:15px;
+      color:#7d1010;
+      line-height:1.3;
+    }
+    .role-btn.report-entry-btn{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .role-btn.report-entry-btn strong{
+      color:#7d1010;
+    }
+    .report-summary-grid{
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      margin-bottom:16px;
+    }
+    .report-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .report-grid .panel-box h3{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+    .report-table th,
+    .report-table td{
+      text-align:left;
+    }
+    .report-rank{
+      width:44px;
+      text-align:center !important;
+      font-weight:700;
+    }
+    .report-count{
+      width:96px;
+      text-align:center !important;
+      font-weight:700;
+      color:#7d1010;
+    }
+    .report-percent{
+      width:90px;
+      text-align:center !important;
+      color:#475467;
+      font-weight:700;
+    }
+    .report-bar-cell{
+      min-width:180px;
+    }
+    .report-bar-track{
+      height:10px;
+      width:100%;
+      background:#f1f5f9;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #e2e8f0;
+    }
+    .report-bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#c58b2e,#f0c979);
+    }
+    .summary-box.report-highlight{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .summary-box.report-danger{
+      background:linear-gradient(180deg,#fff2f2,#fff);
+      border-color:#f0c7c7;
+    }
+    .summary-box.report-warning{
+      background:linear-gradient(180deg,#fff8e8,#fff);
+      border-color:#f5e2a8;
+    }
+    .facility-cell-main small{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      color:#667085;
+      font-weight:700;
+    }
+    @media (max-width: 980px){
+      .report-grid{grid-template-columns:1fr;}
+      .system-ribbon{padding:0 12px;}
+      .system-ribbon-inner{padding:10px 12px;}
+    }
+
+  
+    .table-wrap{position:relative;overflow:auto;}
+    .facility-table{border-collapse:separate !important;border-spacing:0 !important;table-layout:auto !important;min-width:1420px !important;}
+    .facility-table th,.facility-table td{text-align:center !important;vertical-align:middle !important;}
+    .facility-table thead th{position:static !important;top:auto !important;z-index:auto !important;background:#f8fafc !important;}
+    .facility-table .facility-col-stt,.facility-table .facility-col-code,.facility-table .facility-col-name{position:static !important;background-clip:padding-box;}
+    .facility-table .facility-col-stt{left:0 !important;z-index:21 !important;min-width:58px !important;width:58px !important;}
+    .facility-table .facility-col-code{left:auto !important;z-index:21 !important;min-width:76px !important;width:76px !important;max-width:112px !important;white-space:nowrap !important;padding-left:8px !important;padding-right:8px !important;}
+    .facility-table .facility-col-name{left:auto !important;z-index:21 !important;min-width:300px !important;width:300px !important;text-align:center !important;}
+    .facility-table .facility-col-name .facility-cell-main,.facility-table .facility-col-name .facility-cell-sub{text-align:center !important;}
+    .facility-table tbody tr:nth-child(odd){--sticky-bg:rgba(255,255,255,.96);}
+    .facility-table tbody tr:nth-child(even){--sticky-bg:rgba(255,245,204,.72);}
+    .facility-table tbody td.facility-col-stt,.facility-table tbody td.facility-col-code,.facility-table tbody td.facility-col-name{background:var(--sticky-bg) !important;}
+    .facility-table tbody tr:hover td.facility-col-stt,.facility-table tbody tr:hover td.facility-col-code,.facility-table tbody tr:hover td.facility-col-name{background:#fff7f0 !important;}
+    .facility-table tbody tr.task-row-soon td.facility-col-stt,.facility-table tbody tr.task-row-soon td.facility-col-code,.facility-table tbody tr.task-row-soon td.facility-col-name{background:#ffe3ee !important;}
+    .facility-table tbody tr.task-row-overdue td.facility-col-stt,.facility-table tbody tr.task-row-overdue td.facility-col-code,.facility-table tbody tr.task-row-overdue td.facility-col-name{background:#ffd6d6 !important;}
+    .facility-table thead th.facility-col-stt,.facility-table thead th.facility-col-code,.facility-table thead th.facility-col-name{z-index:22 !important;}
+    .facility-table tbody td,.facility-table thead th{white-space:normal;word-break:break-word;}
+    .report-table th,.report-table td{text-align:center !important;vertical-align:middle !important;}
+    .facility-table td.facility-col-code,.facility-table th.facility-col-code{font-weight:700; letter-spacing:.2px;}
+    .facility-table td.facility-col-name,.facility-table th.facility-col-name{padding-left:12px !important; padding-right:12px !important;}
+    .facility-table .facility-cell-main{white-space:normal; word-break:break-word; overflow-wrap:anywhere;}
+    .facility-table .facility-cell-sub{white-space:normal; word-break:break-word; overflow-wrap:anywhere;}
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 </head>
@@ -1204,6 +1413,7 @@
 <div class="facility-toolbar-title" id="facilityManagerLabel"></div>
 <div class="flex" style="justify-content:flex-end; width:100%">
 <button class="secondary" id="btnFacilityPrint" type="button">In danh sách</button>
+<button class="secondary hidden" id="btnFacilityReport" type="button">Báo cáo tổng hợp</button>
 <button class="secondary" id="btnFacilityExport" type="button">Xuất Excel</button>
 <button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
 </div>
@@ -1340,8 +1550,7 @@
 <option value="Tạ Minh Phương">Tạ Minh Phương</option>
 </select>
 </div>
-<div>
-<label>&nbsp;</label>
+<div class="filter-action">
 <button class="secondary" id="btnClearFacilityFilters" type="button">Xóa lọc</button>
 </div>
 </div>
@@ -1356,9 +1565,9 @@
 <table class="facility-table">
 <thead>
 <tr>
-<th>STT</th>
-<th>Mã cơ sở</th>
-<th>Tên cơ sở</th>
+<th class="facility-col-stt">STT</th>
+<th class="facility-col-code">Mã cơ sở</th>
+<th class="facility-col-name">Tên cơ sở</th>
 <th>Địa chỉ</th>
 <th>Lĩnh vực</th>
 <th>Nhóm</th>
@@ -1510,6 +1719,87 @@
 </div>
 </div>
 </div></div> </div>
+</div>
+</div>
+</div>
+
+
+<div class="hidden" id="reportPanel">
+<div class="panel-box" style="margin-bottom:16px">
+<div class="flex" style="justify-content:space-between; gap:10px; flex-wrap:wrap">
+<div>
+<h3 style="margin:0;font-size:24px">Báo cáo tổng hợp</h3>
+<div class="muted small hidden" id="reportSub"></div>
+</div>
+<div class="flex">
+<button class="secondary" id="btnReportPrint" type="button">In báo cáo</button>
+<button class="secondary" id="btnReportBack" type="button">Quay lại</button>
+</div>
+</div>
+<div class="status info" id="reportStatus" style="margin-top:14px">Sẵn sàng tạo báo cáo.</div>
+</div>
+<div class="summary-grid report-summary-grid">
+<div class="summary-box report-highlight">
+<div class="label">Tổng số cơ sở</div>
+<div class="value" id="reportStatTotal">0</div>
+</div>
+<div class="summary-box report-highlight">
+<div class="label">Số lĩnh vực</div>
+<div class="value" id="reportStatFieldCount">0</div>
+</div>
+<div class="summary-box report-highlight">
+<div class="label">Số nhóm</div>
+<div class="value" id="reportStatGroupCount">0</div>
+</div>
+<div class="summary-box report-highlight">
+<div class="label">Số địa bàn</div>
+<div class="value" id="reportStatAreaCount">0</div>
+</div>
+<div class="summary-box report-warning">
+<div class="label">Sắp hết hạn bảo hiểm</div>
+<div class="value" id="reportStatInsuranceSoon">0</div>
+</div>
+<div class="summary-box report-danger">
+<div class="label">Sắp hết hạn bảo dưỡng</div>
+<div class="value" id="reportStatMaintenanceSoon">0</div>
+</div>
+</div>
+<div class="report-grid report-grid-3">
+<div class="panel-box">
+<h3>Phân tích theo lĩnh vực</h3>
+<div class="table-wrap">
+<table class="report-table">
+<thead><tr><th class="report-rank">#</th><th>Lĩnh vực</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
+<tbody id="reportFieldBody"></tbody>
+</table>
+</div>
+</div>
+<div class="panel-box">
+<h3>Phân tích theo nhóm</h3>
+<div class="table-wrap">
+<table class="report-table">
+<thead><tr><th class="report-rank">#</th><th>Nhóm</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
+<tbody id="reportGroupBody"></tbody>
+</table>
+</div>
+</div>
+<div class="panel-box">
+<h3>Phân tích theo Mô tả</h3>
+<div class="table-wrap">
+<table class="report-table">
+<thead><tr><th class="report-rank">#</th><th>Mô tả</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
+<tbody id="reportDescriptionBody"></tbody>
+</table>
+</div>
+</div>
+<div class="panel-box">
+<h3>Phân tích theo địa bàn</h3>
+<div class="table-wrap">
+<table class="report-table">
+<thead><tr><th class="report-rank">#</th><th>Địa bàn</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
+<tbody id="reportAreaBody"></tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -1724,6 +2014,13 @@
 <input id="facilityEditTraining" placeholder="Nhập thông tin bồi dưỡng" type="text"/>
 </div>
 </div>
+
+<div class="facility-history-box">
+<h4>Lịch sử chỉnh sửa</h4>
+<div class="facility-history-list" id="facilityEditHistoryList">
+<div class="facility-history-empty">Chưa có lịch sử chỉnh sửa.</div>
+</div>
+</div>
 <div class="modal-error" id="facilityEditModalError"></div>
 <div class="flex" style="justify-content:space-between; align-items:center; margin-top:8px; gap:10px; flex-wrap:wrap">
 <button class="danger" id="btnDeleteFacilityModal" type="button">Xóa cơ sở</button>
@@ -1835,10 +2132,111 @@
       maintenance: "",
       drill: "",
       training: ""
-    }
+    },
+    reportFacilities: [],
+    reportSource: ""
   };
 
   const $ = (id) => document.getElementById(id);
+
+
+  function updateSystemRibbon() {}
+
+  function startSystemClock() {}
+
+  function dedupeFacilities(items) {
+    const seen = new Map();
+    (Array.isArray(items) ? items : []).forEach(raw => {
+      const item = normalizeFacility(raw || {});
+      if (!item.name) return;
+      const key = item.id || `${String(item.code || '').trim().toUpperCase()}|${String(item.name || '').trim().toUpperCase()}|${String(item.address || '').trim().toUpperCase()}`;
+      if (!seen.has(key)) seen.set(key, item);
+    });
+    return sortFacilities(Array.from(seen.values()));
+  }
+
+  function normalizeCodeKey(value) {
+    const raw = String(value || '').trim();
+    if (!/^\d+$/.test(raw)) return '';
+    return raw;
+  }
+
+  function getKnownFacilitiesPool() {
+    const pool = [...(Array.isArray(state.facilities) ? state.facilities : [])];
+    getIndividualFacilityManagers().forEach(name => {
+      pool.push(...loadLocalFacilities(name));
+    });
+    return dedupeFacilities(pool);
+  }
+
+  function findDuplicateFacilityCode(code, excludeId = '') {
+    const key = normalizeCodeKey(code);
+    if (!key) return null;
+    return getKnownFacilitiesPool().find(item => normalizeCodeKey(item.code) === key && String(item.id || '') !== String(excludeId || '')) || null;
+  }
+
+  function slugText(value = '') {
+    return String(value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  function deriveAreaFromAddress(address = '') {
+    const raw = String(address || '').trim();
+    if (!raw) return 'Chưa xác định';
+    const text = slugText(raw);
+    const knownAreas = [
+      ['Hạ Long', ['ha long']],
+      ['Cẩm Phả', ['cam pha']],
+      ['Uông Bí', ['uong bi']],
+      ['Móng Cái', ['mong cai']],
+      ['Đông Triều', ['dong trieu']],
+      ['Quảng Yên', ['quang yen']],
+      ['Vân Đồn', ['van don']],
+      ['Cô Tô', ['co to']],
+      ['Tiên Yên', ['tien yen']],
+      ['Ba Chẽ', ['ba che']],
+      ['Bình Liêu', ['binh lieu']],
+      ['Đầm Hà', ['dam ha']],
+      ['Hải Hà', ['hai ha']]
+    ];
+    for (const [label, keys] of knownAreas) {
+      if (keys.some(key => text.includes(key))) return label;
+    }
+    const parts = raw.split(',').map(part => part.trim()).filter(Boolean);
+    if (parts.length) return parts[parts.length - 1];
+    return raw;
+  }
+
+  function buildCountRows(items, getKey) {
+    const map = new Map();
+    (Array.isArray(items) ? items : []).forEach(item => {
+      const key = String(getKey(item) || '').trim() || 'Chưa phân loại';
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'vi'));
+  }
+
+  function renderReportRows(targetId, rows, total, emptyLabel) {
+    const body = $(targetId);
+    if (!body) return;
+    if (!rows.length) {
+      body.innerHTML = `<tr><td colspan="5"><div class="empty-state">${escapeHtml(emptyLabel)}</div></td></tr>`;
+      return;
+    }
+    const maxCount = Math.max(...rows.map(row => row.count), 1);
+    body.innerHTML = rows.map((row, index) => {
+      const percent = total ? ((row.count / total) * 100) : 0;
+      const barWidth = Math.max(6, (row.count / maxCount) * 100);
+      return `<tr>
+        <td class="report-rank">${index + 1}</td>
+        <td>${escapeHtml(row.label)}</td>
+        <td class="report-count">${row.count}</td>
+        <td class="report-percent">${percent.toFixed(1)}%</td>
+        <td class="report-bar-cell"><div class="report-bar-track"><div class="report-bar-fill" style="width:${barWidth}%"></div></div></td>
+      </tr>`;
+    }).join('');
+  }
 
   async function fetchWithTimeout(url, options = {}, timeoutMs = 7000) {
     const controller = new AbortController();
@@ -1904,6 +2302,7 @@
     const refreshButton = $("btnFacilityRefresh");
     const formPanel = $("facilityFormPanel");
     const saveStatus = $("facilitySaveStatus");
+    const reportButton = $("btnFacilityReport");
     const ownerFilterWrap = $("facilityFilterOwnerWrap");
     const ownerFilter = $("facilityFilterOwner");
     const descriptionFilterWrap = $("facilityFilterDescriptionWrap");
@@ -1920,6 +2319,7 @@
     if (formPanel) formPanel.style.display = isTeamView ? "none" : "";
     if (refreshButton) refreshButton.style.display = "none";
     if (ownerFilterWrap) ownerFilterWrap.style.display = isTeamView ? "" : "none";
+    if (reportButton) reportButton.classList.toggle('hidden', !isTeamView);
     if (descriptionFilterWrap) descriptionFilterWrap.style.display = shouldShowFacilityDescriptionFilter() ? "" : "none";
     if (!isTeamView && ownerFilter) ownerFilter.value = '';
     if (!shouldShowFacilityDescriptionFilter() && descriptionFilter) descriptionFilter.value = '';
@@ -1931,6 +2331,7 @@
       saveButton.title = isTeamView ? "Mục này chỉ tổng hợp dữ liệu từ 9 danh sách cá nhân." : "";
     }
     updateFacilityOwnerColumnVisibility();
+    adjustFacilityTableLayout();
   }
 
   function setStatus(type, html) {
@@ -2441,9 +2842,9 @@
   }
 
   function showOnly(sectionId) {
-    ["welcomePanel", "viewerPanel", "adminPanel"].forEach(id => $(id).classList.add("hidden"));
+    ["welcomePanel", "viewerPanel", "adminPanel", "reportPanel"].forEach(id => $(id).classList.add("hidden"));
     $(sectionId).classList.remove("hidden");
-    document.body.classList.toggle("facility-manager-open", sectionId === "adminPanel");
+    document.body.classList.toggle("facility-manager-open", sectionId === "adminPanel" || sectionId === "reportPanel");
   }
 
   function enterWorkMode() {
@@ -2470,6 +2871,7 @@
     resetForm();
     setMain(state.currentFacilityManager, "");
     showOnly("adminPanel");
+    updateSystemRibbon(state.currentFacilityManager, "Đang mở danh sách cơ sở");
     await loadFacilities();
     if (shouldShowNotice) {
       openFacilityNoticeModal(state.currentFacilityManager);
@@ -2487,6 +2889,7 @@
     state.pendingFacilityManager = "";
     setMain("Sẵn sàng sử dụng", "");
     showOnly("welcomePanel");
+    updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   }
 
   function makeId() {
@@ -2997,12 +3400,90 @@
     renderAll();
   }
 
+  function formatDateTime(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.toLocaleString('vi-VN');
+    return String(value);
+  }
+
+  function renderFacilityHistory(historyItems) {
+    const box = $('facilityEditHistoryList');
+    if (!box) return;
+    const rows = normalizeFacilityHistory(historyItems);
+    if (!rows.length) {
+      box.innerHTML = '<div class="facility-history-empty">Chưa có lịch sử chỉnh sửa.</div>';
+      return;
+    }
+    box.innerHTML = rows.slice().reverse().map(item => `
+      <div class="facility-history-item">
+        <div class="facility-history-time">${escapeHtml(formatDateTime(item.time) || 'Không rõ thời gian')}</div>
+        <div><span class="facility-history-action">${escapeHtml(item.action || 'Cập nhật')}</span></div>
+        <div>${escapeHtml(item.summary || 'Đã cập nhật thông tin cơ sở.')}</div>
+        ${item.actor ? `<div class="facility-history-time">Người thực hiện: ${escapeHtml(item.actor)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function createFacilityHistoryEntry(action, summary, actor) {
+    return {
+      time: new Date().toISOString(),
+      action: String(action || 'Cập nhật').trim(),
+      summary: String(summary || 'Đã cập nhật thông tin cơ sở.').trim(),
+      actor: String(actor || '').trim()
+    };
+  }
+
+  function buildFacilityChangeSummary(previousItem, nextItem) {
+    const labels = {
+      code: 'Mã cơ sở',
+      name: 'Tên cơ sở',
+      description: 'Mô tả',
+      address: 'Địa chỉ',
+      field: 'Lĩnh vực',
+      appendix: 'Nhóm',
+      inspectionDate: 'Ngày kiểm tra',
+      insurance: 'Bảo hiểm',
+      maintenance: 'Bảo dưỡng',
+      drill: 'Thực tập',
+      training: 'Bồi dưỡng'
+    };
+    const changed = [];
+    Object.keys(labels).forEach(key => {
+      const before = String(previousItem?.[key] || '').trim();
+      const after = String(nextItem?.[key] || '').trim();
+      if (before !== after) changed.push(labels[key]);
+    });
+    return changed.length ? 'Đã cập nhật: ' + changed.join(', ') + '.' : 'Đã lưu lại thông tin cơ sở.';
+  }
+
   function buildFacilityCode(raw = {}) {
     const direct = String(raw.code || raw.facilityCode || raw.maCoSo || raw.facility_code || '').trim();
     if (direct) return direct;
     const idSource = String(raw.id || '').trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     const tail = (idSource.slice(-6) || String(Date.now()).slice(-6)).padStart(6, '0');
     return 'CS-' + tail;
+  }
+
+  function normalizeFacilityHistory(rawHistory) {
+    if (Array.isArray(rawHistory)) {
+      return rawHistory.map(item => ({
+        time: String(item?.time || item?.updatedAt || '').trim(),
+        action: String(item?.action || '').trim(),
+        summary: String(item?.summary || item?.note || '').trim(),
+        actor: String(item?.actor || item?.owner || '').trim()
+      })).filter(item => item.time || item.action || item.summary);
+    }
+    if (typeof rawHistory === 'string') {
+      const text = rawHistory.trim();
+      if (!text) return [];
+      try {
+        return normalizeFacilityHistory(JSON.parse(text));
+      } catch (_) {
+        return [{ time: '', action: 'Lịch sử', summary: text, actor: '' }];
+      }
+    }
+    return [];
   }
 
   function normalizeFacility(raw = {}) {
@@ -3020,6 +3501,7 @@
       drill: String(raw.drill || '').trim(),
       training: String(raw.training || '').trim(),
       owner: String(raw.owner || raw.ownerManager || raw.manager || '').trim(),
+      editHistory: normalizeFacilityHistory(raw.editHistory || raw.history || raw.lichSuChinhSua || raw.edit_history || raw.EDIT_HISTORY || raw.HISTORY || raw.editHistoryJson),
       createdAt: String(raw.createdAt || new Date().toISOString()).trim(),
       updatedAt: String(raw.updatedAt || raw.createdAt || new Date().toISOString()).trim()
     };
@@ -3150,6 +3632,7 @@
       setFacilityStatus('warning', isTeamFacilityView()
         ? 'Chưa cấu hình Apps Script. Cơ sở Đội 2 đang hiển thị dữ liệu cục bộ gần nhất.'
         : 'Chưa cấu hình Apps Script. Dữ liệu cơ sở đang lưu cục bộ trên trình duyệt này.');
+      updateSystemRibbon(getCurrentFacilityManager(), 'Dữ liệu cục bộ gần nhất');
       return;
     }
 
@@ -3164,6 +3647,7 @@
       setFacilityStatus('info', isTeamFacilityView()
         ? `Đang xem dữ liệu tổng hợp từ hệ thống (${state.facilities.length} cơ sở).`
         : 'Sẵn sàng cập nhật danh sách cơ sở.');
+      updateSystemRibbon(getCurrentFacilityManager(), `Đồng bộ hệ thống - ${state.facilities.length} cơ sở`);
       return;
     }
 
@@ -3175,6 +3659,7 @@
     setFacilityStatus('warning', state.facilities.length
       ? `${fallbackMessage} Đang dùng dữ liệu cục bộ gần nhất trên trình duyệt này.`
       : `${fallbackMessage} Chưa có dữ liệu cục bộ để hiển thị.`);
+    updateSystemRibbon(getCurrentFacilityManager(), state.facilities.length ? 'Dữ liệu cục bộ gần nhất' : 'Chưa có dữ liệu');
   }
 
 
@@ -3231,6 +3716,7 @@
     $('facilityEditDrill').value = item.drill || '';
     $('facilityEditTraining').value = item.training || '';
     $('facilityEditModalError').textContent = '';
+    renderFacilityHistory(item.editHistory);
   }
 
   function openFacilityEditModal(facilityId) {
@@ -3264,6 +3750,7 @@
     $('facilityEditDrill').value = '';
     $('facilityEditTraining').value = '';
     $('facilityEditModalError').textContent = '';
+    renderFacilityHistory([]);
   }
 
   function openFacilityForEdit(facilityId) {
@@ -3466,6 +3953,42 @@
     renderFacilities();
   }
 
+
+  function adjustFacilityTableLayout() {
+    const table = document.querySelector('.facility-table');
+    if (!table) return;
+    const codeCells = Array.from(table.querySelectorAll('th.facility-col-code, td.facility-col-code'));
+    const nameCells = Array.from(table.querySelectorAll('th.facility-col-name, td.facility-col-name'));
+    if (!codeCells.length || !nameCells.length) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const codeFont = getComputedStyle(codeCells[0]).font || getComputedStyle(table).font;
+    if (ctx && codeFont) ctx.font = codeFont;
+
+    let maxCodeWidth = 76;
+    codeCells.forEach((cell) => {
+      const text = String(cell.textContent || '').trim() || 'Mã cơ sở';
+      const measured = ctx ? Math.ceil(ctx.measureText(text).width) : text.length * 8;
+      maxCodeWidth = Math.max(maxCodeWidth, measured + 22);
+    });
+    maxCodeWidth = Math.min(Math.max(maxCodeWidth, 76), 112);
+
+    codeCells.forEach((cell) => {
+      cell.style.width = maxCodeWidth + 'px';
+      cell.style.minWidth = maxCodeWidth + 'px';
+      cell.style.maxWidth = maxCodeWidth + 'px';
+      cell.style.whiteSpace = 'nowrap';
+    });
+
+    const nameWidth = Math.max(300, 360 - Math.max(0, maxCodeWidth - 76));
+    nameCells.forEach((cell) => {
+      cell.style.width = nameWidth + 'px';
+      cell.style.minWidth = nameWidth + 'px';
+      cell.style.maxWidth = nameWidth + 'px';
+    });
+  }
+
   function renderFacilities() {
     const body = $('facilityBody');
     const totalBox = $('facilityStatTotal');
@@ -3544,9 +4067,9 @@
         tr.classList.add('task-row-soon');
       }
       tr.innerHTML = `
-        <td>${idx + 1}</td>
-        <td>${escapeHtml(item.code || '-')}</td>
-        <td><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub">${escapeHtml(item.description)}</div>` : ''}</td>
+        <td class="facility-col-stt">${idx + 1}</td>
+        <td class="facility-col-code">${escapeHtml(item.code || '-')}</td>
+        <td class="facility-col-name"><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub">${escapeHtml(item.description)}</div>` : ''}</td>
         <td>${escapeHtml(item.address || '-')}</td>
         <td>${escapeHtml(item.field || '-')}</td>
         <td>${escapeHtml(item.appendix || '-')}</td>
@@ -3581,6 +4104,12 @@
       $('facilityName').focus();
       return;
     }
+    const duplicateFacility = findDuplicateFacilityCode(code);
+    if (code && duplicateFacility) {
+      setFacilityStatus('error', `Mã cơ sở ${code} đã tồn tại tại ${duplicateFacility.owner || 'hệ thống'} - ${duplicateFacility.name}.`);
+      $('facilityCode').focus();
+      return;
+    }
 
     const facility = normalizeFacility({
       id,
@@ -3596,6 +4125,7 @@
       drill: '',
       training: '',
       owner: managerName,
+      editHistory: [createFacilityHistoryEntry('Tạo mới', 'Khởi tạo cơ sở trong hệ thống.', managerName)],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
@@ -3658,12 +4188,19 @@
       $('facilityEditName').focus();
       return;
     }
+    const duplicateFacility = findDuplicateFacilityCode(code, id);
+    if (code && duplicateFacility) {
+      $('facilityEditModalError').textContent = `Mã cơ sở ${code} đã tồn tại tại ${duplicateFacility.owner || 'hệ thống'} - ${duplicateFacility.name}.`;
+      $('facilityEditCode').focus();
+      return;
+    }
 
-    const existing = state.facilities.find(item => item.id === id);
-    const ownerName = existing?.owner || getCurrentFacilityManager();
+    const existing = normalizeFacility(state.facilities.find(item => item.id === id) || {});
+    const ownerName = existing.owner || getCurrentFacilityManager();
     const targetFacilities = loadLocalFacilities(ownerName);
-    const localExisting = targetFacilities.find(item => item.id === id);
-    const facility = normalizeFacility({
+    const localExisting = normalizeFacility(targetFacilities.find(item => item.id === id) || existing || {});
+    const facilityDraft = normalizeFacility({
+      ...localExisting,
       id,
       code,
       name,
@@ -3677,19 +4214,35 @@
       drill,
       training,
       owner: ownerName,
-      createdAt: localExisting ? localExisting.createdAt : (existing ? existing.createdAt : new Date().toISOString()),
+      createdAt: localExisting.createdAt || existing.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
+    const baseHistory = normalizeFacilityHistory(localExisting.editHistory || existing.editHistory);
+    const historyEntry = createFacilityHistoryEntry('Chỉnh sửa', buildFacilityChangeSummary(localExisting, facilityDraft), ownerName);
+    const mergedHistory = [...baseHistory, historyEntry];
+    const facility = normalizeFacility({
+      ...facilityDraft,
+      editHistory: mergedHistory
+    });
 
-    if (!isFacilityCloudReady()) {
+    const applyFacilityLocally = (itemToStore) => {
       const updatedFacilities = sortFacilities([
         ...targetFacilities.filter(item => item.id !== id),
-        facility
+        itemToStore
       ]);
       saveLocalFacilities(updatedFacilities, ownerName);
-      state.selectedFacilityId = facility.id;
-      await loadFacilities();
-      closeFacilityEditModal();
+      state.facilities = sortFacilities([
+        ...state.facilities.filter(item => item.id !== id),
+        itemToStore
+      ]);
+      state.selectedFacilityId = itemToStore.id;
+      renderFacilities();
+      fillFacilityEditModal(itemToStore);
+    };
+
+    if (!isFacilityCloudReady()) {
+      applyFacilityLocally(facility);
+      $('facilityEditModalError').textContent = 'Đã lưu chỉnh sửa.';
       return;
     }
 
@@ -3701,19 +4254,14 @@
       return;
     }
 
-    const savedFacility = normalizeFacility(result.item || facility);
-    const updatedFacilities = sortFacilities([
-      ...targetFacilities.filter(item => item.id !== savedFacility.id),
-      savedFacility
-    ]);
-    saveLocalFacilities(updatedFacilities, ownerName);
-    state.selectedFacilityId = savedFacility.id;
-    await loadFacilities();
-    closeFacilityEditModal();
+    const savedFacility = normalizeFacility({ ...facility, ...(result.item || {}) });
+    const savedHistory = normalizeFacilityHistory(savedFacility.editHistory);
+    savedFacility.editHistory = savedHistory.length ? savedHistory : mergedHistory;
+    applyFacilityLocally(savedFacility);
+    $('facilityEditModalError').textContent = 'Đã lưu chỉnh sửa.';
   }
 
-
-  async function handleDeleteFacilityModal() {
+    async function handleDeleteFacilityModal() {
     const id = $('facilityEditId').value.trim() || state.selectedFacilityId;
     if (!id) return;
     const facility = state.facilities.find(item => item.id === id);
@@ -3798,7 +4346,135 @@
   table{border-collapse:collapse;width:100%;}
   th,td{border:1px solid #000;padding:6px 8px;text-align:center;vertical-align:middle;word-wrap:break-word;}
   th{background:#f3f3f3;font-weight:700;}
-</style>
+
+    .system-ribbon{
+      max-width:1180px;
+      margin:12px auto 0;
+      padding:0 16px;
+    }
+    .system-ribbon-inner{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(221,227,238,.9);
+      border-radius:16px;
+      box-shadow:0 10px 28px rgba(16,24,40,.08);
+      padding:12px 16px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      backdrop-filter:blur(8px);
+    }
+    .system-ribbon-group{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .system-chip{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:160px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:#fffaf0;
+      border:1px solid #f0dfb3;
+    }
+    .system-chip span{
+      font-size:12px;
+      color:#667085;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .system-chip strong{
+      font-size:15px;
+      color:#7d1010;
+      line-height:1.3;
+    }
+    .role-btn.report-entry-btn{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .role-btn.report-entry-btn strong{
+      color:#7d1010;
+    }
+    .report-summary-grid{
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      margin-bottom:16px;
+    }
+    .report-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .report-grid .panel-box h3{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+    .report-table th,
+    .report-table td{
+      text-align:left;
+    }
+    .report-rank{
+      width:44px;
+      text-align:center !important;
+      font-weight:700;
+    }
+    .report-count{
+      width:96px;
+      text-align:center !important;
+      font-weight:700;
+      color:#7d1010;
+    }
+    .report-percent{
+      width:90px;
+      text-align:center !important;
+      color:#475467;
+      font-weight:700;
+    }
+    .report-bar-cell{
+      min-width:180px;
+    }
+    .report-bar-track{
+      height:10px;
+      width:100%;
+      background:#f1f5f9;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #e2e8f0;
+    }
+    .report-bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#c58b2e,#f0c979);
+    }
+    .summary-box.report-highlight{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .summary-box.report-danger{
+      background:linear-gradient(180deg,#fff2f2,#fff);
+      border-color:#f0c7c7;
+    }
+    .summary-box.report-warning{
+      background:linear-gradient(180deg,#fff8e8,#fff);
+      border-color:#f5e2a8;
+    }
+    .facility-cell-main small{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      color:#667085;
+      font-weight:700;
+    }
+    @media (max-width: 980px){
+      .report-grid{grid-template-columns:1fr;}
+      .system-ribbon{padding:0 12px;}
+      .system-ribbon-inner{padding:10px 12px;}
+    }
+
+  </style>
 </head>
 <body>
   <h2>Danh sách cơ sở - ${escapeHtml(managerLabel)}</h2>
@@ -3907,6 +4583,134 @@
     th,td{border:1px solid #555;padding:6px 8px;vertical-align:middle;text-align:center;word-break:break-word}
     th{background:#f3f3f3;font-weight:700}
     @media print{body{margin:12mm}}
+  
+    .system-ribbon{
+      max-width:1180px;
+      margin:12px auto 0;
+      padding:0 16px;
+    }
+    .system-ribbon-inner{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(221,227,238,.9);
+      border-radius:16px;
+      box-shadow:0 10px 28px rgba(16,24,40,.08);
+      padding:12px 16px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      backdrop-filter:blur(8px);
+    }
+    .system-ribbon-group{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .system-chip{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:160px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:#fffaf0;
+      border:1px solid #f0dfb3;
+    }
+    .system-chip span{
+      font-size:12px;
+      color:#667085;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .system-chip strong{
+      font-size:15px;
+      color:#7d1010;
+      line-height:1.3;
+    }
+    .role-btn.report-entry-btn{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .role-btn.report-entry-btn strong{
+      color:#7d1010;
+    }
+    .report-summary-grid{
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      margin-bottom:16px;
+    }
+    .report-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .report-grid .panel-box h3{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+    .report-table th,
+    .report-table td{
+      text-align:left;
+    }
+    .report-rank{
+      width:44px;
+      text-align:center !important;
+      font-weight:700;
+    }
+    .report-count{
+      width:96px;
+      text-align:center !important;
+      font-weight:700;
+      color:#7d1010;
+    }
+    .report-percent{
+      width:90px;
+      text-align:center !important;
+      color:#475467;
+      font-weight:700;
+    }
+    .report-bar-cell{
+      min-width:180px;
+    }
+    .report-bar-track{
+      height:10px;
+      width:100%;
+      background:#f1f5f9;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #e2e8f0;
+    }
+    .report-bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#c58b2e,#f0c979);
+    }
+    .summary-box.report-highlight{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .summary-box.report-danger{
+      background:linear-gradient(180deg,#fff2f2,#fff);
+      border-color:#f0c7c7;
+    }
+    .summary-box.report-warning{
+      background:linear-gradient(180deg,#fff8e8,#fff);
+      border-color:#f5e2a8;
+    }
+    .facility-cell-main small{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      color:#667085;
+      font-weight:700;
+    }
+    @media (max-width: 980px){
+      .report-grid{grid-template-columns:1fr;}
+      .system-ribbon{padding:0 12px;}
+      .system-ribbon-inner{padding:10px 12px;}
+    }
+
   </style>
 </head>
 <body>
@@ -3933,6 +4737,114 @@
       ? 'Đang xem dữ liệu tổng hợp từ hệ thống.'
       : 'Sẵn sàng cập nhật danh sách cơ sở.');
   }
+
+
+  async function loadReportDashboard(forceRemote = false) {
+    updateSystemRibbon('Báo cáo tổng hợp', 'Đang tạo báo cáo toàn đội');
+    const statusBox = $('reportStatus');
+    if (statusBox) {
+      statusBox.className = 'status info';
+      statusBox.textContent = 'Đang tổng hợp dữ liệu báo cáo từ hệ thống...';
+    }
+
+    let items = [];
+    let source = 'Dữ liệu cục bộ gần nhất';
+    if (isFacilityCloudReady()) {
+      const remote = await listFacilitiesRemote(TEAM_FACILITY_LABEL);
+      if (remote && remote.ok) {
+        items = Array.isArray(remote.items) ? remote.items.map(item => normalizeFacility(item)).filter(item => item.name) : [];
+        source = `Đồng bộ hệ thống - ${items.length} cơ sở`;
+        syncFacilityCacheByOwner(items, TEAM_FACILITY_LABEL);
+      }
+    }
+    if (!items.length) {
+      items = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+      source = items.length ? `Dữ liệu cục bộ - ${items.length} cơ sở` : 'Chưa có dữ liệu để báo cáo';
+    } else {
+      items = dedupeFacilities(items);
+    }
+
+    state.reportFacilities = items;
+    state.reportSource = source;
+    renderReportDashboard();
+    updateSystemRibbon('Báo cáo tổng hợp', source);
+    if (statusBox) {
+      statusBox.className = items.length ? 'status success' : 'status warning';
+      statusBox.textContent = items.length
+        ? `Đã tổng hợp ${items.length} cơ sở để phục vụ báo cáo.`
+        : 'Chưa có dữ liệu cơ sở để tạo báo cáo.';
+    }
+  }
+
+  function renderReportDashboard() {
+    const items = Array.isArray(state.reportFacilities) ? state.reportFacilities : [];
+    const total = items.length;
+    const fieldRows = buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực');
+    const groupRows = buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm');
+    const areaRows = buildCountRows(items, item => deriveAreaFromAddress(item.address));
+    const descriptionRows = buildCountRows(items, item => item.description || 'Chưa nhập mô tả');
+    const insuranceSoon = getFacilitiesByExpiry(items, 'insurance', 'soon').length;
+    const maintenanceSoon = getFacilitiesByExpiry(items, 'maintenance', 'soon').length;
+
+    if ($('reportStatTotal')) $('reportStatTotal').textContent = String(total);
+    if ($('reportStatFieldCount')) $('reportStatFieldCount').textContent = String(fieldRows.length);
+    if ($('reportStatGroupCount')) $('reportStatGroupCount').textContent = String(groupRows.length);
+    if ($('reportStatAreaCount')) $('reportStatAreaCount').textContent = String(areaRows.length);
+    if ($('reportStatInsuranceSoon')) $('reportStatInsuranceSoon').textContent = String(insuranceSoon);
+    if ($('reportStatMaintenanceSoon')) $('reportStatMaintenanceSoon').textContent = String(maintenanceSoon);
+
+    renderReportRows('reportFieldBody', fieldRows, total, 'Chưa có dữ liệu theo lĩnh vực.');
+    renderReportRows('reportGroupBody', groupRows, total, 'Chưa có dữ liệu theo nhóm.');
+    renderReportRows('reportAreaBody', areaRows, total, 'Chưa có dữ liệu theo địa bàn.');
+    renderReportRows('reportDescriptionBody', descriptionRows, total, 'Chưa có dữ liệu theo mô tả.');
+  }
+
+  async function openReportDashboard() {
+    enterWorkMode();
+    setMain('Báo cáo tổng hợp', '');
+    showOnly('reportPanel');
+    updateSystemRibbon('Báo cáo tổng hợp', 'Đang chuẩn bị dữ liệu báo cáo');
+    await loadReportDashboard();
+  }
+
+  function closeReportDashboard() {
+    if (isTeamFacilityView()) {
+      setMain(TEAM_FACILITY_LABEL, '');
+      showOnly('adminPanel');
+      updateFacilityManagerLabel();
+      updateFacilityCreateModeUI();
+      renderFacilities();
+      return;
+    }
+    backToRoleSelection();
+    setMain('Sẵn sàng sử dụng', '');
+    showOnly('welcomePanel');
+    updateSystemRibbon('Trang chủ', 'Sẵn sàng sử dụng');
+  }
+
+  function printReportDashboard() {
+    const items = Array.isArray(state.reportFacilities) ? state.reportFacilities : [];
+    const total = items.length;
+    const fieldRows = buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực');
+    const groupRows = buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm');
+    const areaRows = buildCountRows(items, item => deriveAreaFromAddress(item.address));
+    const descriptionRows = buildCountRows(items, item => item.description || 'Chưa nhập mô tả');
+    const wrapTable = (title, rows) => `
+      <section style="margin-top:18px;">
+        <h3 style="margin:0 0 8px;font-size:18px;">${title}</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr><th style="border:1px solid #222;padding:6px 8px;">STT</th><th style="border:1px solid #222;padding:6px 8px;">Nội dung</th><th style="border:1px solid #222;padding:6px 8px;">Số cơ sở</th><th style="border:1px solid #222;padding:6px 8px;">Tỷ lệ</th></tr></thead>
+          <tbody>${rows.map((row, idx) => `<tr><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${idx+1}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.label)}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${row.count}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${total ? ((row.count/total)*100).toFixed(1) : '0.0'}%</td></tr>`).join('') || `<tr><td colspan="4" style="border:1px solid #222;padding:8px;text-align:center;">Không có dữ liệu</td></tr>`}</tbody>
+        </table>
+      </section>`;
+    const printWin = window.open('', '_blank', 'width=1100,height=800');
+    if (!printWin) return;
+    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Báo cáo tổng hợp cơ sở</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style></head><body><h2 style="text-align:center;">BÁO CÁO TỔNG HỢP CƠ SỞ</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div><div class="summary"><div><strong>Tổng số cơ sở</strong><div>${total}</div></div><div><strong>Sắp hết hạn bảo hiểm</strong><div>${getFacilitiesByExpiry(items,'insurance','soon').length}</div></div><div><strong>Sắp hết hạn bảo dưỡng</strong><div>${getFacilitiesByExpiry(items,'maintenance','soon').length}</div></div></div>${wrapTable('1. Phân tích theo lĩnh vực', fieldRows)}${wrapTable('2. Phân tích theo nhóm', groupRows)}${wrapTable('3. Phân tích theo mô tả', descriptionRows)}${wrapTable('4. Phân tích theo địa bàn', areaRows)}</body></html>`);
+    printWin.document.close();
+    printWin.focus();
+    setTimeout(() => { printWin.print(); }, 250);
+  }
+
 
   window.handleSaveFacility = handleSaveFacility;
   window.handleSaveFacilityModal = handleSaveFacilityModal;
@@ -4694,7 +5606,135 @@
 table{border-collapse:collapse;font-family:"Times New Roman",Times,serif}
 th,td{border:1px solid #000;padding:6px 8px;vertical-align:middle}
 th{font-weight:700;background:#f1f1f1}
-</style>
+
+    .system-ribbon{
+      max-width:1180px;
+      margin:12px auto 0;
+      padding:0 16px;
+    }
+    .system-ribbon-inner{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(221,227,238,.9);
+      border-radius:16px;
+      box-shadow:0 10px 28px rgba(16,24,40,.08);
+      padding:12px 16px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      backdrop-filter:blur(8px);
+    }
+    .system-ribbon-group{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .system-chip{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:160px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:#fffaf0;
+      border:1px solid #f0dfb3;
+    }
+    .system-chip span{
+      font-size:12px;
+      color:#667085;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .system-chip strong{
+      font-size:15px;
+      color:#7d1010;
+      line-height:1.3;
+    }
+    .role-btn.report-entry-btn{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .role-btn.report-entry-btn strong{
+      color:#7d1010;
+    }
+    .report-summary-grid{
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      margin-bottom:16px;
+    }
+    .report-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .report-grid .panel-box h3{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+    .report-table th,
+    .report-table td{
+      text-align:left;
+    }
+    .report-rank{
+      width:44px;
+      text-align:center !important;
+      font-weight:700;
+    }
+    .report-count{
+      width:96px;
+      text-align:center !important;
+      font-weight:700;
+      color:#7d1010;
+    }
+    .report-percent{
+      width:90px;
+      text-align:center !important;
+      color:#475467;
+      font-weight:700;
+    }
+    .report-bar-cell{
+      min-width:180px;
+    }
+    .report-bar-track{
+      height:10px;
+      width:100%;
+      background:#f1f5f9;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #e2e8f0;
+    }
+    .report-bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#c58b2e,#f0c979);
+    }
+    .summary-box.report-highlight{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .summary-box.report-danger{
+      background:linear-gradient(180deg,#fff2f2,#fff);
+      border-color:#f0c7c7;
+    }
+    .summary-box.report-warning{
+      background:linear-gradient(180deg,#fff8e8,#fff);
+      border-color:#f5e2a8;
+    }
+    .facility-cell-main small{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      color:#667085;
+      font-weight:700;
+    }
+    @media (max-width: 980px){
+      .report-grid{grid-template-columns:1fr;}
+      .system-ribbon{padding:0 12px;}
+      .system-ribbon-inner{padding:10px 12px;}
+    }
+
+  </style>
 </head>
 <body>
 <table>
@@ -4781,7 +5821,135 @@ th{font-weight:700;background:#f1f1f1}
   th,td{border:1px solid #333;padding:8px 6px;font-size:14px;vertical-align:middle;text-align:center;}
   th{background:#f1f1f1;}
   @media print{body{margin:16px;}}
-</style>
+
+    .system-ribbon{
+      max-width:1180px;
+      margin:12px auto 0;
+      padding:0 16px;
+    }
+    .system-ribbon-inner{
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(221,227,238,.9);
+      border-radius:16px;
+      box-shadow:0 10px 28px rgba(16,24,40,.08);
+      padding:12px 16px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      backdrop-filter:blur(8px);
+    }
+    .system-ribbon-group{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .system-chip{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:160px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:#fffaf0;
+      border:1px solid #f0dfb3;
+    }
+    .system-chip span{
+      font-size:12px;
+      color:#667085;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .system-chip strong{
+      font-size:15px;
+      color:#7d1010;
+      line-height:1.3;
+    }
+    .role-btn.report-entry-btn{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .role-btn.report-entry-btn strong{
+      color:#7d1010;
+    }
+    .report-summary-grid{
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      margin-bottom:16px;
+    }
+    .report-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+    .report-grid .panel-box h3{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+    .report-table th,
+    .report-table td{
+      text-align:left;
+    }
+    .report-rank{
+      width:44px;
+      text-align:center !important;
+      font-weight:700;
+    }
+    .report-count{
+      width:96px;
+      text-align:center !important;
+      font-weight:700;
+      color:#7d1010;
+    }
+    .report-percent{
+      width:90px;
+      text-align:center !important;
+      color:#475467;
+      font-weight:700;
+    }
+    .report-bar-cell{
+      min-width:180px;
+    }
+    .report-bar-track{
+      height:10px;
+      width:100%;
+      background:#f1f5f9;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid #e2e8f0;
+    }
+    .report-bar-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#c58b2e,#f0c979);
+    }
+    .summary-box.report-highlight{
+      background:linear-gradient(180deg,#fff8ec,#fff);
+      border-color:#f0d7b3;
+    }
+    .summary-box.report-danger{
+      background:linear-gradient(180deg,#fff2f2,#fff);
+      border-color:#f0c7c7;
+    }
+    .summary-box.report-warning{
+      background:linear-gradient(180deg,#fff8e8,#fff);
+      border-color:#f5e2a8;
+    }
+    .facility-cell-main small{
+      display:block;
+      margin-top:4px;
+      font-size:12px;
+      color:#667085;
+      font-weight:700;
+    }
+    @media (max-width: 980px){
+      .report-grid{grid-template-columns:1fr;}
+      .system-ribbon{padding:0 12px;}
+      .system-ribbon-inner{padding:10px 12px;}
+    }
+
+  </style>
 </head>
 <body>
   <div class="admin-head">
@@ -4897,11 +6065,16 @@ th{font-weight:700;background:#f1f1f1}
   document.querySelectorAll(".manager-entry-btn").forEach(btn => {
     btn.addEventListener("click", () => openAdminLoginModal(btn.dataset.manager || "Nguyễn Văn Nguyên"));
   });
+  if ($("btnFacilityReport")) $("btnFacilityReport").addEventListener("click", openReportDashboard);
+  if ($("btnReportBack")) $("btnReportBack").addEventListener("click", closeReportDashboard);
+  if ($("btnReportRefresh")) $("btnReportRefresh").addEventListener("click", () => loadReportDashboard(true));
+  if ($("btnReportPrint")) $("btnReportPrint").addEventListener("click", printReportDashboard);
 
   $("btnBackHome").addEventListener("click", () => {
     backToRoleSelection();
     setMain("Sẵn sàng sử dụng", "");
     showOnly("welcomePanel");
+    updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   });
 
   if ($("btnLogoutAdmin")) $("btnLogoutAdmin").addEventListener("click", closeFacilityManager);
@@ -5034,7 +6207,11 @@ th{font-weight:700;background:#f1f1f1}
   toggleCustomAssigneeInput();
   setDefaultAssignedWeek();
   updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
+  updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
+  startSystemClock();
   renderAll();
+
+  window.addEventListener('resize', adjustFacilityTableLayout);
 })();
 </script>
 </body>
