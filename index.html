@@ -1243,7 +1243,7 @@
 </select>
 </div>
 <div>
-<label for="facilityAppendix">Phụ lục</label>
+<label for="facilityAppendix">Nhóm</label>
 <select id="facilityAppendix">
 <option selected="" value="I">I</option>
 <option value="II">II</option>
@@ -1312,9 +1312,9 @@
 </select>
 </div>
 <div>
-<label for="facilityFilterAppendix">Phụ lục</label>
+<label for="facilityFilterAppendix">Nhóm</label>
 <select id="facilityFilterAppendix">
-<option value="">Tất cả phụ lục</option>
+<option value="">Tất cả nhóm</option>
 <option value="I">I</option>
 <option value="II">II</option>
 </select>
@@ -1355,7 +1355,7 @@
 <th>Tên cơ sở</th>
 <th>Địa chỉ</th>
 <th>Lĩnh vực</th>
-<th>Phụ lục</th>
+<th>Nhóm</th>
 <th>Người quản lý</th>
 <th>Ngày kiểm tra</th>
 <th>Bảo hiểm</th>
@@ -1679,7 +1679,7 @@
 </select>
 </div>
 <div>
-<label for="facilityEditAppendix">Phụ lục</label>
+<label for="facilityEditAppendix">Nhóm</label>
 <select id="facilityEditAppendix">
 <option value="I">I</option>
 <option value="II">II</option>
@@ -1747,7 +1747,6 @@
 </div>
 </div>
 <div class="flex" style="justify-content:flex-end; padding:0 20px 20px; gap:10px">
-<button class="secondary" id="btnCloseFacilityNotice" type="button">Đóng</button>
 <button class="success" id="btnContinueFacilityNotice" type="button">Tiếp tục</button>
 </div>
 </div>
@@ -3336,6 +3335,8 @@
   function buildFacilityExpiryNoticeItem(item, key) {
     const info = getFacilityExpiryInfo(item?.[key]);
     const parts = [];
+    const managerLabel = String(item?.owner || item?.manager || item?.ownerManager || getCurrentFacilityManager() || '').trim();
+    if (managerLabel) parts.push(`Cán bộ quản lý: ${escapeHtml(managerLabel)}`);
     if (item?.address) parts.push(`Địa chỉ: ${escapeHtml(item.address)}`);
     if (info.displayDate) parts.push(`Ngày mua: ${escapeHtml(info.displayDate)}`);
     if (info.expiryDate) parts.push(`Hết hạn: ${escapeHtml(formatDate(info.expiryDate))}`);
@@ -3445,7 +3446,8 @@
             tooltip += `\nTrạng thái: Sắp hết hạn trong 3 tháng tới`;
           }
         }
-        return `<span class="${className}" title="${escapeHtml(tooltip)}">${escapeHtml(meta.displayDate || '-')}</span>`;
+        const displayValue = meta.date ? (meta.displayDate || formatDate(meta.date)) : 'X';
+        return `<span class="${className}" title="${escapeHtml(tooltip)}">${escapeHtml(displayValue)}</span>`;
       }
 
       return `<span class="facility-flag-mark" title="${escapeHtml(`${label}: ${String(value || '').trim()}`)}">X</span>`;
