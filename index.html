@@ -349,13 +349,27 @@
     .summary-box.overdue{background:#fff1f1;border-color:#f0c7c7}
     .summary-box.overdue .value{color:#a12626}
     .filter-grid{
-      display:grid;
-      grid-template-columns:1.8fr 1fr 1fr 1fr 1fr auto;
+      display:flex;
+      flex-wrap:nowrap;
       gap:12px;
-      align-items:end;
+      align-items:flex-end;
       margin:10px 0 16px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      padding-bottom:4px;
+      scrollbar-width:thin;
+    }
+    .filter-grid > div{
+      flex:0 0 170px;
+      min-width:170px;
+    }
+    .filter-grid > div:first-child{
+      flex-basis:260px;
+      min-width:260px;
     }
     .filter-grid .filter-action{
+      flex:0 0 auto;
+      min-width:auto;
       display:flex;
       align-items:flex-start;
       justify-content:flex-start;
@@ -848,7 +862,7 @@
       text-shadow:0 2px 6px rgba(0,0,0,.45);
     }
     @media (max-width: 1120px){
-      .filter-grid{grid-template-columns:1fr 1fr;}
+      .filter-grid{flex-wrap:nowrap;}
       .task-layout{grid-template-columns:1fr}
       .compact-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
       .facility-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -864,7 +878,7 @@
       .topbar h1{font-size:22px}
       .top-unit .line1{font-size:17px}
       .top-unit .line2{font-size:16px}
-      .filter-grid,.form-grid,.compact-form-panel .form-grid,.facility-form-panel .form-grid{grid-template-columns:1fr}
+      .form-grid,.compact-form-panel .form-grid,.facility-form-panel .form-grid{grid-template-columns:1fr}
       .viewer-quick-grid{grid-template-columns:1fr}
       .viewer-quick-column{gap:10px}
       .split-field{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -1534,6 +1548,10 @@
 <label for="facilityFilterName">Tên cơ sở</label>
 <input id="facilityFilterName" placeholder="Tìm theo tên cơ sở" type="text"/>
 </div>
+<div id="facilityFilterDescriptionWrap" style="display:none">
+<label for="facilityFilterDescription">Mô tả</label>
+<input id="facilityFilterDescription" placeholder="Tìm theo mô tả" type="text"/>
+</div>
 <div>
 <label for="facilityFilterAddress">Địa chỉ</label>
 <input id="facilityFilterAddress" placeholder="Tìm theo địa chỉ" type="text"/>
@@ -1563,9 +1581,13 @@
 <option value="II">II</option>
 </select>
 </div>
-<div id="facilityFilterDescriptionWrap" style="display:none">
-<label for="facilityFilterDescription">Mô tả</label>
-<input id="facilityFilterDescription" placeholder="Tìm theo mô tả" type="text"/>
+<div>
+<label for="facilityFilterCodeStatus">Mã cơ sở</label>
+<select id="facilityFilterCodeStatus">
+<option value="">Tất cả</option>
+<option value="has">Đã có mã</option>
+<option value="missing">Chưa có mã</option>
+</select>
 </div>
 <div id="facilityFilterOwnerWrap" style="display:none">
 <label for="facilityFilterOwner">Người quản lý</label>
@@ -2149,6 +2171,9 @@
     editNoteAttachments: [],
     viewerCreateAttachments: [],
     facilities: [],
+    facilityCache: {},
+    facilityWarmStarted: false,
+    facilityLoadToken: 0,
     currentFacilityManager: "Nguyễn Văn Nguyên",
     pendingFacilityManager: "",
     selectedFacilityId: "",
@@ -2158,6 +2183,7 @@
       address: "",
       field: "",
       appendix: "",
+      codeStatus: "",
       owner: "",
       inspectionDate: "",
       insurance: "",
@@ -2906,13 +2932,20 @@
     setMain(state.currentFacilityManager, "");
     showOnly("adminPanel");
     updateSystemRibbon(state.currentFacilityManager, "Đang mở danh sách cơ sở");
-    await loadFacilities();
+    const loadPromise = loadFacilities();
     if (shouldShowNotice) {
-      openFacilityNoticeModal(state.currentFacilityManager);
+      const openNotice = () => {
+        if (state.currentFacilityManager === managerName) {
+          openFacilityNoticeModal(state.currentFacilityManager);
+        }
+      };
+      if (state.facilities.length) openNotice();
+      else loadPromise.finally(openNotice);
     }
     setTimeout(() => {
       if (!isTeamFacilityView() && $("facilityName")) $("facilityName").focus();
     }, 30);
+    return loadPromise;
   }
 
   function closeFacilityManager() {
@@ -3655,37 +3688,113 @@
     }
   }
 
+  const facilityRemoteRequests = new Map();
+
+  function setFacilityCache(managerName = getCurrentFacilityManager(), items = []) {
+    const key = managerName || getCurrentFacilityManager();
+    const normalized = isTeamFacilityView(key)
+      ? dedupeFacilities(items)
+      : sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility(item)).filter(item => item.name));
+    state.facilityCache[key] = normalized;
+    return normalized;
+  }
+
+  function getFacilityCache(managerName = getCurrentFacilityManager()) {
+    const key = managerName || getCurrentFacilityManager();
+    const cached = state.facilityCache[key];
+    if (Array.isArray(cached) && cached.length) {
+      return isTeamFacilityView(key) ? dedupeFacilities(cached) : sortFacilities(cached);
+    }
+    const localItems = loadLocalFacilities(key);
+    if (localItems.length) return setFacilityCache(key, localItems);
+    return [];
+  }
+
+  async function refreshFacilityCacheFromRemote(managerName = getCurrentFacilityManager()) {
+    const key = managerName || getCurrentFacilityManager();
+    if (!isFacilityCloudReady()) {
+      return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
+    }
+    if (facilityRemoteRequests.has(key)) {
+      return facilityRemoteRequests.get(key);
+    }
+    const promise = (async () => {
+      const result = await listFacilitiesRemote(key);
+      if (result && result.ok) {
+        const remoteItems = Array.isArray(result.items) ? result.items : [];
+        const normalized = setFacilityCache(key, remoteItems.map(item => normalizeFacility(item)).filter(item => item.name));
+        syncFacilityCacheByOwner(normalized, key);
+        return { ...result, items: normalized };
+      }
+      return result || { ok: false, error: "Không tải được dữ liệu cơ sở từ hệ thống." };
+    })().finally(() => {
+      facilityRemoteRequests.delete(key);
+    });
+    facilityRemoteRequests.set(key, promise);
+    return promise;
+  }
+
+  function prefetchFacilityManager(managerName = getCurrentFacilityManager()) {
+    const key = managerName || getCurrentFacilityManager();
+    const cached = getFacilityCache(key);
+    if (cached.length) return Promise.resolve({ ok: true, cached: true, items: cached });
+    return refreshFacilityCacheFromRemote(key);
+  }
+
+  function warmFacilityCaches() {
+    if (!isFacilityCloudReady() || state.facilityWarmStarted) return;
+    state.facilityWarmStarted = true;
+    const managers = [TEAM_FACILITY_LABEL, ...getIndividualFacilityManagers()];
+    managers.forEach((managerName, index) => {
+      window.setTimeout(() => {
+        void refreshFacilityCacheFromRemote(managerName);
+      }, 120 * index);
+    });
+  }
+
   async function loadFacilities() {
+    const managerName = getCurrentFacilityManager();
+    const loadToken = ++state.facilityLoadToken;
     updateFacilityManagerLabel();
     updateFacilityCreateModeUI();
     if (isTeamFacilityView()) closeFacilityEditModal();
 
-    if (!isFacilityCloudReady()) {
-      state.facilities = loadLocalFacilities();
+    const cachedFacilities = getFacilityCache(managerName);
+    if (cachedFacilities.length) {
+      state.facilities = cachedFacilities;
       renderFacilities();
+    }
+
+    if (!isFacilityCloudReady()) {
+      if (!cachedFacilities.length) {
+        state.facilities = loadLocalFacilities(managerName);
+        renderFacilities();
+      }
       setFacilityStatus('warning', isTeamFacilityView()
         ? 'Chưa cấu hình Apps Script. Cơ sở Đội 2 đang hiển thị dữ liệu cục bộ gần nhất.'
         : 'Chưa cấu hình Apps Script. Dữ liệu cơ sở đang lưu cục bộ trên trình duyệt này.');
-      updateSystemRibbon(getCurrentFacilityManager(), 'Dữ liệu cục bộ gần nhất');
-      return;
+      updateSystemRibbon(managerName, state.facilities.length ? 'Dữ liệu cục bộ gần nhất' : 'Chưa có dữ liệu');
+      return { ok: !!state.facilities.length, cached: true, items: state.facilities };
     }
 
-    setFacilityStatus('info', 'Đang tải dữ liệu cơ sở từ hệ thống...');
-    const result = await listFacilitiesRemote(getCurrentFacilityManager());
+    setFacilityStatus('info', cachedFacilities.length ? 'Đang làm mới dữ liệu từ hệ thống...' : 'Đang tải dữ liệu cơ sở từ hệ thống...');
+    const result = await refreshFacilityCacheFromRemote(managerName);
+
+    if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
+      return result;
+    }
 
     if (result && result.ok) {
-      const remoteItems = Array.isArray(result.items) ? result.items : [];
-      state.facilities = sortFacilities(remoteItems.map(item => normalizeFacility(item)).filter(item => item.name));
-      syncFacilityCacheByOwner(state.facilities, getCurrentFacilityManager());
+      state.facilities = getFacilityCache(managerName);
       renderFacilities();
       setFacilityStatus('info', isTeamFacilityView()
         ? `Đang xem dữ liệu tổng hợp từ hệ thống (${state.facilities.length} cơ sở).`
         : 'Sẵn sàng cập nhật danh sách cơ sở.');
-      updateSystemRibbon(getCurrentFacilityManager(), `Đồng bộ hệ thống - ${state.facilities.length} cơ sở`);
-      return;
+      updateSystemRibbon(managerName, `Đồng bộ hệ thống - ${state.facilities.length} cơ sở`);
+      return result;
     }
 
-    state.facilities = loadLocalFacilities();
+    state.facilities = getFacilityCache(managerName);
     renderFacilities();
     const fallbackMessage = (result && (result.error || result.message))
       ? String(result.error || result.message)
@@ -3693,7 +3802,8 @@
     setFacilityStatus('warning', state.facilities.length
       ? `${fallbackMessage} Đang dùng dữ liệu cục bộ gần nhất trên trình duyệt này.`
       : `${fallbackMessage} Chưa có dữ liệu cục bộ để hiển thị.`);
-    updateSystemRibbon(getCurrentFacilityManager(), state.facilities.length ? 'Dữ liệu cục bộ gần nhất' : 'Chưa có dữ liệu');
+    updateSystemRibbon(managerName, state.facilities.length ? 'Dữ liệu cục bộ gần nhất' : 'Chưa có dữ liệu');
+    return result;
   }
 
 
@@ -3798,20 +3908,27 @@
       address: $('facilityFilterAddress') ? $('facilityFilterAddress').value.trim().toLowerCase() : '',
       field: $('facilityFilterField') ? $('facilityFilterField').value.trim() : '',
       appendix: $('facilityFilterAppendix') ? $('facilityFilterAppendix').value.trim() : '',
+      codeStatus: $('facilityFilterCodeStatus') ? $('facilityFilterCodeStatus').value.trim() : '',
       owner: $('facilityFilterOwner') ? $('facilityFilterOwner').value.trim() : ''
     };
+  }
+
+  function hasStructuredFacilityCode(code) {
+    return !!normalizeCodeKey(code);
   }
 
   function getFilteredFacilities() {
     const filters = state.facilityFilters || {};
     return state.facilities.filter(item => {
+      const hasStructuredCode = hasStructuredFacilityCode(item.code);
       const nameOk = !filters.name || String(item.name || '').toLowerCase().includes(filters.name);
       const descriptionOk = !filters.description || String(item.description || '').toLowerCase().includes(filters.description);
       const addressOk = !filters.address || String(item.address || '').toLowerCase().includes(filters.address);
       const fieldOk = !filters.field || String(item.field || '') === filters.field;
       const appendixOk = !filters.appendix || String(item.appendix || '') === filters.appendix;
+      const codeStatusOk = !filters.codeStatus || (filters.codeStatus === 'has' ? hasStructuredCode : !hasStructuredCode);
       const ownerOk = !filters.owner || String(item.owner || '') === filters.owner;
-      return nameOk && descriptionOk && addressOk && fieldOk && appendixOk && ownerOk;
+      return nameOk && descriptionOk && addressOk && fieldOk && appendixOk && codeStatusOk && ownerOk;
     });
   }
 
@@ -3968,6 +4085,7 @@
     if ($('facilityFilterAddress')) $('facilityFilterAddress').value = '';
     if ($('facilityFilterField')) $('facilityFilterField').value = '';
     if ($('facilityFilterAppendix')) $('facilityFilterAppendix').value = '';
+    if ($('facilityFilterCodeStatus')) $('facilityFilterCodeStatus').value = '';
     if ($('facilityFilterOwner')) $('facilityFilterOwner').value = '';
     state.facilityFilters = {
       name: '',
@@ -3975,6 +4093,7 @@
       address: '',
       field: '',
       appendix: '',
+      codeStatus: '',
       owner: ''
     };
     state.facilityQuickView = 'all';
@@ -4783,21 +4902,29 @@
       statusBox.textContent = 'Đang tổng hợp dữ liệu báo cáo từ hệ thống...';
     }
 
+    const cachedItems = dedupeFacilities(getFacilityCache(TEAM_FACILITY_LABEL));
+    if (cachedItems.length) {
+      state.reportFacilities = cachedItems;
+      state.reportSource = `Bộ nhớ đệm - ${cachedItems.length} cơ sở`;
+      renderReportDashboard();
+      if (statusBox) {
+        statusBox.className = 'status info';
+        statusBox.textContent = 'Đang làm mới dữ liệu báo cáo từ hệ thống...';
+      }
+    }
+
     let items = [];
-    let source = 'Dữ liệu cục bộ gần nhất';
+    let source = cachedItems.length ? `Bộ nhớ đệm - ${cachedItems.length} cơ sở` : 'Dữ liệu cục bộ gần nhất';
     if (isFacilityCloudReady()) {
-      const remote = await listFacilitiesRemote(TEAM_FACILITY_LABEL);
+      const remote = await refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL);
       if (remote && remote.ok) {
-        items = Array.isArray(remote.items) ? remote.items.map(item => normalizeFacility(item)).filter(item => item.name) : [];
+        items = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
         source = `Đồng bộ hệ thống - ${items.length} cơ sở`;
-        syncFacilityCacheByOwner(items, TEAM_FACILITY_LABEL);
       }
     }
     if (!items.length) {
-      items = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+      items = cachedItems.length ? cachedItems : dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
       source = items.length ? `Dữ liệu cục bộ - ${items.length} cơ sở` : 'Chưa có dữ liệu để báo cáo';
-    } else {
-      items = dedupeFacilities(items);
     }
 
     state.reportFacilities = items;
@@ -4840,7 +4967,7 @@
     setMain('Báo cáo tổng hợp', '');
     showOnly('reportPanel');
     updateSystemRibbon('Báo cáo tổng hợp', 'Đang chuẩn bị dữ liệu báo cáo');
-    await loadReportDashboard();
+    return loadReportDashboard();
   }
 
   function closeReportDashboard() {
@@ -4910,7 +5037,7 @@
   ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
-  ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterOwner'].forEach(id => {
+  ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterCodeStatus','facilityFilterOwner'].forEach(id => {
     if (!$(id)) return;
     const eventName = $(id).tagName === 'SELECT' || $(id).type === 'date' ? 'change' : 'input';
     $(id).addEventListener(eventName, applyFacilityFilters);
@@ -6101,7 +6228,14 @@ th{font-weight:700;background:#f1f1f1}
   }
 
   document.querySelectorAll(".manager-entry-btn").forEach(btn => {
-    btn.addEventListener("click", () => openAdminLoginModal(btn.dataset.manager || "Nguyễn Văn Nguyên"));
+    const managerName = btn.dataset.manager || "Nguyễn Văn Nguyên";
+    btn.addEventListener("mouseenter", () => {
+      void prefetchFacilityManager(managerName);
+    });
+    btn.addEventListener("focus", () => {
+      void prefetchFacilityManager(managerName);
+    });
+    btn.addEventListener("click", () => openAdminLoginModal(managerName));
   });
   if ($("btnFacilityReport")) $("btnFacilityReport").addEventListener("click", openReportDashboard);
   if ($("btnReportBack")) $("btnReportBack").addEventListener("click", closeReportDashboard);
@@ -6248,6 +6382,7 @@ th{font-weight:700;background:#f1f1f1}
   updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   startSystemClock();
   renderAll();
+  window.setTimeout(warmFacilityCaches, 180);
 
   window.addEventListener('resize', adjustFacilityTableLayout);
 })();
