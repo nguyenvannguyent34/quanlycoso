@@ -567,29 +567,17 @@
     .task-note-file-link:hover{
       text-decoration:underline;
     }
-    .task-row-soon td,
+    .task-row-soon td{
+      background:#ffe3ee;
+    }
+    .task-row-soon:hover td{
+      background:#ffd6e6;
+    }
     .task-row-overdue td{
-      background:rgba(125,16,16,.96);
-      color:#fff4b3;
+      background:#ffd6d6;
     }
-    .task-row-soon:hover td,
     .task-row-overdue:hover td{
-      background:rgba(96,8,8,.98);
-      color:#fff4b3;
-    }
-    .task-row-soon .facility-cell-main,
-    .task-row-soon .facility-cell-sub,
-    .task-row-overdue .facility-cell-main,
-    .task-row-overdue .facility-cell-sub,
-    .task-row-soon .task-title,
-    .task-row-soon .task-desc,
-    .task-row-overdue .task-title,
-    .task-row-overdue .task-desc,
-    .task-row-soon .due-soon-date,
-    .task-row-overdue .due-soon-date,
-    .task-row-soon .muted,
-    .task-row-overdue .muted{
-      color:#fff4b3 !important;
+      background:#ffc4c4;
     }
     .due-soon-date{
       color:#c62828;
@@ -997,14 +985,6 @@
     }
     .facility-cell-main{font-weight:700;color:#7d1010;line-height:1.35}
     .facility-cell-sub{margin-top:4px;color:#667085;font-size:14px;line-height:1.4}
-    .facility-table tbody tr.task-row-soon .facility-flag-mark,
-    .facility-table tbody tr.task-row-soon .facility-date-mark,
-    .facility-table tbody tr.task-row-overdue .facility-flag-mark,
-    .facility-table tbody tr.task-row-overdue .facility-date-mark{
-      background:rgba(255,244,179,.14);
-      border-color:rgba(255,244,179,.4);
-      color:#fff4b3;
-    }
 
     .facility-history-box{
       margin-top:14px;
@@ -1046,7 +1026,7 @@
     }
     .facility-owner-col{white-space:nowrap}
     .facility-owner-col.is-hidden{display:none}
-    .facility-table{table-layout:auto; min-width:1540px;}
+    .facility-table{table-layout:auto; min-width:1420px;}
     .facility-table thead th{position:static; top:auto; z-index:auto; background:#f8fafc;}
     .facility-table .facility-col-stt{position:static; left:auto; z-index:auto; min-width:58px; width:58px; background:inherit;}
     .facility-table .facility-col-code{position:static; left:auto; z-index:auto; min-width:76px; width:76px; max-width:112px; white-space:nowrap; background:inherit; padding-left:8px; padding-right:8px;}
@@ -1086,7 +1066,7 @@
       max-height:none;
     }
     body.facility-manager-open .facility-admin-shell .facility-table{
-      min-width:1400px;
+      min-width:1280px;
       table-layout:auto;
     }
     .legacy-admin-shell{display:none !important; pointer-events:none !important;}
@@ -1281,7 +1261,7 @@
 
   
     .table-wrap{position:relative;overflow:auto;}
-    .facility-table{border-collapse:separate !important;border-spacing:0 !important;table-layout:auto !important;min-width:1540px !important;}
+    .facility-table{border-collapse:separate !important;border-spacing:0 !important;table-layout:auto !important;min-width:1420px !important;}
     .facility-table th,.facility-table td{text-align:center !important;vertical-align:middle !important;}
     .facility-table thead th{position:static !important;top:auto !important;z-index:auto !important;background:#f8fafc !important;}
     .facility-table .facility-col-stt,.facility-table .facility-col-code,.facility-table .facility-col-name{position:static !important;background-clip:padding-box;}
@@ -1293,10 +1273,8 @@
     .facility-table tbody tr:nth-child(even){--sticky-bg:rgba(255,245,204,.72);}
     .facility-table tbody td.facility-col-stt,.facility-table tbody td.facility-col-code,.facility-table tbody td.facility-col-name{background:var(--sticky-bg) !important;}
     .facility-table tbody tr:hover td.facility-col-stt,.facility-table tbody tr:hover td.facility-col-code,.facility-table tbody tr:hover td.facility-col-name{background:#fff7f0 !important;}
-    .facility-table tbody tr.task-row-soon td.facility-col-stt,.facility-table tbody tr.task-row-soon td.facility-col-code,.facility-table tbody tr.task-row-soon td.facility-col-name,
-    .facility-table tbody tr.task-row-soon td,
-    .facility-table tbody tr.task-row-overdue td.facility-col-stt,.facility-table tbody tr.task-row-overdue td.facility-col-code,.facility-table tbody tr.task-row-overdue td.facility-col-name,
-    .facility-table tbody tr.task-row-overdue td{background:rgba(125,16,16,.96) !important;color:#fff4b3 !important;}
+    .facility-table tbody tr.task-row-soon td.facility-col-stt,.facility-table tbody tr.task-row-soon td.facility-col-code,.facility-table tbody tr.task-row-soon td.facility-col-name{background:#ffe3ee !important;}
+    .facility-table tbody tr.task-row-overdue td.facility-col-stt,.facility-table tbody tr.task-row-overdue td.facility-col-code,.facility-table tbody tr.task-row-overdue td.facility-col-name{background:#ffd6d6 !important;}
     .facility-table thead th.facility-col-stt,.facility-table thead th.facility-col-code,.facility-table thead th.facility-col-name{z-index:22 !important;}
     .facility-table tbody td,.facility-table thead th{white-space:normal;word-break:break-word;}
     .report-table th,.report-table td{text-align:center !important;vertical-align:middle !important;}
@@ -1557,7 +1535,7 @@
 </div>
 <div class="panel-box hidden" id="facilityPasswordConfigPanel" style="margin-bottom:16px">
 <h3 style="margin:0 0 6px;font-size:22px">Cấu hình mật khẩu từng mục cá nhân</h3>
-<div class="muted small">Mỗi mục cá nhân có 2 mật khẩu đăng nhập. Cấu hình trong bản này được lưu trên trình duyệt đang dùng để quản trị.</div>
+<div class="muted small">Mỗi mục cá nhân có 2 mật khẩu đăng nhập. Cấu hình được đồng bộ qua Apps Script để tất cả mọi người cùng dùng chung.</div>
 <div class="table-wrap" style="margin-top:12px; max-height:none">
 <table class="password-config-table">
 <thead>
@@ -1654,16 +1632,6 @@
 <option value="missing">Chưa có mã</option>
 </select>
 </div>
-<div>
-<label for="facilityFilterRemarkType">Ghi chú</label>
-<select id="facilityFilterRemarkType">
-<option value="">Tất cả</option>
-<option value="NQ32">NQ32</option>
-<option value="TDNT">TDNT</option>
-<option value="Tồn tại khác">Tồn tại khác</option>
-<option value="__empty__">Chưa có ghi chú</option>
-</select>
-</div>
 <div id="facilityFilterOwnerWrap" style="display:none">
 <label for="facilityFilterOwner">Người quản lý</label>
 <select id="facilityFilterOwner">
@@ -1706,7 +1674,6 @@
 <th>Bảo dưỡng</th>
 <th>Thực tập</th>
 <th>Bồi dưỡng</th>
-<th>Ghi chú</th>
 </tr>
 </thead>
 <tbody id="facilityBody"></tbody>
@@ -2167,19 +2134,6 @@
 <label for="facilityEditTraining">Bồi dưỡng</label>
 <input id="facilityEditTraining" placeholder="Nhập thông tin bồi dưỡng" type="text"/>
 </div>
-<div>
-<label for="facilityEditRemarkType">Ghi chú</label>
-<select id="facilityEditRemarkType">
-<option value="">Chọn ghi chú</option>
-<option value="NQ32">NQ32</option>
-<option value="TDNT">TDNT</option>
-<option value="Tồn tại khác">Tồn tại khác</option>
-</select>
-</div>
-<div class="full-col">
-<label for="facilityEditRemarkDetail">Cụ thể</label>
-<input id="facilityEditRemarkDetail" placeholder="Nhập nội dung cụ thể cho ghi chú" type="text"/>
-</div>
 </div>
 
 <div class="facility-history-box">
@@ -2303,7 +2257,6 @@
       field: "",
       appendix: "",
       codeStatus: "",
-      remarkType: "",
       owner: "",
       inspectionDate: "",
       insurance: "",
@@ -2513,7 +2466,7 @@
   }
 
   function getFacilityTableColumnCount(managerName = getCurrentFacilityManager()) {
-    return shouldShowFacilityOwnerColumn(managerName) ? 13 : 12;
+    return shouldShowFacilityOwnerColumn(managerName) ? 12 : 11;
   }
 
   function updateFacilityOwnerColumnVisibility(managerName = getCurrentFacilityManager()) {
@@ -2581,7 +2534,7 @@
       if (!raw) return normalizeManagerPasswordConfigs();
       return normalizeManagerPasswordConfigs(JSON.parse(raw));
     } catch (err) {
-      console.warn('Không đọc được cấu hình mật khẩu cá nhân:', err);
+      console.warn('Không đọc được bộ nhớ đệm cấu hình mật khẩu cá nhân:', err);
       return normalizeManagerPasswordConfigs();
     }
   }
@@ -2592,9 +2545,59 @@
     try {
       localStorage.setItem(MANAGER_PASSWORD_CONFIG_STORAGE_KEY, JSON.stringify(normalized));
     } catch (err) {
-      console.warn('Không lưu được cấu hình mật khẩu cá nhân:', err);
+      console.warn('Không lưu được bộ nhớ đệm cấu hình mật khẩu cá nhân:', err);
     }
     return normalized;
+  }
+
+  async function listManagerPasswordConfigsRemote() {
+    if (!isFacilityCloudReady()) {
+      return { ok: false, localOnly: true, message: 'Chưa cấu hình Apps Script' };
+    }
+    try {
+      const params = new URLSearchParams({ action: 'listManagerPasswordConfigs', _ts: String(Date.now()) });
+      const url = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + params.toString();
+      const resp = await fetchWithTimeout(url, {}, 15000, 'Tải cấu hình mật khẩu quá lâu. Vui lòng thử lại.');
+      const data = await resp.json().catch(() => ({ ok: false, error: 'Không đọc được phản hồi cấu hình mật khẩu từ hệ thống.' }));
+      if (data && typeof data.ok !== 'undefined') return data;
+      return { ok: false, error: 'Không nhận được phản hồi hợp lệ về cấu hình mật khẩu.' };
+    } catch (err) {
+      console.error('Không tải được cấu hình mật khẩu từ Apps Script:', err);
+      return { ok: false, error: getFriendlyRequestError(err, 'Không tải được cấu hình mật khẩu từ hệ thống') };
+    }
+  }
+
+  async function saveManagerPasswordConfigsRemote(configs) {
+    if (!isFacilityCloudReady()) {
+      return { ok: false, localOnly: true, message: 'Chưa cấu hình Apps Script' };
+    }
+    try {
+      const resp = await fetchWithTimeout(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveManagerPasswordConfigs', configs }),
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+      }, 20000, 'Lưu cấu hình mật khẩu quá lâu. Vui lòng thử lại.');
+      const data = await resp.json().catch(() => ({ ok: false, error: 'Không đọc được phản hồi khi lưu cấu hình mật khẩu.' }));
+      if (data && typeof data.ok !== 'undefined') return data;
+      return { ok: false, error: 'Không nhận được phản hồi hợp lệ khi lưu cấu hình mật khẩu.' };
+    } catch (err) {
+      console.error('Không lưu được cấu hình mật khẩu lên Apps Script:', err);
+      return { ok: false, error: getFriendlyRequestError(err, 'Không lưu được cấu hình mật khẩu lên hệ thống') };
+    }
+  }
+
+  async function refreshManagerPasswordConfigs(options = {}) {
+    const cached = loadManagerPasswordConfigs();
+    state.managerPasswordConfigs = cached;
+    if (!isFacilityCloudReady()) {
+      return { ok: false, localOnly: true, items: cached, message: 'Chưa cấu hình Apps Script' };
+    }
+    const result = await listManagerPasswordConfigsRemote();
+    if (result && result.ok) {
+      const normalized = saveManagerPasswordConfigs(result.items || result.configs || {});
+      return { ok: true, items: normalized };
+    }
+    return { ok: false, items: cached, error: (result && (result.error || result.message)) || 'Không tải được cấu hình mật khẩu từ hệ thống.' };
   }
 
   function getManagerPasswordConfig(managerName) {
@@ -2642,7 +2645,9 @@
     }).join('');
     const toggleButton = $('btnTogglePasswordConfigs');
     if (toggleButton) toggleButton.textContent = state.adminPasswordConfigVisible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu';
-    setPasswordConfigStatus('info', 'Admin có thể cấu hình 2 mật khẩu cho từng mục cá nhân.');
+    setPasswordConfigStatus(isFacilityCloudReady() ? 'info' : 'warning', isFacilityCloudReady()
+      ? 'Admin có thể cấu hình 2 mật khẩu cho từng mục cá nhân. Mật khẩu sẽ được đồng bộ cho tất cả mọi người.'
+      : 'Chưa cấu hình Apps Script, cấu hình mật khẩu hiện chỉ lưu trong bộ nhớ đệm của trình duyệt này.');
   }
 
   function collectPasswordConfigInputs() {
@@ -2667,23 +2672,49 @@
     return '';
   }
 
-  function handleSavePasswordConfigs() {
+  async function handleSavePasswordConfigs() {
     const configs = collectPasswordConfigInputs();
     const error = validatePasswordConfigs(configs);
     if (error) {
       setPasswordConfigStatus('error', error);
       return;
     }
-    saveManagerPasswordConfigs(configs);
+    if (!isFacilityCloudReady()) {
+      saveManagerPasswordConfigs(configs);
+      renderPasswordConfigPanel();
+      setPasswordConfigStatus('warning', 'Chưa cấu hình Apps Script, mới lưu tạm trong bộ nhớ đệm của trình duyệt này.');
+      return;
+    }
+    setPasswordConfigStatus('info', 'Đang đồng bộ cấu hình mật khẩu lên hệ thống...');
+    const result = await saveManagerPasswordConfigsRemote(configs);
+    if (!result || !result.ok) {
+      setPasswordConfigStatus('error', (result && (result.error || result.message)) || 'Không đồng bộ được cấu hình mật khẩu lên hệ thống.');
+      return;
+    }
+    const normalized = saveManagerPasswordConfigs(result.items || result.configs || configs);
+    state.managerPasswordConfigs = normalized;
     renderPasswordConfigPanel();
-    setPasswordConfigStatus('success', 'Đã lưu cấu hình mật khẩu cho các mục cá nhân.');
+    setPasswordConfigStatus('success', 'Đã đồng bộ cấu hình mật khẩu cho tất cả mọi người.');
   }
 
-  function handleResetPasswordConfigs() {
+  async function handleResetPasswordConfigs() {
     const defaults = getDefaultManagerPasswordConfigs();
-    saveManagerPasswordConfigs(defaults);
+    if (!isFacilityCloudReady()) {
+      saveManagerPasswordConfigs(defaults);
+      renderPasswordConfigPanel();
+      setPasswordConfigStatus('warning', 'Chưa cấu hình Apps Script, mới khôi phục trong bộ nhớ đệm của trình duyệt này.');
+      return;
+    }
+    setPasswordConfigStatus('info', 'Đang khôi phục mật khẩu mặc định trên hệ thống...');
+    const result = await saveManagerPasswordConfigsRemote(defaults);
+    if (!result || !result.ok) {
+      setPasswordConfigStatus('error', (result && (result.error || result.message)) || 'Không khôi phục được mật khẩu mặc định trên hệ thống.');
+      return;
+    }
+    const normalized = saveManagerPasswordConfigs(result.items || result.configs || defaults);
+    state.managerPasswordConfigs = normalized;
     renderPasswordConfigPanel();
-    setPasswordConfigStatus('success', 'Đã khôi phục mật khẩu mặc định cho các mục cá nhân.');
+    setPasswordConfigStatus('success', 'Đã khôi phục và đồng bộ mật khẩu mặc định cho tất cả mọi người.');
   }
 
   function setAdminPasswordConfigVisibility(visible) {
@@ -3570,17 +3601,6 @@
     return `${day}/${month}/${year}`;
   }
 
-  function renderFacilityRemarkBadge(remarkType, remarkDetail = '') {
-    const typeText = String(remarkType || '').trim();
-    const detailText = String(remarkDetail || '').trim();
-    if (!typeText && !detailText) return '-';
-    const displayValue = typeText || 'X';
-    const tooltipParts = [];
-    if (typeText) tooltipParts.push(`Ghi chú: ${typeText}`);
-    if (detailText) tooltipParts.push(`Cụ thể: ${detailText}`);
-    return `<span class="facility-date-mark" title="${escapeHtml(tooltipParts.join('\n'))}">${escapeHtml(displayValue)}</span>`;
-  }
-
   function parseFacilityMetaValue(rawValue) {
     if (rawValue && typeof rawValue === 'object') {
       const dateValue = toInputDateValue(rawValue.date || rawValue.purchaseDate || rawValue.ngayMua || rawValue.inspectionDate || '');
@@ -3913,9 +3933,7 @@
       insurance: 'Bảo hiểm',
       maintenance: 'Bảo dưỡng',
       drill: 'Thực tập',
-      training: 'Bồi dưỡng',
-      remarkType: 'Ghi chú',
-      remarkDetail: 'Cụ thể'
+      training: 'Bồi dưỡng'
     };
     const changed = [];
     Object.keys(labels).forEach(key => {
@@ -3969,8 +3987,6 @@
       maintenance: String(raw.maintenance || '').trim(),
       drill: String(raw.drill || '').trim(),
       training: String(raw.training || '').trim(),
-      remarkType: String(raw.remarkType || raw.noteType || raw.ghiChu || '').trim(),
-      remarkDetail: String(raw.remarkDetail || raw.noteDetail || raw.cuThe || '').trim(),
       owner: String(raw.owner || raw.ownerManager || raw.manager || '').trim(),
       editHistory: normalizeFacilityHistory(raw.editHistory || raw.history || raw.lichSuChinhSua || raw.edit_history || raw.EDIT_HISTORY || raw.HISTORY || raw.editHistoryJson),
       createdAt: String(raw.createdAt || new Date().toISOString()).trim(),
@@ -4265,8 +4281,6 @@
     $('facilityEditMaintenanceCompany').value = maintenanceInfo.company || '';
     $('facilityEditDrill').value = item.drill || '';
     $('facilityEditTraining').value = item.training || '';
-    $('facilityEditRemarkType').value = item.remarkType || '';
-    $('facilityEditRemarkDetail').value = item.remarkDetail || '';
     const ownerWrap = $('facilityEditOwnerWrap');
     if (ownerWrap) ownerWrap.classList.toggle('hidden', !isSystemAdminMode());
     renderFacilityOwnerOptions('facilityEditOwner', item.owner || '');
@@ -4304,8 +4318,6 @@
     $('facilityEditMaintenanceCompany').value = '';
     $('facilityEditDrill').value = '';
     $('facilityEditTraining').value = '';
-    $('facilityEditRemarkType').value = '';
-    $('facilityEditRemarkDetail').value = '';
     $('facilityEditModalError').textContent = '';
     renderFacilityHistory([]);
   }
@@ -4322,7 +4334,6 @@
       field: $('facilityFilterField') ? $('facilityFilterField').value.trim() : '',
       appendix: $('facilityFilterAppendix') ? $('facilityFilterAppendix').value.trim() : '',
       codeStatus: $('facilityFilterCodeStatus') ? $('facilityFilterCodeStatus').value.trim() : '',
-      remarkType: $('facilityFilterRemarkType') ? $('facilityFilterRemarkType').value.trim() : '',
       owner: $('facilityFilterOwner') ? $('facilityFilterOwner').value.trim() : ''
     };
   }
@@ -4341,10 +4352,8 @@
       const fieldOk = !filters.field || String(item.field || '') === filters.field;
       const appendixOk = !filters.appendix || String(item.appendix || '') === filters.appendix;
       const codeStatusOk = !filters.codeStatus || (filters.codeStatus === 'has' ? hasStructuredCode : !hasStructuredCode);
-      const remarkValue = String(item.remarkType || '').trim();
-      const remarkOk = !filters.remarkType || (filters.remarkType === '__empty__' ? !remarkValue : remarkValue === filters.remarkType);
       const ownerOk = !filters.owner || String(item.owner || '') === filters.owner;
-      return nameOk && descriptionOk && addressOk && fieldOk && appendixOk && codeStatusOk && remarkOk && ownerOk;
+      return nameOk && descriptionOk && addressOk && fieldOk && appendixOk && codeStatusOk && ownerOk;
     });
   }
 
@@ -4414,8 +4423,8 @@
       baseText += ` Đang xem danh sách: ${quickViewLabel}.`;
     }
 
-    const insuranceSoon = countFacilitiesByExpiry(filteredFacilities, 'insurance', 'soon');
-    const maintenanceSoon = countFacilitiesByExpiry(filteredFacilities, 'maintenance', 'soon');
+    const insuranceSoon = countFacilitiesByExpiry(state.facilities, 'insurance', 'soon');
+    const maintenanceSoon = countFacilitiesByExpiry(state.facilities, 'maintenance', 'soon');
     const warningParts = [];
     if (insuranceSoon) warningParts.push(`${insuranceSoon} cơ sở sắp hết hạn bảo hiểm`);
     if (maintenanceSoon) warningParts.push(`${maintenanceSoon} cơ sở sắp hết hạn bảo dưỡng`);
@@ -4502,7 +4511,6 @@
     if ($('facilityFilterField')) $('facilityFilterField').value = '';
     if ($('facilityFilterAppendix')) $('facilityFilterAppendix').value = '';
     if ($('facilityFilterCodeStatus')) $('facilityFilterCodeStatus').value = '';
-    if ($('facilityFilterRemarkType')) $('facilityFilterRemarkType').value = '';
     if ($('facilityFilterOwner')) $('facilityFilterOwner').value = '';
     state.facilityFilters = {
       name: '',
@@ -4511,7 +4519,6 @@
       field: '',
       appendix: '',
       codeStatus: '',
-      remarkType: '',
       owner: ''
     };
     state.facilityQuickView = 'all';
@@ -4572,8 +4579,7 @@
     body.innerHTML = '';
 
     const allFacilities = Array.isArray(state.facilities) ? state.facilities : [];
-    const filteredFacilities = applyFacilityQuickView(getFilteredFacilities());
-    const countFilled = (items, key) => (Array.isArray(items) ? items : []).filter(item => facilityFieldHasValue(item, key)).length;
+    const countFilled = (key) => allFacilities.filter(item => facilityFieldHasValue(item, key)).length;
     const renderFlagWithHover = (value, label, options = {}) => {
       const useExpiry = !!options.useExpiry;
       const info = useExpiry ? getFacilityExpiryInfo(value) : null;
@@ -4600,25 +4606,20 @@
       return `<span class="facility-flag-mark" title="${escapeHtml(`${label}: ${String(value || '').trim()}`)}">X</span>`;
     };
 
-    totalBox.textContent = String(filteredFacilities.length);
-    if (inspectedBox) inspectedBox.textContent = String(countFilled(filteredFacilities, 'inspectionDate'));
-    if (insuranceBox) insuranceBox.textContent = String(countFilled(filteredFacilities, 'insurance'));
-    if (maintenanceBox) maintenanceBox.textContent = String(countFilled(filteredFacilities, 'maintenance'));
-    if (drillBox) drillBox.textContent = String(countFilled(filteredFacilities, 'drill'));
-    if (trainingBox) trainingBox.textContent = String(countFilled(filteredFacilities, 'training'));
+    totalBox.textContent = String(allFacilities.length);
+    if (inspectedBox) inspectedBox.textContent = String(countFilled('inspectionDate'));
+    if (insuranceBox) insuranceBox.textContent = String(countFilled('insurance'));
+    if (maintenanceBox) maintenanceBox.textContent = String(countFilled('maintenance'));
+    if (drillBox) drillBox.textContent = String(countFilled('drill'));
+    if (trainingBox) trainingBox.textContent = String(countFilled('training'));
 
     if (!allFacilities.length) {
-      totalBox.textContent = '0';
-      if (inspectedBox) inspectedBox.textContent = '0';
-      if (insuranceBox) insuranceBox.textContent = '0';
-      if (maintenanceBox) maintenanceBox.textContent = '0';
-      if (drillBox) drillBox.textContent = '0';
-      if (trainingBox) trainingBox.textContent = '0';
       updateFacilityFilterSummary([]);
       body.innerHTML = '<tr><td colspan="' + getFacilityTableColumnCount() + '"><div class="empty-state">' + (isTeamFacilityView() ? 'Chưa có dữ liệu ở 9 danh sách cá nhân.' : 'Chưa có cơ sở nào. Hãy nhập cơ sở đầu tiên.') + '</div></td></tr>';
       return;
     }
 
+    const filteredFacilities = applyFacilityQuickView(getFilteredFacilities());
     updateFacilityQuickViewBoxes();
     updateFacilityFilterSummary(filteredFacilities);
 
@@ -4656,7 +4657,6 @@
         <td>${renderFlagWithHover(item.maintenance, 'Bảo dưỡng', { useExpiry: true })}</td>
         <td>${renderFlagWithHover(item.drill, 'Thực tập')}</td>
         <td>${renderFlagWithHover(item.training, 'Bồi dưỡng')}</td>
-        <td>${renderFacilityRemarkBadge(item.remarkType, item.remarkDetail)}</td>
       `;
       body.appendChild(tr);
     });
@@ -4702,8 +4702,6 @@
       maintenance: '',
       drill: '',
       training: '',
-      remarkType: '',
-      remarkDetail: '',
       owner: managerName,
       editHistory: [createFacilityHistoryEntry('Tạo mới', 'Khởi tạo cơ sở trong hệ thống.', managerName)],
       createdAt: new Date().toISOString(),
@@ -4787,8 +4785,6 @@
     const maintenance = encodeFacilityMetaValue($('facilityEditMaintenanceDate').value, $('facilityEditMaintenanceCompany').value);
     const drill = $('facilityEditDrill').value.trim();
     const training = $('facilityEditTraining').value.trim();
-    const remarkType = $('facilityEditRemarkType').value.trim();
-    const remarkDetail = $('facilityEditRemarkDetail').value.trim();
 
     if (!id) {
       $('facilityEditModalError').textContent = 'Không tìm thấy cơ sở cần sửa.';
@@ -4836,8 +4832,6 @@
       maintenance,
       drill,
       training,
-      remarkType,
-      remarkDetail,
       owner: ownerChanged ? nextOwnerName : currentOwnerName,
       createdAt: baseCreatedAt,
       updatedAt: nowIso
@@ -4955,12 +4949,10 @@
 
   function getVisibleFacilityRows() {
     const body = $('facilityBody');
-    const table = document.querySelector('.facility-table');
-    if (!body || !table) return [];
-    const expectedCells = table.querySelectorAll('thead th').length;
+    if (!body) return [];
     return Array.from(body.querySelectorAll('tr')).filter(row => {
       const cells = row.querySelectorAll('td');
-      return cells.length === expectedCells && !row.querySelector('.empty-state');
+      return cells.length === 12 && !row.querySelector('.empty-state');
     });
   }
 
@@ -5538,7 +5530,7 @@
   ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
-  ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterCodeStatus','facilityFilterRemarkType','facilityFilterOwner'].forEach(id => {
+  ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterCodeStatus','facilityFilterOwner'].forEach(id => {
     if (!$(id)) return;
     const eventName = $(id).tagName === 'SELECT' || $(id).type === 'date' ? 'change' : 'input';
     $(id).addEventListener(eventName, applyFacilityFilters);
@@ -6709,12 +6701,26 @@ th{font-weight:700;background:#f1f1f1}
     if ($('managerModalError')) $('managerModalError').textContent = '';
   }
 
-  function handleManagerLogin() {
+  async function handleManagerLogin() {
     const managerName = state.pendingManagerLogin || '';
     const password = String($('managerPasswordInput')?.value || '').trim();
     if (!managerName) {
       closeManagerLoginModal();
       return;
+    }
+    if (!password) {
+      if ($('managerModalError')) $('managerModalError').textContent = 'Vui lòng nhập mật khẩu.';
+      if ($('managerPasswordInput')) $('managerPasswordInput').focus();
+      return;
+    }
+    if ($('managerModalError')) $('managerModalError').textContent = isFacilityCloudReady()
+      ? 'Đang kiểm tra mật khẩu từ hệ thống...'
+      : '';
+    if (isFacilityCloudReady()) {
+      const syncResult = await refreshManagerPasswordConfigs({ silent: true });
+      if (!syncResult.ok && $('managerModalError')) {
+        $('managerModalError').textContent = 'Không tải được mật khẩu mới nhất từ hệ thống, đang kiểm tra theo bộ nhớ đệm gần nhất...';
+      }
     }
     if (!managerHasValidPassword(managerName, password)) {
       if ($('managerModalError')) $('managerModalError').textContent = 'Mật khẩu không đúng cho mục này.';
@@ -6777,13 +6783,21 @@ th{font-weight:700;background:#f1f1f1}
     saveFn();
   }
 
-  function handleAdminLogin() {
+  async function handleAdminLogin() {
     const mode = state.pendingAdminMode || 'systemAdmin';
     const password = String($("adminPasswordInput")?.value || '').trim();
     if (password !== ADMIN_PASSWORD) {
       if ($("adminModalError")) $("adminModalError").textContent = 'Mật khẩu Admin không đúng.';
       if ($("adminPasswordInput")) $("adminPasswordInput").focus();
       return;
+    }
+    if ($("adminModalError")) $("adminModalError").textContent = isFacilityCloudReady()
+      ? 'Đang tải cấu hình mật khẩu mới nhất...'
+      : '';
+    if (isFacilityCloudReady()) {
+      await refreshManagerPasswordConfigs({ silent: true });
+    } else {
+      state.managerPasswordConfigs = loadManagerPasswordConfigs();
     }
     const managerName = state.pendingFacilityManager || TEAM_FACILITY_LABEL;
     closeAdminLoginModal();
@@ -6981,8 +6995,15 @@ th{font-weight:700;background:#f1f1f1}
   updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
   updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   startSystemClock();
+  state.managerPasswordConfigs = loadManagerPasswordConfigs();
   renderAll();
+  renderPasswordConfigPanel();
   window.setTimeout(warmFacilityCaches, 180);
+  window.setTimeout(() => {
+    void refreshManagerPasswordConfigs({ silent: true }).then(() => {
+      renderPasswordConfigPanel();
+    });
+  }, 240);
 
   window.addEventListener('resize', adjustFacilityTableLayout);
 })();
