@@ -2248,6 +2248,8 @@
     pendingManagerLogin: "",
     isSystemAdmin: false,
     managerPasswordConfigs: {},
+    managerPasswordConfigsLoadedAt: 0,
+    managerPasswordConfigsSyncPromise: null,
     adminPasswordConfigVisible: false,
     selectedFacilityId: "",
     facilityFilters: {
@@ -2542,6 +2544,7 @@
   function saveManagerPasswordConfigs(configs) {
     const normalized = normalizeManagerPasswordConfigs(configs);
     state.managerPasswordConfigs = normalized;
+    state.managerPasswordConfigsLoadedAt = Date.now();
     try {
       localStorage.setItem(MANAGER_PASSWORD_CONFIG_STORAGE_KEY, JSON.stringify(normalized));
     } catch (err) {
@@ -2606,17 +2609,50 @@
   }
 
   async function refreshManagerPasswordConfigs(options = {}) {
-    const cached = loadManagerPasswordConfigs();
-    state.managerPasswordConfigs = cached;
+    const force = !!options.force;
+    const useCachedFirst = options.useCachedFirst !== false;
+    const cached = useCachedFirst ? saveManagerPasswordConfigs(loadManagerPasswordConfigs()) : normalizeManagerPasswordConfigs();
     if (!isFacilityCloudReady()) {
       return { ok: false, localOnly: true, items: cached, message: 'Chưa cấu hình Apps Script' };
     }
-    const result = await listManagerPasswordConfigsRemote();
-    if (result && result.ok) {
-      const normalized = saveManagerPasswordConfigs(result.items || result.configs || {});
-      return { ok: true, items: normalized };
+    if (!force && state.managerPasswordConfigsSyncPromise) {
+      return state.managerPasswordConfigsSyncPromise;
     }
-    return { ok: false, items: cached, error: (result && (result.error || result.message)) || 'Không tải được cấu hình mật khẩu từ hệ thống.' };
+    state.managerPasswordConfigsSyncPromise = (async () => {
+      const result = await listManagerPasswordConfigsRemote();
+      if (result && result.ok) {
+        const normalized = saveManagerPasswordConfigs(result.items || result.configs || {});
+        return { ok: true, items: normalized };
+      }
+      return { ok: false, items: cached, error: (result && (result.error || result.message)) || 'Không tải được cấu hình mật khẩu từ hệ thống.' };
+    })();
+    try {
+      return await state.managerPasswordConfigsSyncPromise;
+    } finally {
+      state.managerPasswordConfigsSyncPromise = null;
+    }
+  }
+
+  function getManagerPasswordConfigsAgeMs() {
+    const loadedAt = Number(state.managerPasswordConfigsLoadedAt || 0);
+    if (!loadedAt) return Number.POSITIVE_INFINITY;
+    return Date.now() - loadedAt;
+  }
+
+  function ensureManagerPasswordConfigsReady(options = {}) {
+    const maxAgeMs = Number(options.maxAgeMs || 15000);
+    const force = !!options.force;
+    const background = !!options.background;
+    const hasConfigs = !!(state.managerPasswordConfigs && Object.keys(state.managerPasswordConfigs).length);
+    if (hasConfigs && !force && getManagerPasswordConfigsAgeMs() <= maxAgeMs) {
+      return Promise.resolve({ ok: true, items: state.managerPasswordConfigs, cached: true });
+    }
+    const request = refreshManagerPasswordConfigs({ force, useCachedFirst: true });
+    if (background) {
+      request.catch(() => {});
+      return Promise.resolve({ ok: true, items: state.managerPasswordConfigs, background: true });
+    }
+    return request;
   }
 
   function getManagerPasswordConfig(managerName) {
@@ -6710,6 +6746,9 @@ th{font-weight:700;background:#f1f1f1}
       setPasswordVisibility('managerPasswordInput', 'btnToggleManagerPassword', false);
     }
     if ($('managerModalError')) $('managerModalError').textContent = '';
+    if (isFacilityCloudReady()) {
+      void ensureManagerPasswordConfigsReady({ background: true, maxAgeMs: 5000 });
+    }
     if ($('managerLoginModal')) $('managerLoginModal').classList.remove('hidden');
     setTimeout(() => { if ($('managerPasswordInput')) $('managerPasswordInput').focus(); }, 30);
   }
@@ -6737,27 +6776,25 @@ th{font-weight:700;background:#f1f1f1}
       return;
     }
 
-    if (isFacilityCloudReady()) {
-      if ($('managerModalError')) $('managerModalError').textContent = 'Đang kiểm tra mật khẩu từ hệ thống...';
-      const verifyResult = await checkManagerPasswordRemote(managerName, password);
-      if (!verifyResult || !verifyResult.ok) {
-        if ($('managerModalError')) $('managerModalError').textContent = (verifyResult && (verifyResult.error || verifyResult.message)) || 'Không kết nối được hệ thống mật khẩu. Vui lòng thử lại.';
-        if ($('managerPasswordInput')) $('managerPasswordInput').focus();
-        return;
+    if (!state.managerPasswordConfigs || !Object.keys(state.managerPasswordConfigs).length) {
+      state.managerPasswordConfigs = loadManagerPasswordConfigs();
+    }
+
+    if (!managerHasValidPassword(managerName, password)) {
+      if (isFacilityCloudReady()) {
+        void ensureManagerPasswordConfigsReady({ force: true, background: true, maxAgeMs: 0 }).then(() => {
+          renderPasswordConfigPanel();
+        });
       }
-      if (verifyResult.items || verifyResult.configs) {
-        saveManagerPasswordConfigs(verifyResult.items || verifyResult.configs || {});
-        renderPasswordConfigPanel();
-      }
-      if (!verifyResult.valid) {
-        if ($('managerModalError')) $('managerModalError').textContent = 'Mật khẩu không đúng cho mục này.';
-        if ($('managerPasswordInput')) $('managerPasswordInput').focus();
-        return;
-      }
-    } else if (!managerHasValidPassword(managerName, password)) {
       if ($('managerModalError')) $('managerModalError').textContent = 'Mật khẩu không đúng cho mục này.';
       if ($('managerPasswordInput')) $('managerPasswordInput').focus();
       return;
+    }
+
+    if (isFacilityCloudReady()) {
+      void ensureManagerPasswordConfigsReady({ background: true, maxAgeMs: 5000 }).then(() => {
+        renderPasswordConfigPanel();
+      });
     }
 
     closeManagerLoginModal();
@@ -6845,9 +6882,11 @@ th{font-weight:700;background:#f1f1f1}
     const managerName = btn.dataset.manager || "Nguyễn Văn Nguyên";
     btn.addEventListener("mouseenter", () => {
       void prefetchFacilityManager(managerName);
+      if (!isTeamFacilityView(managerName)) void ensureManagerPasswordConfigsReady({ background: true, maxAgeMs: 5000 });
     });
     btn.addEventListener("focus", () => {
       void prefetchFacilityManager(managerName);
+      if (!isTeamFacilityView(managerName)) void ensureManagerPasswordConfigsReady({ background: true, maxAgeMs: 5000 });
     });
     btn.addEventListener("click", () => {
       state.pendingAdminMode = '';
@@ -7028,19 +7067,27 @@ th{font-weight:700;background:#f1f1f1}
   updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
   updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   startSystemClock();
-  state.managerPasswordConfigs = loadManagerPasswordConfigs();
+  state.managerPasswordConfigs = saveManagerPasswordConfigs(loadManagerPasswordConfigs());
   renderAll();
   renderPasswordConfigPanel();
-  window.setTimeout(warmFacilityCaches, 180);
-  window.setTimeout(() => {
-    void refreshManagerPasswordConfigs({ silent: true }).then(() => {
-      renderPasswordConfigPanel();
-    });
-  }, 240);
+  window.setTimeout(warmFacilityCaches, 120);
+  void ensureManagerPasswordConfigsReady({ force: true, maxAgeMs: 0 }).then(() => {
+    renderPasswordConfigPanel();
+  }).catch(() => {});
   window.setInterval(() => {
     if (!isFacilityCloudReady()) return;
-    void refreshManagerPasswordConfigs({ silent: true });
-  }, 60000);
+    void ensureManagerPasswordConfigsReady({ force: true, background: true, maxAgeMs: 0 });
+  }, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isFacilityCloudReady()) {
+      void ensureManagerPasswordConfigsReady({ force: true, background: true, maxAgeMs: 0 });
+    }
+  });
+  window.addEventListener('focus', () => {
+    if (isFacilityCloudReady()) {
+      void ensureManagerPasswordConfigsReady({ force: true, background: true, maxAgeMs: 0 });
+    }
+  });
 
   window.addEventListener('resize', adjustFacilityTableLayout);
 })();
