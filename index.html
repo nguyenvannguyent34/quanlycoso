@@ -1947,7 +1947,7 @@
 </div>
 <div class="panel-box report-issue-panel">
 <h3 style="margin:0 0 6px;font-size:22px">Danh sách cơ sở còn tồn tại</h3>
-<div class="muted small" id="reportIssueHint">Nhấp đúp vào tên cơ sở trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.</div>
+<div class="muted small" id="reportIssueHint">Nhấp đúp vào dòng trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.</div>
 <div class="table-wrap" style="margin-top:12px">
 <table class="report-table report-issue-table">
 <thead><tr><th class="report-rank">STT</th><th>Tên cơ sở</th><th>Loại tồn tại</th><th>Nội dung</th><th>Tiến độ khắc phục</th></tr></thead>
@@ -1982,10 +1982,12 @@
 <div class="full-col">
 <label for="reportIssueContent">Nội dung</label>
 <textarea id="reportIssueContent" placeholder="Nhập nội dung tồn tại của cơ sở..."></textarea>
+<div class="muted small">Có thể nhấn Alt + Enter để xuống dòng khi nhập nội dung dài.</div>
 </div>
 <div class="full-col">
 <label for="reportIssueProgress">Tiến độ khắc phục</label>
 <textarea id="reportIssueProgress" placeholder="Nhập tiến độ khắc phục hiện tại..."></textarea>
+<div class="muted small">Có thể nhấn Alt + Enter để xuống dòng khi nhập nội dung dài.</div>
 </div>
 </div>
 <div class="modal-error" id="reportIssueModalError"></div>
@@ -2238,10 +2240,6 @@
 <option value="TDNT">TDNT</option>
 <option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
 </select>
-</div>
-<div class="full-col">
-<label for="facilityEditIssueContent">Cụ thể</label>
-<input id="facilityEditIssueContent" placeholder="Nhập chú thích cụ thể cho ghi chú" type="text"/>
 </div>
 </div>
 
@@ -4464,8 +4462,7 @@
     $('facilityEditTraining').value = item.training || '';
     ensureSelectOption('facilityEditIssueType', item.issueType || '');
     $('facilityEditIssueType').value = item.issueType || '';
-    $('facilityEditIssueContent').value = item.issueContent || '';
-    const ownerWrap = $('facilityEditOwnerWrap');
+        const ownerWrap = $('facilityEditOwnerWrap');
     if (ownerWrap) ownerWrap.classList.toggle('hidden', !isSystemAdminMode());
     renderFacilityOwnerOptions('facilityEditOwner', item.owner || '');
     $('facilityEditModalError').textContent = '';
@@ -4503,7 +4500,6 @@
     $('facilityEditDrill').value = '';
     $('facilityEditTraining').value = '';
     $('facilityEditIssueType').value = '';
-    $('facilityEditIssueContent').value = '';
     $('facilityEditModalError').textContent = '';
     renderFacilityHistory([]);
   }
@@ -4988,7 +4984,6 @@
     const drill = $('facilityEditDrill').value.trim();
     const training = $('facilityEditTraining').value.trim();
     const issueType = normalizeFacilityIssueType($('facilityEditIssueType').value);
-    const issueContent = $('facilityEditIssueContent').value.trim();
 
     if (!id) {
       $('facilityEditModalError').textContent = 'Không tìm thấy cơ sở cần sửa.';
@@ -5017,6 +5012,7 @@
 
     const targetFacilities = loadLocalFacilities(currentOwnerName);
     const localExisting = normalizeFacility(targetFacilities.find(item => item.id === id) || existing || {});
+    const issueContent = String(localExisting.issueContent || '').trim();
     const baseCreatedAt = localExisting.createdAt || existing.createdAt || new Date().toISOString();
     const baseHistory = normalizeFacilityHistory(localExisting.editHistory || existing.editHistory);
     const nowIso = new Date().toISOString();
@@ -5615,7 +5611,7 @@
     body.innerHTML = rows.map((item, index) => `
       <tr data-id="${escapeHtml(item.id)}">
         <td class="report-rank">${index + 1}</td>
-        <td><span class="report-issue-name" data-report-issue-open="${escapeHtml(item.id)}" title="Nhấp đúp để cập nhật tồn tại">${escapeHtml(item.name || '-')}</span></td>
+        <td><span class="report-issue-name" data-report-issue-open="${escapeHtml(item.id)}" title="Nhấp đúp vào dòng để cập nhật tồn tại">${escapeHtml(item.name || '-')}</span></td>
         <td><span class="report-issue-type-tag">${escapeHtml(item.issueType || 'Chưa chọn')}</span></td>
         <td class="report-issue-text">${escapeHtml(item.issueContent || '-')}</td>
         <td class="report-issue-text report-issue-progress">${escapeHtml(item.issueProgress || '-')}</td>
@@ -5857,7 +5853,7 @@
   ['facilityCode','facilityName','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
   });
-  ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining','facilityEditIssueType','facilityEditIssueContent'].forEach(id => {
+  ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining','facilityEditIssueType'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
   ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterCodeStatus','facilityFilterOwner'].forEach(id => {
@@ -7118,8 +7114,8 @@ th{font-weight:700;background:#f1f1f1}
       return;
     }
     if (event.key !== "Enter") return;
-    if (event.shiftKey) return;
     if (isTextarea && event.altKey) return;
+    if (event.shiftKey) return;
     event.preventDefault();
     saveFn();
   }
@@ -7184,9 +7180,9 @@ th{font-weight:700;background:#f1f1f1}
   if ($('btnSaveReportIssue')) $('btnSaveReportIssue').addEventListener('click', handleSaveReportIssue);
   if ($('btnCancelReportIssue')) $('btnCancelReportIssue').addEventListener('click', closeReportIssueModal);
   if ($('reportIssueBody')) $('reportIssueBody').addEventListener('dblclick', (event) => {
-    const trigger = event.target.closest('[data-report-issue-open]');
-    if (!trigger) return;
-    openReportIssueModal(trigger.getAttribute('data-report-issue-open'));
+    const row = event.target.closest('tr[data-id]');
+    if (!row) return;
+    openReportIssueModal(row.dataset.id);
   });
   ['reportIssueType','reportIssueContent','reportIssueProgress'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveReportIssue, { onEscape: closeReportIssueModal }));
