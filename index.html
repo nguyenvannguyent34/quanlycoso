@@ -973,6 +973,13 @@
       color:#344054;
       white-space:nowrap;
     }
+    .facility-note-mark{
+      white-space:normal;
+      min-width:120px;
+      max-width:220px;
+      line-height:1.25;
+      padding:4px 8px;
+    }
     .facility-flag-soon{
       background:#fff8e8;
       border-color:#f5e2a8;
@@ -1026,7 +1033,7 @@
     }
     .facility-owner-col{white-space:nowrap}
     .facility-owner-col.is-hidden{display:none}
-    .facility-table{table-layout:auto; min-width:1420px;}
+    .facility-table{table-layout:auto; min-width:1560px;}
     .facility-table thead th{position:static; top:auto; z-index:auto; background:#f8fafc;}
     .facility-table .facility-col-stt{position:static; left:auto; z-index:auto; min-width:58px; width:58px; background:inherit;}
     .facility-table .facility-col-code{position:static; left:auto; z-index:auto; min-width:76px; width:76px; max-width:112px; white-space:nowrap; background:inherit; padding-left:8px; padding-right:8px;}
@@ -1066,7 +1073,7 @@
       max-height:none;
     }
     body.facility-manager-open .facility-admin-shell .facility-table{
-      min-width:1280px;
+      min-width:1420px;
       table-layout:auto;
     }
     .legacy-admin-shell{display:none !important; pointer-events:none !important;}
@@ -1252,6 +1259,44 @@
       font-size:12px;
       color:#667085;
       font-weight:700;
+    }
+    .report-issue-panel{
+      margin-top:16px;
+    }
+    .report-issue-table th,
+    .report-issue-table td{
+      text-align:center !important;
+      vertical-align:middle !important;
+    }
+    .report-issue-name{
+      color:#7d1010;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .report-issue-name:hover{
+      text-decoration:underline;
+    }
+    .report-issue-type-tag{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:120px;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid #e1e7f0;
+      background:#fff8ec;
+      color:#7d1010;
+      font-weight:700;
+    }
+    .report-issue-text{
+      text-align:left;
+      line-height:1.45;
+      white-space:pre-wrap;
+      min-width:240px;
+    }
+    .report-issue-progress{
+      min-width:220px;
     }
     @media (max-width: 980px){
       .report-grid{grid-template-columns:1fr;}
@@ -1674,6 +1719,7 @@
 <th>Bảo dưỡng</th>
 <th>Thực tập</th>
 <th>Bồi dưỡng</th>
+<th>Ghi chú</th>
 </tr>
 </thead>
 <tbody id="facilityBody"></tbody>
@@ -1896,6 +1942,56 @@
 <thead><tr><th class="report-rank">#</th><th>Địa bàn</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
 <tbody id="reportAreaBody"></tbody>
 </table>
+</div>
+</div>
+</div>
+<div class="panel-box report-issue-panel">
+<h3 style="margin:0 0 6px;font-size:22px">Danh sách cơ sở còn tồn tại</h3>
+<div class="muted small" id="reportIssueHint">Nhấp đúp vào tên cơ sở trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.</div>
+<div class="table-wrap" style="margin-top:12px">
+<table class="report-table report-issue-table">
+<thead><tr><th class="report-rank">STT</th><th>Tên cơ sở</th><th>Loại tồn tại</th><th>Nội dung</th><th>Tiến độ khắc phục</th></tr></thead>
+<tbody id="reportIssueBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div class="modal-backdrop hidden" id="reportIssueModal">
+<div class="modal-card modal-large">
+<div class="modal-head">
+<h3 style="margin:0;font-size:24px">Cập nhật tồn tại cơ sở</h3>
+<div class="muted small" style="margin-top:6px">Bổ sung loại tồn tại, nội dung và tiến độ khắc phục cho cơ sở được chọn.</div>
+</div>
+<div class="modal-body">
+<input id="reportIssueFacilityId" type="hidden"/>
+<div class="form-grid">
+<div class="full-col">
+<label for="reportIssueFacilityName">Tên cơ sở</label>
+<input id="reportIssueFacilityName" readonly type="text"/>
+</div>
+<div>
+<label for="reportIssueType">Loại tồn tại</label>
+<select id="reportIssueType">
+<option value="">Chưa chọn</option>
+<option value="NQ32">NQ32</option>
+<option value="TDNT">TDNT</option>
+<option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
+</select>
+</div>
+<div class="full-col">
+<label for="reportIssueContent">Nội dung</label>
+<textarea id="reportIssueContent" placeholder="Nhập nội dung tồn tại của cơ sở..."></textarea>
+</div>
+<div class="full-col">
+<label for="reportIssueProgress">Tiến độ khắc phục</label>
+<textarea id="reportIssueProgress" placeholder="Nhập tiến độ khắc phục hiện tại..."></textarea>
+</div>
+</div>
+<div class="modal-error" id="reportIssueModalError"></div>
+<div class="flex" style="justify-content:flex-end; margin-top:8px">
+<button class="secondary" id="btnCancelReportIssue" type="button">Hủy</button>
+<button class="success" id="btnSaveReportIssue" type="button">Lưu cập nhật</button>
 </div>
 </div>
 </div>
@@ -2134,6 +2230,19 @@
 <label for="facilityEditTraining">Bồi dưỡng</label>
 <input id="facilityEditTraining" placeholder="Nhập thông tin bồi dưỡng" type="text"/>
 </div>
+<div>
+<label for="facilityEditIssueType">Ghi chú</label>
+<select id="facilityEditIssueType">
+<option value="">Chưa chọn</option>
+<option value="NQ32">NQ32</option>
+<option value="TDNT">TDNT</option>
+<option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
+</select>
+</div>
+<div class="full-col">
+<label for="facilityEditIssueContent">Cụ thể</label>
+<input id="facilityEditIssueContent" placeholder="Nhập chú thích cụ thể cho ghi chú" type="text"/>
+</div>
 </div>
 
 <div class="facility-history-box">
@@ -2212,6 +2321,7 @@
     "Phí Văn Tuyển": "phi_van_tuyen",
     "Tạ Minh Phương": "ta_minh_phuong"
   };
+  const FACILITY_ISSUE_TYPES = ["NQ32", "TDNT", "Tồn tại sau kiểm tra"];
   const DESCRIPTION_IMAGE_PREFIX = "__TASKDESCIMG__";
   const NOTE_ATTACHMENT_PREFIX = "__TASKNOTEFILE__";
 
@@ -2468,7 +2578,7 @@
   }
 
   function getFacilityTableColumnCount(managerName = getCurrentFacilityManager()) {
-    return shouldShowFacilityOwnerColumn(managerName) ? 12 : 11;
+    return shouldShowFacilityOwnerColumn(managerName) ? 13 : 12;
   }
 
   function updateFacilityOwnerColumnVisibility(managerName = getCurrentFacilityManager()) {
@@ -3992,7 +4102,10 @@
       insurance: 'Bảo hiểm',
       maintenance: 'Bảo dưỡng',
       drill: 'Thực tập',
-      training: 'Bồi dưỡng'
+      training: 'Bồi dưỡng',
+      issueType: 'Loại tồn tại',
+      issueContent: 'Nội dung tồn tại',
+      issueProgress: 'Tiến độ khắc phục'
     };
     const changed = [];
     Object.keys(labels).forEach(key => {
@@ -4001,6 +4114,12 @@
       if (before !== after) changed.push(labels[key]);
     });
     return changed.length ? 'Đã cập nhật: ' + changed.join(', ') + '.' : 'Đã lưu lại thông tin cơ sở.';
+  }
+
+  function normalizeFacilityIssueType(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    return FACILITY_ISSUE_TYPES.find(item => item.toLowerCase() === text.toLowerCase()) || text;
   }
 
   function buildFacilityCode(raw = {}) {
@@ -4046,6 +4165,9 @@
       maintenance: String(raw.maintenance || '').trim(),
       drill: String(raw.drill || '').trim(),
       training: String(raw.training || '').trim(),
+      issueType: normalizeFacilityIssueType(raw.issueType || raw.loaiTonTai || raw.tonTaiType || raw.violationType || ''),
+      issueContent: String(raw.issueContent || raw.noiDungTonTai || raw.tonTaiContent || raw.violationContent || '').trim(),
+      issueProgress: String(raw.issueProgress || raw.tienDoKhacPhuc || raw.tonTaiProgress || raw.remediationProgress || '').trim(),
       owner: String(raw.owner || raw.ownerManager || raw.manager || '').trim(),
       editHistory: normalizeFacilityHistory(raw.editHistory || raw.history || raw.lichSuChinhSua || raw.edit_history || raw.EDIT_HISTORY || raw.HISTORY || raw.editHistoryJson),
       createdAt: String(raw.createdAt || new Date().toISOString()).trim(),
@@ -4340,6 +4462,9 @@
     $('facilityEditMaintenanceCompany').value = maintenanceInfo.company || '';
     $('facilityEditDrill').value = item.drill || '';
     $('facilityEditTraining').value = item.training || '';
+    ensureSelectOption('facilityEditIssueType', item.issueType || '');
+    $('facilityEditIssueType').value = item.issueType || '';
+    $('facilityEditIssueContent').value = item.issueContent || '';
     const ownerWrap = $('facilityEditOwnerWrap');
     if (ownerWrap) ownerWrap.classList.toggle('hidden', !isSystemAdminMode());
     renderFacilityOwnerOptions('facilityEditOwner', item.owner || '');
@@ -4377,6 +4502,8 @@
     $('facilityEditMaintenanceCompany').value = '';
     $('facilityEditDrill').value = '';
     $('facilityEditTraining').value = '';
+    $('facilityEditIssueType').value = '';
+    $('facilityEditIssueContent').value = '';
     $('facilityEditModalError').textContent = '';
     renderFacilityHistory([]);
   }
@@ -4664,6 +4791,21 @@
 
       return `<span class="facility-flag-mark" title="${escapeHtml(`${label}: ${String(value || '').trim()}`)}">X</span>`;
     };
+    const renderIssueFlagWithHover = (item) => {
+      const issueType = normalizeFacilityIssueType(item?.issueType || '');
+      const issueContent = String(item?.issueContent || '').trim();
+      const issueProgress = String(item?.issueProgress || '').trim();
+      if (!issueType && !issueContent && !issueProgress) return '-';
+      let className = 'facility-date-mark facility-note-mark';
+      if (issueType === 'NQ32') className += ' facility-flag-expired';
+      else className += ' facility-flag-soon';
+      const tooltipParts = [];
+      if (issueType) tooltipParts.push(`Ghi chú: ${issueType}`);
+      if (issueContent) tooltipParts.push(`Cụ thể: ${issueContent}`);
+      if (issueProgress) tooltipParts.push(`Tiến độ khắc phục: ${issueProgress}`);
+      const displayValue = issueType || 'X';
+      return `<span class="${className}" title="${escapeHtml(tooltipParts.join('\n') || 'Có ghi chú')}">${escapeHtml(displayValue)}</span>`;
+    };
 
     totalBox.textContent = String(allFacilities.length);
     if (inspectedBox) inspectedBox.textContent = String(countFilled('inspectionDate'));
@@ -4716,6 +4858,7 @@
         <td>${renderFlagWithHover(item.maintenance, 'Bảo dưỡng', { useExpiry: true })}</td>
         <td>${renderFlagWithHover(item.drill, 'Thực tập')}</td>
         <td>${renderFlagWithHover(item.training, 'Bồi dưỡng')}</td>
+        <td>${renderIssueFlagWithHover(item)}</td>
       `;
       body.appendChild(tr);
     });
@@ -4844,6 +4987,8 @@
     const maintenance = encodeFacilityMetaValue($('facilityEditMaintenanceDate').value, $('facilityEditMaintenanceCompany').value);
     const drill = $('facilityEditDrill').value.trim();
     const training = $('facilityEditTraining').value.trim();
+    const issueType = normalizeFacilityIssueType($('facilityEditIssueType').value);
+    const issueContent = $('facilityEditIssueContent').value.trim();
 
     if (!id) {
       $('facilityEditModalError').textContent = 'Không tìm thấy cơ sở cần sửa.';
@@ -4891,6 +5036,8 @@
       maintenance,
       drill,
       training,
+      issueType,
+      issueContent,
       owner: ownerChanged ? nextOwnerName : currentOwnerName,
       createdAt: baseCreatedAt,
       updatedAt: nowIso
@@ -5011,7 +5158,7 @@
     if (!body) return [];
     return Array.from(body.querySelectorAll('tr')).filter(row => {
       const cells = row.querySelectorAll('td');
-      return cells.length === 12 && !row.querySelector('.empty-state');
+      return (cells.length === 12 || cells.length === 13) && !row.querySelector('.empty-state');
     });
   }
 
@@ -5446,6 +5593,117 @@
   }
 
 
+  function getReportIssueItems(items) {
+    const order = Object.fromEntries(FACILITY_ISSUE_TYPES.map((item, index) => [item, index]));
+    return (Array.isArray(items) ? items : [])
+      .filter(item => String(item.issueType || '').trim() || String(item.issueContent || '').trim() || String(item.issueProgress || '').trim())
+      .sort((a, b) => {
+        const typeDiff = (order[a.issueType] ?? 99) - (order[b.issueType] ?? 99);
+        if (typeDiff !== 0) return typeDiff;
+        return String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+      });
+  }
+
+  function renderReportIssueTable(items) {
+    const body = $('reportIssueBody');
+    if (!body) return;
+    const rows = getReportIssueItems(items);
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="5"><div class="empty-state">Chưa có cơ sở nào được nhập tồn tại NQ32, TDNT hoặc Tồn tại sau kiểm tra.</div></td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map((item, index) => `
+      <tr data-id="${escapeHtml(item.id)}">
+        <td class="report-rank">${index + 1}</td>
+        <td><span class="report-issue-name" data-report-issue-open="${escapeHtml(item.id)}" title="Nhấp đúp để cập nhật tồn tại">${escapeHtml(item.name || '-')}</span></td>
+        <td><span class="report-issue-type-tag">${escapeHtml(item.issueType || 'Chưa chọn')}</span></td>
+        <td class="report-issue-text">${escapeHtml(item.issueContent || '-')}</td>
+        <td class="report-issue-text report-issue-progress">${escapeHtml(item.issueProgress || '-')}</td>
+      </tr>`).join('');
+  }
+
+  function openReportIssueModal(facilityId) {
+    const item = (Array.isArray(state.reportFacilities) ? state.reportFacilities : []).find(entry => entry.id === facilityId);
+    if (!item || !$('reportIssueModal')) return;
+    $('reportIssueFacilityId').value = item.id || '';
+    $('reportIssueFacilityName').value = item.name || '';
+    $('reportIssueType').value = item.issueType || '';
+    $('reportIssueContent').value = item.issueContent || '';
+    $('reportIssueProgress').value = item.issueProgress || '';
+    $('reportIssueModalError').textContent = '';
+    $('reportIssueModal').classList.remove('hidden');
+    const modalBody = $('reportIssueModal').querySelector('.modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
+    setTimeout(() => $('reportIssueType').focus(), 30);
+  }
+
+  function closeReportIssueModal() {
+    if (!$('reportIssueModal')) return;
+    $('reportIssueModal').classList.add('hidden');
+    $('reportIssueFacilityId').value = '';
+    $('reportIssueFacilityName').value = '';
+    $('reportIssueType').value = '';
+    $('reportIssueContent').value = '';
+    $('reportIssueProgress').value = '';
+    $('reportIssueModalError').textContent = '';
+  }
+
+  async function handleSaveReportIssue() {
+    const id = $('reportIssueFacilityId').value.trim();
+    const issueType = normalizeFacilityIssueType($('reportIssueType').value);
+    const issueContent = $('reportIssueContent').value.trim();
+    const issueProgress = $('reportIssueProgress').value.trim();
+    if (!id) {
+      $('reportIssueModalError').textContent = 'Không tìm thấy cơ sở cần cập nhật.';
+      return;
+    }
+    const existing = normalizeFacility((Array.isArray(state.reportFacilities) ? state.reportFacilities : []).find(item => item.id === id) || {});
+    if (!existing.id) {
+      $('reportIssueModalError').textContent = 'Không tìm thấy cơ sở cần cập nhật.';
+      return;
+    }
+    const ownerName = String(existing.owner || '').trim() || getCurrentFacilityManager();
+    const ownerFacilities = loadLocalFacilities(ownerName);
+    const localExisting = normalizeFacility(ownerFacilities.find(item => item.id === id) || existing);
+    const nowIso = new Date().toISOString();
+    const nextFacility = normalizeFacility({
+      ...localExisting,
+      issueType,
+      issueContent,
+      issueProgress,
+      updatedAt: nowIso
+    });
+    const historySummary = issueType || issueContent || issueProgress
+      ? 'Cập nhật tồn tại: ' + [issueType || 'Chưa chọn loại', issueContent || 'Chưa nhập nội dung', issueProgress || 'Chưa nhập tiến độ'].join(' | ') + '.'
+      : 'Đã xóa thông tin tồn tại của cơ sở.';
+    nextFacility.editHistory = [
+      ...normalizeFacilityHistory(localExisting.editHistory || existing.editHistory),
+      createFacilityHistoryEntry('Cập nhật tồn tại', historySummary, isSystemAdminMode() ? 'Admin hệ thống' : ownerName)
+    ];
+
+    if (!isFacilityCloudReady()) {
+      upsertFacilityForOwner(ownerName, nextFacility, id);
+      state.reportFacilities = dedupeFacilities(getKnownFacilitiesPool());
+      syncFacilityStateFromCaches(id);
+      renderReportDashboard();
+      $('reportIssueModalError').textContent = 'Đã lưu cập nhật tồn tại.';
+      return;
+    }
+
+    $('reportIssueModalError').textContent = 'Đang lưu cập nhật lên hệ thống...';
+    const result = await saveFacilityRemote(nextFacility);
+    if (!result || !result.ok) {
+      $('reportIssueModalError').textContent = (result && (result.error || result.message)) || 'Không lưu được thông tin tồn tại lên hệ thống.';
+      return;
+    }
+    const savedFacility = normalizeFacility({ ...nextFacility, ...(result.item || {}) });
+    upsertFacilityForOwner(ownerName, savedFacility, id);
+    state.reportFacilities = dedupeFacilities(getKnownFacilitiesPool());
+    syncFacilityStateFromCaches(savedFacility.id);
+    renderReportDashboard();
+    $('reportIssueModalError').textContent = 'Đã lưu cập nhật tồn tại.';
+  }
+
   async function loadReportDashboard(forceRemote = false) {
     updateSystemRibbon('Báo cáo tổng hợp', 'Đang tạo báo cáo toàn đội');
     const statusBox = $('reportStatus');
@@ -5512,6 +5770,8 @@
     renderReportRows('reportGroupBody', groupRows, total, 'Chưa có dữ liệu theo nhóm.');
     renderReportRows('reportAreaBody', areaRows, total, 'Chưa có dữ liệu theo địa bàn.');
     renderReportRows('reportDescriptionBody', descriptionRows, total, 'Chưa có dữ liệu theo mô tả.');
+    renderReportIssueTable(items);
+    if ($('reportIssueHint')) $('reportIssueHint').textContent = 'Nhấp đúp vào tên cơ sở trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.';
   }
 
   async function openReportDashboard() {
@@ -5544,6 +5804,7 @@
     const groupRows = buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm');
     const areaRows = buildCountRows(items, item => deriveAreaFromAddress(item.address));
     const descriptionRows = buildCountRows(items, item => item.description || 'Chưa nhập mô tả');
+    const issueRows = getReportIssueItems(items);
     const wrapTable = (title, rows) => `
       <section style="margin-top:18px;">
         <h3 style="margin:0 0 8px;font-size:18px;">${title}</h3>
@@ -5552,9 +5813,17 @@
           <tbody>${rows.map((row, idx) => `<tr><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${idx+1}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.label)}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${row.count}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${total ? ((row.count/total)*100).toFixed(1) : '0.0'}%</td></tr>`).join('') || `<tr><td colspan="4" style="border:1px solid #222;padding:8px;text-align:center;">Không có dữ liệu</td></tr>`}</tbody>
         </table>
       </section>`;
+    const wrapIssueTable = (title, rows) => `
+      <section style="margin-top:18px;">
+        <h3 style="margin:0 0 8px;font-size:18px;">${title}</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr><th style="border:1px solid #222;padding:6px 8px;">STT</th><th style="border:1px solid #222;padding:6px 8px;">Tên cơ sở</th><th style="border:1px solid #222;padding:6px 8px;">Loại tồn tại</th><th style="border:1px solid #222;padding:6px 8px;">Nội dung</th><th style="border:1px solid #222;padding:6px 8px;">Tiến độ khắc phục</th></tr></thead>
+          <tbody>${rows.map((row, idx) => `<tr><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${idx+1}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.name || '-')}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${escapeHtml(row.issueType || 'Chưa chọn')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.issueContent || '-')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.issueProgress || '-')}</td></tr>`).join('') || `<tr><td colspan="5" style="border:1px solid #222;padding:8px;text-align:center;">Không có dữ liệu</td></tr>`}</tbody>
+        </table>
+      </section>`;
     const printWin = window.open('', '_blank', 'width=1100,height=800');
     if (!printWin) return;
-    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Báo cáo tổng hợp cơ sở</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style></head><body><h2 style="text-align:center;">BÁO CÁO TỔNG HỢP CƠ SỞ</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div><div class="summary"><div><strong>Tổng số cơ sở</strong><div>${total}</div></div><div><strong>Sắp hết hạn bảo hiểm</strong><div>${getFacilitiesByExpiry(items,'insurance','soon').length}</div></div><div><strong>Sắp hết hạn bảo dưỡng</strong><div>${getFacilitiesByExpiry(items,'maintenance','soon').length}</div></div></div>${wrapTable('1. Phân tích theo lĩnh vực', fieldRows)}${wrapTable('2. Phân tích theo nhóm', groupRows)}${wrapTable('3. Phân tích theo mô tả', descriptionRows)}${wrapTable('4. Phân tích theo địa bàn', areaRows)}</body></html>`);
+    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Báo cáo tổng hợp cơ sở</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style></head><body><h2 style="text-align:center;">BÁO CÁO TỔNG HỢP CƠ SỞ</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div><div class="summary"><div><strong>Tổng số cơ sở</strong><div>${total}</div></div><div><strong>Sắp hết hạn bảo hiểm</strong><div>${getFacilitiesByExpiry(items,'insurance','soon').length}</div></div><div><strong>Sắp hết hạn bảo dưỡng</strong><div>${getFacilitiesByExpiry(items,'maintenance','soon').length}</div></div></div>${wrapTable('1. Phân tích theo lĩnh vực', fieldRows)}${wrapTable('2. Phân tích theo nhóm', groupRows)}${wrapTable('3. Phân tích theo mô tả', descriptionRows)}${wrapTable('4. Phân tích theo địa bàn', areaRows)}${wrapIssueTable('5. Danh sách cơ sở còn tồn tại', issueRows)}</body></html>`);
     printWin.document.close();
     printWin.focus();
     setTimeout(() => { printWin.print(); }, 250);
@@ -5569,6 +5838,8 @@
   window.exportFacilitiesCsv = exportFacilitiesExcel;
   window.printVisibleFacilities = printVisibleFacilities;
   window.closeFacilityManager = closeFacilityManager;
+  window.openReportIssueModal = openReportIssueModal;
+  window.handleSaveReportIssue = handleSaveReportIssue;
 
   if ($('btnSaveFacility')) $('btnSaveFacility').addEventListener('click', handleSaveFacility);
   if ($('btnSaveFacilityModal')) $('btnSaveFacilityModal').addEventListener('click', handleSaveFacilityModal);
@@ -5586,7 +5857,7 @@
   ['facilityCode','facilityName','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
   });
-  ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining'].forEach(id => {
+  ['facilityEditCode','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining','facilityEditIssueType','facilityEditIssueContent'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
   ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterCodeStatus','facilityFilterOwner'].forEach(id => {
@@ -6910,6 +7181,19 @@ th{font-weight:700;background:#f1f1f1}
   if ($("btnReportBack")) $("btnReportBack").addEventListener("click", closeReportDashboard);
   if ($("btnReportRefresh")) $("btnReportRefresh").addEventListener("click", () => loadReportDashboard(true));
   if ($("btnReportPrint")) $("btnReportPrint").addEventListener("click", printReportDashboard);
+  if ($('btnSaveReportIssue')) $('btnSaveReportIssue').addEventListener('click', handleSaveReportIssue);
+  if ($('btnCancelReportIssue')) $('btnCancelReportIssue').addEventListener('click', closeReportIssueModal);
+  if ($('reportIssueBody')) $('reportIssueBody').addEventListener('dblclick', (event) => {
+    const trigger = event.target.closest('[data-report-issue-open]');
+    if (!trigger) return;
+    openReportIssueModal(trigger.getAttribute('data-report-issue-open'));
+  });
+  ['reportIssueType','reportIssueContent','reportIssueProgress'].forEach(id => {
+    if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveReportIssue, { onEscape: closeReportIssueModal }));
+  });
+  if ($('reportIssueModal')) $('reportIssueModal').addEventListener('click', (event) => {
+    if (event.target === $('reportIssueModal')) closeReportIssueModal();
+  });
 
   $("btnBackHome").addEventListener("click", () => {
     backToRoleSelection();
