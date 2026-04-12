@@ -1138,60 +1138,6 @@
         grid-template-columns:1fr;
       }
     }
-  
-    .system-ribbon{
-      width:calc(100vw - 24px);
-      max-width:none;
-      margin:12px auto 0;
-      padding:0 16px;
-    }
-    .system-ribbon-inner{
-      background:rgba(255,255,255,.94);
-      border:1px solid rgba(221,227,238,.9);
-      border-radius:16px;
-      box-shadow:0 10px 28px rgba(16,24,40,.08);
-      padding:12px 16px;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      backdrop-filter:blur(8px);
-    }
-    .system-ribbon-group{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .system-chip{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      min-width:160px;
-      padding:8px 12px;
-      border-radius:12px;
-      background:#fffaf0;
-      border:1px solid #f0dfb3;
-    }
-    .system-chip span{
-      font-size:12px;
-      color:#667085;
-      text-transform:uppercase;
-      letter-spacing:.4px;
-    }
-    .system-chip strong{
-      font-size:15px;
-      color:#7d1010;
-      line-height:1.3;
-    }
-    .role-btn.report-entry-btn{
-      background:linear-gradient(180deg,#fff8ec,#fff);
-      border-color:#f0d7b3;
-    }
-    .role-btn.report-entry-btn strong{
-      color:#7d1010;
-    }
     .report-summary-grid{
       grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
       margin-bottom:16px;
@@ -1335,8 +1281,6 @@
     }
     @media (max-width: 980px){
       .report-grid{grid-template-columns:1fr;}
-      .system-ribbon{padding:0 12px;}
-      .system-ribbon-inner{padding:10px 12px;}
     }
 
   
@@ -2378,20 +2322,6 @@
   const DESCRIPTION_IMAGE_PREFIX = "__TASKDESCIMG__";
   const NOTE_ATTACHMENT_PREFIX = "__TASKNOTEFILE__";
 
-  function makeEmptyAttachment() {
-    return {
-      file: null,
-      previewUrl: "",
-      attachmentData: "",
-      attachmentUrl: "",
-      attachmentPreviewUrl: "",
-      attachmentName: "",
-      attachmentType: "",
-      attachmentFileId: "",
-      attachmentMimeType: ""
-    };
-  }
-
   const state = {
     tasks: [],
     syncMode: "local",
@@ -2441,11 +2371,6 @@
   };
 
   const $ = (id) => document.getElementById(id);
-
-
-  function updateSystemRibbon() {}
-
-  function startSystemClock() {}
 
   function dedupeFacilities(items) {
     const seen = new Map();
@@ -2759,26 +2684,6 @@
       return { ok: false, error: getFriendlyRequestError(err, 'Không lưu được cấu hình mật khẩu lên hệ thống') };
     }
   }
-
-  async function checkManagerPasswordRemote(managerName, password) {
-    if (!isFacilityCloudReady()) {
-      return { ok: false, localOnly: true, message: 'Chưa cấu hình Apps Script' };
-    }
-    try {
-      const resp = await fetchWithTimeout(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'checkManagerPassword', managerName, password }),
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-      }, 15000, 'Kiểm tra mật khẩu quá lâu. Vui lòng thử lại.');
-      const data = await resp.json().catch(() => ({ ok: false, error: 'Không đọc được phản hồi kiểm tra mật khẩu từ hệ thống.' }));
-      if (data && typeof data.ok !== 'undefined') return data;
-      return { ok: false, error: 'Không nhận được phản hồi hợp lệ khi kiểm tra mật khẩu.' };
-    } catch (err) {
-      console.error('Không kiểm tra được mật khẩu từ Apps Script:', err);
-      return { ok: false, error: getFriendlyRequestError(err, 'Không kiểm tra được mật khẩu từ hệ thống') };
-    }
-  }
-
   async function refreshManagerPasswordConfigs(options = {}) {
     const force = !!options.force;
     const useCachedFirst = options.useCachedFirst !== false;
@@ -3005,7 +2910,6 @@
     const isTeamView = isTeamFacilityView(managerName);
     const canEdit = canEditCurrentFacilityView(managerName);
     const saveButton = $("btnSaveFacility");
-    const refreshButton = $("btnFacilityRefresh");
     const formPanel = $("facilityFormPanel");
     const saveStatus = $("facilitySaveStatus");
     const reportButton = $("btnFacilityReport");
@@ -3025,7 +2929,6 @@
       input.disabled = !canEdit || isTeamView;
     });
     if (formPanel) formPanel.style.display = isTeamView ? "none" : "";
-    if (refreshButton) refreshButton.style.display = "none";
     if (ownerFilterWrap) ownerFilterWrap.style.display = isTeamView ? "" : "none";
     if (reportButton) reportButton.classList.toggle('hidden', !isTeamView);
     if (printButton) printButton.classList.toggle('hidden', !isTeamView);
@@ -3658,7 +3561,6 @@
     resetForm();
     setMain(getFacilityViewTitle(state.currentFacilityManager), "");
     showOnly("adminPanel");
-    updateSystemRibbon(getFacilityViewTitle(state.currentFacilityManager), "Đang mở danh sách cơ sở");
     const loadPromise = loadFacilities();
     if (shouldShowNotice) {
       const openNotice = () => {
@@ -3686,7 +3588,6 @@
     state.isSystemAdmin = false;
     setMain("Sẵn sàng sử dụng", "");
     showOnly("welcomePanel");
-    updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   }
 
   function makeId() {
@@ -4087,12 +3988,6 @@
     return { start: monday, end: sunday };
   }
 
-  function formatWeekRangeText(weekString) {
-    const range = getIsoWeekDateRange(weekString);
-    if (!range) return "";
-    return formatRangeText(range.start, range.end);
-  }
-
   function formatRangeText(startDate, endDate) {
     if (!startDate || !endDate) return "";
     const startText = new Date(startDate).toLocaleDateString("vi-VN", { timeZone: "UTC" });
@@ -4146,12 +4041,7 @@
     if (status === "Hoàn thành") return "state-done";
     return "state-doing";
   }
-
-  function updateSyncUI() {
-    const isCloud = state.syncMode === "cloud";
-    if ($("dataModeView")) $("dataModeView").textContent = isCloud ? "Dùng chung" : "Cục bộ";
-    if ($("dataModeAdmin")) $("dataModeAdmin").textContent = isCloud ? "Dùng chung" : "Cục bộ";
-  }
+  function updateSyncUI() {}
 
   async function loadTasks(showToast = false) {
     setStatus("info", "Đang tải danh sách công việc...");
@@ -4204,23 +4094,6 @@
     return String(value);
   }
 
-  function renderFacilityHistory(historyItems) {
-    const box = $('facilityEditHistoryList');
-    if (!box) return;
-    const rows = normalizeFacilityHistory(historyItems);
-    if (!rows.length) {
-      box.innerHTML = '<div class="facility-history-empty">Chưa có lịch sử chỉnh sửa.</div>';
-      return;
-    }
-    box.innerHTML = rows.slice().reverse().map(item => `
-      <div class="facility-history-item">
-        <div class="facility-history-time">${escapeHtml(formatDateTime(item.time) || 'Không rõ thời gian')}</div>
-        <div><span class="facility-history-action">${escapeHtml(item.action || 'Cập nhật')}</span></div>
-        <div>${escapeHtml(item.summary || 'Đã cập nhật thông tin cơ sở.')}</div>
-        ${item.actor ? `<div class="facility-history-time">Người thực hiện: ${escapeHtml(item.actor)}</div>` : ''}
-      </div>
-    `).join('');
-  }
 
   function createFacilityHistoryEntry(action, summary, actor) {
     return {
@@ -4517,7 +4390,6 @@
         : (isTeamFacilityView(managerName)
           ? 'Chưa cấu hình Apps Script. Cơ sở Đội 2 đang hiển thị dữ liệu cục bộ gần nhất.'
           : 'Chưa cấu hình Apps Script. Dữ liệu cơ sở đang lưu cục bộ trên trình duyệt này.'));
-      updateSystemRibbon(managerName, state.facilities.length ? 'Dữ liệu cục bộ gần nhất' : 'Chưa có dữ liệu');
       return { ok: !!state.facilities.length, cached: true, items: state.facilities };
     }
 
@@ -4534,7 +4406,6 @@
       setFacilityStatus('info', isTeamFacilityView(managerName) && !isSystemAdminMode()
         ? `Đang xem dữ liệu tổng hợp từ hệ thống (${state.facilities.length} cơ sở).`
         : getFacilityReadyStatus(managerName));
-      updateSystemRibbon(managerName, `Đồng bộ hệ thống - ${state.facilities.length} cơ sở`);
       return result;
     }
 
@@ -4546,7 +4417,6 @@
     setFacilityStatus('warning', state.facilities.length
       ? `${fallbackMessage} Đang dùng dữ liệu cục bộ gần nhất trên trình duyệt này.`
       : `${fallbackMessage} Chưa có dữ liệu cục bộ để hiển thị.`);
-    updateSystemRibbon(managerName, state.facilities.length ? 'Dữ liệu cục bộ gần nhất' : 'Chưa có dữ liệu');
     return result;
   }
 
@@ -4609,7 +4479,6 @@
     if (ownerWrap) ownerWrap.classList.toggle('hidden', !isSystemAdminMode());
     renderFacilityOwnerOptions('facilityEditOwner', item.owner || '');
     $('facilityEditModalError').textContent = '';
-    renderFacilityHistory(item.editHistory);
   }
 
   function openFacilityEditModal(facilityId) {
@@ -4644,7 +4513,6 @@
     $('facilityEditTraining').value = '';
     $('facilityEditIssueType').value = '';
     $('facilityEditModalError').textContent = '';
-    renderFacilityHistory([]);
   }
 
   function openFacilityForEdit(facilityId) {
@@ -4661,25 +4529,6 @@
       codeStatus: $('facilityFilterCodeStatus') ? $('facilityFilterCodeStatus').value.trim() : '',
       owner: $('facilityFilterOwner') ? $('facilityFilterOwner').value.trim() : ''
     };
-  }
-
-  function hasStructuredFacilityCode(code) {
-    return !!normalizeCodeKey(code);
-  }
-
-  function getFilteredFacilities() {
-    const filters = state.facilityFilters || {};
-    return state.facilities.filter(item => {
-      const hasStructuredCode = hasStructuredFacilityCode(item.code);
-      const nameOk = !filters.name || String(item.name || '').toLowerCase().includes(filters.name);
-      const descriptionOk = !filters.description || String(item.description || '').toLowerCase().includes(filters.description);
-      const addressOk = !filters.address || String(item.address || '').toLowerCase().includes(filters.address);
-      const fieldOk = !filters.field || String(item.field || '') === filters.field;
-      const appendixOk = !filters.appendix || String(item.appendix || '') === filters.appendix;
-      const codeStatusOk = !filters.codeStatus || (filters.codeStatus === 'has' ? hasStructuredCode : !hasStructuredCode);
-      const ownerOk = !filters.owner || String(item.owner || '') === filters.owner;
-      return nameOk && descriptionOk && addressOk && fieldOk && appendixOk && codeStatusOk && ownerOk;
-    });
   }
 
   function getFacilityQuickViewLabel(view = state.facilityQuickView || 'all') {
@@ -5910,13 +5759,7 @@
       state.reportFacilities = dedupeFacilities(getKnownFacilitiesPool());
       syncFacilityStateFromCaches(id);
       renderReportDashboard();
-      closeReportIssueModal();
-      const statusBox = $('reportStatus');
-      if (statusBox) {
-        statusBox.className = 'status success';
-        statusBox.textContent = 'Đã lưu cập nhật tồn tại thành công.';
-      }
-      return;
+      closeReportIssueModal();      return;
     }
 
     $('reportIssueModalError').textContent = 'Đang lưu cập nhật lên hệ thống...';
@@ -5930,32 +5773,13 @@
     state.reportFacilities = dedupeFacilities(getKnownFacilitiesPool());
     syncFacilityStateFromCaches(savedFacility.id);
     renderReportDashboard();
-    closeReportIssueModal();
-    const statusBox = $('reportStatus');
-    if (statusBox) {
-      statusBox.className = 'status success';
-      statusBox.textContent = 'Đã lưu cập nhật tồn tại thành công.';
-    }
-  }
+    closeReportIssueModal();  }
 
-  async function loadReportDashboard(forceRemote = false) {
-    updateSystemRibbon('Báo cáo tổng hợp', 'Đang tạo báo cáo toàn đội');
-    const statusBox = $('reportStatus');
-    if (statusBox) {
-      statusBox.className = 'status info';
-      statusBox.textContent = 'Đang tổng hợp dữ liệu báo cáo từ hệ thống...';
-    }
-
-    const cachedItems = dedupeFacilities(getFacilityCache(TEAM_FACILITY_LABEL));
+  async function loadReportDashboard(forceRemote = false) {    const cachedItems = dedupeFacilities(getFacilityCache(TEAM_FACILITY_LABEL));
     if (cachedItems.length) {
       state.reportFacilities = cachedItems;
       state.reportSource = `Bộ nhớ đệm - ${cachedItems.length} cơ sở`;
-      renderReportDashboard();
-      if (statusBox) {
-        statusBox.className = 'status info';
-        statusBox.textContent = 'Đang làm mới dữ liệu báo cáo từ hệ thống...';
-      }
-    }
+      renderReportDashboard();    }
 
     let items = [];
     let source = cachedItems.length ? `Bộ nhớ đệm - ${cachedItems.length} cơ sở` : 'Dữ liệu cục bộ gần nhất';
@@ -5974,7 +5798,6 @@
     state.reportFacilities = items;
     state.reportSource = source;
     renderReportDashboard();
-    updateSystemRibbon('Báo cáo tổng hợp', source);
     if (statusBox) {
       statusBox.className = items.length ? 'status success' : 'status warning';
       statusBox.textContent = items.length
@@ -6015,7 +5838,6 @@
     showOnly('reportPanel');
     resetReportIssueFilters();
     ensureAllTableHeaderFilters();
-    updateSystemRibbon('Báo cáo tổng hợp', 'Đang chuẩn bị dữ liệu báo cáo');
     return loadReportDashboard();
   }
 
@@ -6031,7 +5853,6 @@
     backToRoleSelection();
     setMain('Sẵn sàng sử dụng', '');
     showOnly('welcomePanel');
-    updateSystemRibbon('Trang chủ', 'Sẵn sàng sử dụng');
   }
 
   function printReportDashboard() {
@@ -7451,7 +7272,6 @@ th{font-weight:700;background:#f1f1f1}
     openViewerLoginModal();
   }
 
-  if ($("btnViewerMode")) $("btnViewerMode").addEventListener("click", openViewerLoginModal);
 
   function openManagerLoginModal(managerName = "") {
     state.pendingManagerLogin = managerName || '';
@@ -7636,7 +7456,6 @@ th{font-weight:700;background:#f1f1f1}
   }
   if ($("btnFacilityReport")) $("btnFacilityReport").addEventListener("click", openReportDashboard);
   if ($("btnReportBack")) $("btnReportBack").addEventListener("click", closeReportDashboard);
-  if ($("btnReportRefresh")) $("btnReportRefresh").addEventListener("click", () => loadReportDashboard(true));
   if ($("btnReportPrint")) $("btnReportPrint").addEventListener("click", printReportDashboard);
   if ($('btnSaveReportIssue')) $('btnSaveReportIssue').addEventListener('click', handleSaveReportIssue);
   if ($('btnCancelReportIssue')) $('btnCancelReportIssue').addEventListener('click', closeReportIssueModal);
@@ -7668,7 +7487,6 @@ th{font-weight:700;background:#f1f1f1}
     backToRoleSelection();
     setMain("Sẵn sàng sử dụng", "");
     showOnly("welcomePanel");
-    updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
   });
 
   if ($("btnLogoutAdmin")) $("btnLogoutAdmin").addEventListener("click", closeFacilityManager);
@@ -7745,7 +7563,6 @@ th{font-weight:700;background:#f1f1f1}
   registerBackdropClose("managerLoginModal", closeManagerLoginModal);
   registerBackdropClose("adminLoginModal", closeAdminLoginModal);
   registerBackdropClose("editTaskModal", closeEditTaskModal);
-  if ($("btnCloseFacilityNotice")) $("btnCloseFacilityNotice").addEventListener("click", closeFacilityNoticeModal);
   if ($("btnContinueFacilityNotice")) $("btnContinueFacilityNotice").addEventListener("click", closeFacilityNoticeModal);
   registerBackdropClose("facilityNoticeModal", closeFacilityNoticeModal);
   registerBackdropClose("facilityEditModal", closeFacilityEditModal);
@@ -7811,8 +7628,6 @@ th{font-weight:700;background:#f1f1f1}
   toggleCustomAssigneeInput();
   setDefaultAssignedWeek();
   updateWeekDisplay("editTaskAssignedWeek", "editTaskAssignedWeekDisplay", "editTaskAssignedWeekInlineDisplay");
-  updateSystemRibbon("Trang chủ", "Sẵn sàng sử dụng");
-  startSystemClock();
   state.managerPasswordConfigs = saveManagerPasswordConfigs(loadManagerPasswordConfigs());
   renderAll();
   renderPasswordConfigPanel();
