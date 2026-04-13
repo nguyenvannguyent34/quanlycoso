@@ -1857,7 +1857,7 @@
 <script>
 (() => {
   // Dán link Web App Apps Script dạng /exec vào dòng dưới để cả đội cùng xem chung dữ liệu.
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwljrsdrOdkRxJeQ2cj8K5Y-oVN1Gd_tZbVHWiBx6pQowBP951ys57SSjtFI0UzlcQv/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5PckpbLp4b3WXEQuQP9WmGy4IWMJkpOWI2LSrfon1VADS15Tc3Ea5h10j7q9a2Jjr/exec";
   const ADMIN_PASSWORD = "101212019";
   const MANAGER_PASSWORD_CONFIG_STORAGE_KEY = "pc07_manager_password_configs_v1";
   const FACILITY_LOCAL_STORAGE_PREFIX = "pc07_facility_manager_v2";
@@ -1885,6 +1885,20 @@
     "Tạ Minh Phương": "ta_minh_phuong"
   };
   const FACILITY_ISSUE_TYPES = ["NQ32", "TDNT", "Tồn tại sau kiểm tra"];
+  const FACILITY_FIELD_OPTIONS = [
+    "Cơ sở thương mại, dịch vụ",
+    "Nhà ở, trụ sở làm việc, văn phòng, đa năng",
+    "Cơ sở giáo dục",
+    "Cơ sở y tế",
+    "Cơ sở văn hóa, thể thao, du lịch",
+    "Cơ sở giao thông, vận tải",
+    "Cơ sở xăng dầu, dầu khí",
+    "Cơ sở năng lượng",
+    "Cơ sở hóa chất",
+    "Cơ sở công nghiệp, nhà kho",
+    "Khác"
+  ];
+  const FACILITY_APPENDIX_OPTIONS = ["I", "II"];
   const FACILITY_MEMORY_CACHE_TTL_MS = 60000;
   const PASSWORD_CONFIG_CACHE_TTL_MS = 180000;
   const FACILITY_LOCAL_FLUSH_DELAY_MS = 25;
@@ -3337,7 +3351,7 @@ function formatDateTime(value) {
       renderFacilities();
       setFacilityStatus('success', isTeamFacilityView(managerName) && !isSystemAdminMode()
         ? `Đang xem dữ liệu tổng hợp từ hệ thống (${state.facilities.length} cơ sở).`
-        : 'Đã tải dữ liệu cơ sở từ hệ thống.');
+        : '');
       return result;
     }
 
@@ -4866,6 +4880,23 @@ function formatDateTime(value) {
     return Array.from(el.options).map(option => ({ value: option.value, label: option.textContent.trim() }));
   }
 
+  function buildSelectOptions(values = [], blankLabel = 'Lọc') {
+    const items = Array.isArray(values) ? values : [];
+    return [{ value: '', label: blankLabel }].concat(items.map(value => ({ value, label: value })));
+  }
+
+  function getFacilityFieldFilterOptions() {
+    return buildSelectOptions(FACILITY_FIELD_OPTIONS, 'Lọc');
+  }
+
+  function getFacilityAppendixFilterOptions() {
+    return buildSelectOptions(FACILITY_APPENDIX_OPTIONS, 'Lọc');
+  }
+
+  function getFacilityOwnerFilterOptions() {
+    return buildSelectOptions(getIndividualFacilityManagers(), 'Lọc');
+  }
+
   function buildHeaderFilterCell(definition, key, index) {
     const className = definition.className ? ` class="${definition.className}"` : '';
     if (!definition || definition.type === 'skip') {
@@ -5009,9 +5040,9 @@ function formatDateTime(value) {
       { type: 'text', placeholder: 'Lọc mã' },
       { type: 'text', placeholder: 'Lọc tên cơ sở' },
       { type: 'text', placeholder: 'Lọc địa chỉ' },
-      { type: 'select', options: getSelectOptionsFromElement('facilityFilterField', 'Tất cả') },
-      { type: 'select', options: getSelectOptionsFromElement('facilityFilterAppendix', 'Tất cả') },
-      { type: 'select', options: getSelectOptionsFromElement('facilityFilterOwner', 'Tất cả') },
+      { type: 'select', options: getFacilityFieldFilterOptions() },
+      { type: 'select', options: getFacilityAppendixFilterOptions() },
+      { type: 'select', options: getFacilityOwnerFilterOptions(), className: 'facility-owner-col' },
       { type: 'text', placeholder: 'Lọc ngày kiểm tra' },
       { type: 'text', placeholder: 'Lọc bảo hiểm' },
       { type: 'text', placeholder: 'Lọc bảo dưỡng' },
@@ -5259,6 +5290,12 @@ function formatDateTime(value) {
 
   ['facilityName', 'facilityCode', 'facilityAddress'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
+  });
+  if ($('facilityFormPanel')) $('facilityFormPanel').addEventListener('keydown', (event) => {
+    const target = event.target;
+    if (!target || !target.closest('#facilityFormPanel')) return;
+    if (!target.matches('input, select, textarea')) return;
+    handleEnterToSave(event, handleSaveFacility);
   });
   ['facilityEditName','facilityEditDescription','facilityEditCode','facilityEditFileNumber','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining','facilityEditIssueType'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
