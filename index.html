@@ -1407,6 +1407,7 @@
 <div class="flex" style="justify-content:flex-end; width:100%">
 <button class="secondary hidden" id="btnFacilityPrint" type="button">In danh sách</button>
 <button class="secondary hidden" id="btnFacilityExport" type="button">Xuất Excel</button>
+<button class="secondary hidden" id="btnFacilityReport" type="button">Báo cáo</button>
 <button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
 </div>
 </div>
@@ -1565,38 +1566,25 @@
 <div class="hidden" id="reportPanel">
 <div class="panel-box" style="margin-bottom:16px">
 <div class="flex" style="justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center">
-<h3 style="margin:0;font-size:24px">Báo cáo tổng hợp</h3>
+<h3 id="reportTitle" style="margin:0;font-size:24px">Báo cáo Cơ sở Đội 2</h3>
 <div class="flex">
 <button class="secondary" id="btnReportPrint" type="button">In báo cáo</button>
 <button class="secondary" id="btnReportBack" type="button">Quay lại</button>
 </div>
 </div>
 </div>
-<div class="summary-grid report-summary-grid">
-<div class="summary-box report-highlight">
-<div class="label">Tổng số cơ sở</div>
-<div class="value" id="reportStatTotal">0</div>
-</div>
-<div class="summary-box report-highlight">
-<div class="label">Đã bồi dưỡng</div>
-<div class="value" id="reportStatTraining">0</div>
-</div>
-<div class="summary-box report-highlight">
-<div class="label">Đã thực tập</div>
-<div class="value" id="reportStatDrill">0</div>
-</div>
-<div class="summary-box report-warning">
-<div class="label">Sắp hết hạn bảo hiểm</div>
-<div class="value" id="reportStatInsuranceSoon">0</div>
-</div>
-<div class="summary-box report-danger">
-<div class="label">Sắp hết hạn bảo dưỡng</div>
-<div class="value" id="reportStatMaintenanceSoon">0</div>
-</div>
-</div>
-<div class="report-grid report-grid-3">
+<div class="report-grid">
 <div class="panel-box">
-<h3>Phân tích theo lĩnh vực</h3>
+<h3>Phân tích theo Cán bộ</h3>
+<div class="table-wrap">
+<table class="report-table">
+<thead><tr><th class="report-rank">#</th><th>Cán bộ quản lý</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
+<tbody id="reportManagerBody"></tbody>
+</table>
+</div>
+</div>
+<div class="panel-box">
+<h3>Phân tích theo Lĩnh vực</h3>
 <div class="table-wrap">
 <table class="report-table">
 <thead><tr><th class="report-rank">#</th><th>Lĩnh vực</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
@@ -1604,285 +1592,17 @@
 </table>
 </div>
 </div>
-<div class="panel-box">
-<h3>Phân tích theo nhóm</h3>
-<div class="table-wrap">
-<table class="report-table">
-<thead><tr><th class="report-rank">#</th><th>Nhóm</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
-<tbody id="reportGroupBody"></tbody>
-</table>
-</div>
-</div>
-<div class="panel-box">
-<h3>Phân tích theo Mô tả</h3>
-<div class="table-wrap">
-<table class="report-table">
-<thead><tr><th class="report-rank">#</th><th>Mô tả</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
-<tbody id="reportDescriptionBody"></tbody>
-</table>
-</div>
-</div>
-<div class="panel-box">
-<h3>Phân tích theo địa bàn</h3>
-<div class="table-wrap">
-<table class="report-table">
-<thead><tr><th class="report-rank">#</th><th>Địa bàn</th><th class="report-count">Số cơ sở</th><th class="report-percent">Tỷ lệ</th><th class="report-bar-cell">Minh họa</th></tr></thead>
-<tbody id="reportAreaBody"></tbody>
-</table>
-</div>
-</div>
 </div>
 <div class="panel-box report-issue-panel">
-<h3 style="margin:0 0 6px;font-size:22px">Danh sách cơ sở còn tồn tại</h3>
-<div class="muted small" id="reportIssueHint">Nhấp đúp vào dòng trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.</div>
+<h3 style="margin:0 0 6px;font-size:22px">Danh sách cơ sở tồn tại</h3>
+<div class="muted small" id="reportIssueHint">Hiển thị các cơ sở có dữ liệu Ghi chú.</div>
 <div class="table-wrap" style="margin-top:12px">
 <table class="report-table report-issue-table">
 <thead>
-<tr><th class="report-rank">STT</th><th>Tên cơ sở</th><th>Loại tồn tại</th><th>Nội dung</th><th>Tiến độ khắc phục</th><th>Cán bộ quản lý</th></tr>
-<tr class="report-issue-filter-row">
-<th><div class="facility-stt-filter-cell"><button class="secondary facility-inline-clear-filter" id="btnReportIssueClearFilters" type="button">Xóa lọc</button></div></th>
-<th><input id="reportIssueFilterName" placeholder="Lọc" type="text"/></th>
-<th>
-<select id="reportIssueFilterType">
-<option value="">Lọc</option>
-<option value="NQ32">NQ32</option>
-<option value="TDNT">TDNT</option>
-<option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
-</select>
-</th>
-<th><input id="reportIssueFilterContent" placeholder="Lọc" type="text"/></th>
-<th><input id="reportIssueFilterProgress" placeholder="Lọc" type="text"/></th>
-<th>
-<select id="reportIssueFilterOwner">
-<option value="">Lọc</option>
-<option value="Phạm Thái Sơn">Phạm Thái Sơn</option>
-<option value="Phan Văn Thanh">Phan Văn Thanh</option>
-<option value="Phạm Thanh Tùng">Phạm Thanh Tùng</option>
-<option value="Hoàng Minh Quang">Hoàng Minh Quang</option>
-<option value="Nguyễn Xuân Quang">Nguyễn Xuân Quang</option>
-<option value="Nguyễn Văn Nguyên">Nguyễn Văn Nguyên</option>
-<option value="Phạm Quyền Anh">Phạm Quyền Anh</option>
-<option value="Phí Văn Tuyển">Phí Văn Tuyển</option>
-<option value="Tạ Minh Phương">Tạ Minh Phương</option>
-</select>
-</th>
-</tr>
+<tr><th class="report-rank">STT</th><th>Tên cơ sở</th><th>Ghi chú</th><th>Địa chỉ</th><th>Lĩnh vực</th><th>Cán bộ quản lý</th></tr>
 </thead>
 <tbody id="reportIssueBody"></tbody>
 </table>
-</div>
-</div>
-</div>
-<div class="modal-backdrop hidden" id="reportIssueModal">
-<div class="modal-card modal-large">
-<div class="modal-head">
-<h3 style="margin:0;font-size:24px">Cập nhật tồn tại cơ sở</h3>
-<div class="muted small" style="margin-top:6px">Bổ sung loại tồn tại, nội dung và tiến độ khắc phục cho cơ sở được chọn.</div>
-</div>
-<div class="modal-body">
-<input id="reportIssueFacilityId" type="hidden"/>
-<div class="form-grid">
-<div class="full-col">
-<label for="reportIssueFacilityName">Tên cơ sở</label>
-<input id="reportIssueFacilityName" readonly="" type="text"/>
-</div>
-<div>
-<label for="reportIssueType">Loại tồn tại</label>
-<select id="reportIssueType">
-<option value="">Chưa chọn</option>
-<option value="NQ32">NQ32</option>
-<option value="TDNT">TDNT</option>
-<option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
-</select>
-</div>
-<div class="full-col">
-<label for="reportIssueContent">Nội dung</label>
-<textarea id="reportIssueContent" placeholder="Nhập nội dung tồn tại của cơ sở..."></textarea>
-<div class="muted small">Có thể nhấn Alt + Enter để xuống dòng khi nhập nội dung dài.</div>
-</div>
-<div class="full-col">
-<label for="reportIssueProgress">Tiến độ khắc phục</label>
-<textarea id="reportIssueProgress" placeholder="Nhập tiến độ khắc phục hiện tại..."></textarea>
-<div class="muted small">Có thể nhấn Alt + Enter để xuống dòng khi nhập nội dung dài.</div>
-</div>
-</div>
-<div class="modal-error" id="reportIssueModalError"></div>
-<div class="flex" style="justify-content:flex-end; margin-top:8px">
-<button class="secondary" id="btnCancelReportIssue" type="button">Hủy</button>
-<button class="success" id="btnSaveReportIssue" type="button">Lưu cập nhật</button>
-</div>
-</div>
-</div>
-</div>
-
-<div class="modal-backdrop hidden" id="managerLoginModal">
-<div class="modal-card">
-<div class="modal-head">
-<h3 id="managerLoginTitle" style="margin:0;font-size:24px">Đăng nhập mục cá nhân</h3>
-<div class="muted small" id="managerLoginDesc" style="margin-top:6px; display:none"></div>
-</div>
-<div class="modal-body">
-<label for="managerPasswordInput">Mật khẩu</label>
-<div class="password-row">
-<input id="managerPasswordInput" placeholder="Nhập mật khẩu" type="password"/>
-<button class="secondary password-toggle" id="btnToggleManagerPassword" type="button">Hiện mật khẩu</button>
-</div>
-<div class="modal-error" id="managerModalError"></div>
-<div class="flex" style="justify-content:flex-end; margin-top:8px">
-<button class="secondary" id="btnCancelManagerLogin">Hủy</button>
-<button id="btnSubmitManagerLogin">Đăng nhập</button>
-</div>
-</div>
-</div>
-</div>
-<div class="modal-backdrop hidden" id="adminLoginModal">
-<div class="modal-card">
-<div class="modal-head">
-<h3 id="adminLoginTitle" style="margin:0;font-size:24px">Đăng nhập</h3>
-<div class="muted small" id="adminLoginDesc" style="margin-top:6px; display:none"></div>
-</div>
-<div class="modal-body">
-<label for="adminPasswordInput">Mật khẩu</label>
-<div class="password-row">
-<input id="adminPasswordInput" placeholder="Nhập mật khẩu" type="password"/>
-<button class="secondary password-toggle" id="btnToggleAdminPassword" type="button">Hiện mật khẩu</button>
-</div>
-<div class="modal-error" id="adminModalError"></div>
-<div class="flex" style="justify-content:flex-end; margin-top:8px">
-<button class="secondary" id="btnCancelAdminLogin">Hủy</button>
-<button id="btnSubmitAdminLogin">Đăng nhập</button>
-</div>
-</div>
-</div>
-</div>
-
-<div class="modal-backdrop hidden" id="facilityEditModal">
-<div class="modal-card modal-large">
-<div class="modal-head">
-<h3 style="margin:0;font-size:24px">Chỉnh sửa cơ sở</h3>
-<div class="muted small" style="margin-top:6px"></div>
-</div>
-<div class="modal-body">
-<input id="facilityEditId" type="hidden"/>
-<div class="form-grid">
-<div class="full-col">
-<label for="facilityEditName">Tên cơ sở</label>
-<input id="facilityEditName" placeholder="Nhập tên cơ sở" type="text"/>
-</div>
-<div class="full-col">
-<label for="facilityEditDescription">Mô tả</label>
-<input id="facilityEditDescription" placeholder="Nhập mô tả cơ sở" type="text"/>
-</div>
-<div>
-<label for="facilityEditCode">Mã cơ sở</label>
-<input id="facilityEditCode" placeholder="Nhập mã cơ sở" type="text"/>
-</div>
-<div>
-<label for="facilityEditFileNumber">Số hồ sơ</label>
-<input id="facilityEditFileNumber" placeholder="Nhập số hồ sơ" type="text"/>
-</div>
-<div class="full-col">
-<label for="facilityEditAddress">Địa chỉ</label>
-<input id="facilityEditAddress" placeholder="Nhập địa chỉ cơ sở" type="text"/>
-</div>
-<div>
-<label for="facilityEditField">Lĩnh vực</label>
-<select id="facilityEditField">
-<option value="Thương mại, dịch vụ">Thương mại, dịch vụ</option>
-<option value="Nhà ở, trụ sở làm việc, văn phòng, đa năng">Nhà ở, trụ sở làm việc, văn phòng, đa năng</option>
-<option value="Giáo dục">Giáo dục</option>
-<option value="Y tế">Y tế</option>
-<option value="Văn hóa, thể thao, du lịch">Văn hóa, thể thao, du lịch</option>
-<option value="Giao thông, vận tải">Giao thông, vận tải</option>
-<option value="Xăng dầu, dầu khí">Xăng dầu, dầu khí</option>
-<option value="Năng lượng">Năng lượng</option>
-<option value="Hóa chất">Hóa chất</option>
-<option value="Công nghiệp, nhà kho">Công nghiệp, nhà kho</option>
-<option value="Khác">Khác</option>
-</select>
-</div>
-<div>
-<label for="facilityEditAppendix">Nhóm</label>
-<select id="facilityEditAppendix">
-<option value="I">I</option>
-<option value="II">II</option>
-</select>
-</div>
-<div class="hidden" id="facilityEditOwnerWrap">
-<label for="facilityEditOwner">Người quản lý</label>
-<select id="facilityEditOwner"></select>
-</div>
-<div>
-<label for="facilityEditInspectionDate">Ngày kiểm tra</label>
-<input id="facilityEditInspectionDate" type="date"/>
-</div>
-<div>
-<label for="facilityEditInsuranceDate">Bảo hiểm - Ngày mua</label>
-<input id="facilityEditInsuranceDate" type="date"/>
-</div>
-<div>
-<label for="facilityEditInsuranceCompany">Bảo hiểm - Công ty</label>
-<input id="facilityEditInsuranceCompany" placeholder="Nhập công ty bảo hiểm" type="text"/>
-</div>
-<div>
-<label for="facilityEditMaintenanceDate">Bảo dưỡng - Ngày mua</label>
-<input id="facilityEditMaintenanceDate" type="date"/>
-</div>
-<div>
-<label for="facilityEditMaintenanceCompany">Bảo dưỡng - Công ty</label>
-<input id="facilityEditMaintenanceCompany" placeholder="Nhập đơn vị/công ty bảo dưỡng" type="text"/>
-</div>
-<div>
-<label for="facilityEditDrill">Thực tập</label>
-<input id="facilityEditDrill" placeholder="Nhập thông tin thực tập" type="text"/>
-</div>
-<div>
-<label for="facilityEditTraining">Bồi dưỡng</label>
-<input id="facilityEditTraining" placeholder="Nhập thông tin bồi dưỡng" type="text"/>
-</div>
-<div>
-<label for="facilityEditIssueType">Ghi chú</label>
-<select id="facilityEditIssueType">
-<option value="">Chưa chọn</option>
-<option value="NQ32">NQ32</option>
-<option value="TDNT">TDNT</option>
-<option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
-</select>
-</div>
-</div>
-<div class="modal-error" id="facilityEditModalError"></div>
-<div class="flex" style="justify-content:space-between; align-items:center; margin-top:8px; gap:10px; flex-wrap:wrap">
-<button class="danger" id="btnDeleteFacilityModal" type="button">Xóa cơ sở</button>
-<div class="flex" style="justify-content:flex-end">
-<button class="secondary" id="btnCancelFacilityModal" type="button">Hủy</button>
-<button class="success" id="btnSaveFacilityModal" type="button">Lưu chỉnh sửa</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="modal-backdrop hidden" id="facilityNoticeModal">
-<div class="modal-card modal-large">
-<div class="modal-head">
-<h3 id="facilityNoticeTitle" style="margin:0;font-size:24px">Thông báo cơ sở sắp đến hạn</h3>
-<div class="muted small" id="facilityNoticeDesc" style="margin-top:6px">Tổng hợp nhanh các cơ sở cần theo dõi trước khi vào danh sách quản lý.</div>
-</div>
-<div class="modal-body">
-<div class="facility-notice-grid">
-<div class="facility-notice-section warning">
-<h4 id="facilityNoticeInsuranceHeading">Các cơ sở sắp hết hạn bảo hiểm</h4>
-<div class="facility-notice-sub" id="facilityNoticeInsuranceCount"></div>
-<ul class="facility-notice-list" id="facilityNoticeInsuranceList"></ul>
-</div>
-<div class="facility-notice-section warning">
-<h4 id="facilityNoticeMaintenanceHeading">Các cơ sở sắp đến hạn bảo dưỡng</h4>
-<div class="facility-notice-sub" id="facilityNoticeMaintenanceCount"></div>
-<ul class="facility-notice-list" id="facilityNoticeMaintenanceList"></ul>
-</div>
-</div>
-</div>
-<div class="flex" style="justify-content:flex-end; padding:0 20px 20px; gap:10px">
-<button class="success" id="btnContinueFacilityNotice" type="button">Tiếp tục</button>
 </div>
 </div>
 </div>
@@ -2046,6 +1766,7 @@
           skipHistory: true,
           showNotice: false
         });
+        await openReportDashboard({ skipHistory: true });
         return;
       }
       if (targetState.view === 'admin') {
@@ -2280,7 +2001,7 @@
 
 
   function ensureReportPanelsRendered() {
-    ['reportFieldBody', 'reportGroupBody', 'reportDescriptionBody', 'reportAreaBody', 'reportIssueBody'].forEach(id => {
+    ['reportManagerBody', 'reportFieldBody', 'reportIssueBody'].forEach(id => {
       const body = $(id);
       if (!body) return;
       forceReportTableVisible(body);
@@ -2291,26 +2012,43 @@
     const items = dedupeFacilities(Array.isArray(state.reportFacilities) ? state.reportFacilities : []);
     state.reportFacilities = items;
     const total = items.length;
+    const ownerRows = buildCountRows(items, item => item.owner || 'Chưa phân công');
+    const fieldRows = buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực');
+    const issueRows = getReportIssueItems(items);
 
     if ($('reportStatTotal')) $('reportStatTotal').textContent = String(total);
-    if ($('reportStatTraining')) $('reportStatTraining').textContent = String(items.filter(item => hasFacilityFlag(item.training)).length);
-    if ($('reportStatDrill')) $('reportStatDrill').textContent = String(items.filter(item => hasFacilityFlag(item.drill)).length);
-    if ($('reportStatInsuranceSoon')) $('reportStatInsuranceSoon').textContent = String(getFacilitiesByExpiry(items, 'insurance', 'soon').length);
-    if ($('reportStatMaintenanceSoon')) $('reportStatMaintenanceSoon').textContent = String(getFacilitiesByExpiry(items, 'maintenance', 'soon').length);
+    if ($('reportStatOwners')) $('reportStatOwners').textContent = String(ownerRows.length);
+    if ($('reportStatFields')) $('reportStatFields').textContent = String(fieldRows.length);
+    if ($('reportStatIssues')) $('reportStatIssues').textContent = String(issueRows.length);
 
-    renderReportRows('reportFieldBody', buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực'), total, 'Chưa có dữ liệu lĩnh vực.');
-    renderReportRows('reportGroupBody', buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm'), total, 'Chưa có dữ liệu nhóm.');
-    renderReportRows('reportDescriptionBody', buildCountRows(items, item => item.description || 'Chưa nhập mô tả'), total, 'Chưa có dữ liệu mô tả.');
-    renderReportRows('reportAreaBody', buildCountRows(items, item => deriveAreaFromAddress(item.address)), total, 'Chưa có dữ liệu địa bàn.');
+    renderReportRows('reportManagerBody', ownerRows, total, 'Chưa có dữ liệu cán bộ quản lý.');
+    renderReportRows('reportFieldBody', fieldRows, total, 'Chưa có dữ liệu lĩnh vực.');
 
     const hint = $('reportIssueHint');
     if (hint) {
-      hint.textContent = total
-        ? 'Nhấp đúp vào dòng trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.'
-        : 'Chưa có dữ liệu báo cáo để hiển thị.';
+      hint.textContent = issueRows.length
+        ? ''
+        : 'Chưa có cơ sở nào có dữ liệu Ghi chú.';
     }
 
-    renderReportIssueTable(items, { ignoreFilters: true });
+    const issueBody = $('reportIssueBody');
+    if (issueBody) {
+      if (!issueRows.length) {
+        issueBody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Chưa có cơ sở nào có dữ liệu Ghi chú.</div></td></tr>';
+      } else {
+        issueBody.innerHTML = issueRows.map((item, index) => `
+          <tr>
+            <td class="report-rank">${index + 1}</td>
+            <td>${escapeHtml(item.name || '-')}</td>
+            <td><span class="report-issue-type-tag">${escapeHtml(item.issueType || item.issueContent || item.issueProgress || 'Có ghi chú')}</span></td>
+            <td>${escapeHtml(item.address || '-')}</td>
+            <td>${escapeHtml(item.field || '-')}</td>
+            <td>${escapeHtml(item.owner || '-')}</td>
+          </tr>`).join('');
+      }
+      forceReportTableVisible(issueBody);
+    }
+
     ensureReportPanelsRendered();
     requestAnimationFrame(() => ensureReportPanelsRendered());
     setTimeout(() => ensureReportPanelsRendered(), 60);
@@ -5016,28 +4754,36 @@ function formatDateTime(value) {
       const normalized = dedupeFacilities(items || []);
       state.reportFacilities = normalized;
       if (source) state.reportSource = source;
-      if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-      if (reportHint) {
-        reportHint.textContent = normalized.length
-          ? 'Nhấp đúp vào dòng trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.'
-          : 'Đang đồng bộ dữ liệu báo cáo...';
-      }
+      if (reportTitle) reportTitle.textContent = 'BÁO CÁO CƠ SỞ ĐỘI 2';
       renderReportDashboard();
+      if (reportHint && !normalized.length) {
+        reportHint.textContent = 'Chưa có dữ liệu báo cáo để hiển thị.';
+      }
       return normalized;
     };
 
-    const cachedItems = dedupeFacilities(rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }));
-    if (cachedItems.length) {
-      applyReportItems(cachedItems, isFacilityCloudReady() ? 'cache' : 'local');
+    const teamPool = dedupeFacilities([
+      ...(Array.isArray(state.facilities) ? state.facilities : []),
+      ...rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false })
+    ]);
+
+    if (teamPool.length) {
+      applyReportItems(teamPool, isFacilityCloudReady() ? 'cache' : 'local');
     } else {
       applyReportItems([], '');
     }
 
     if (!isFacilityCloudReady()) {
-      return { ok: !!cachedItems.length, items: cachedItems, cached: true, localOnly: true };
+      return { ok: !!teamPool.length, items: teamPool, cached: true, localOnly: true };
     }
 
-    const shouldAwaitRemote = !!forceRemote || !cachedItems.length;
+    if (reportHint) {
+      reportHint.textContent = teamPool.length
+        ? 'Đang cập nhật dữ liệu mới nhất cho báo cáo...'
+        : 'Đang đồng bộ dữ liệu báo cáo...';
+    }
+
+    const shouldAwaitRemote = !!forceRemote || !teamPool.length;
     const syncRequest = refreshTeamFacilityCacheFromOwnersRemote({
       force: shouldAwaitRemote,
       maxAgeMs: shouldAwaitRemote ? 0 : FACILITY_REPORT_PREFETCH_TTL_MS,
@@ -5054,7 +4800,7 @@ function formatDateTime(value) {
         if (!remote || !remote.ok) return;
         applyReportItems(remote.items || rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }), 'remote');
       }).catch(() => {});
-      return { ok: true, items: cachedItems, cached: true, background: true };
+      return { ok: true, items: teamPool, cached: true, background: true };
     }
 
     const remote = await syncRequest;
@@ -5062,18 +4808,24 @@ function formatDateTime(value) {
       return { ok: true, items: applyReportItems(remote.items || rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }), 'remote') };
     }
 
-    if (reportHint && !(cachedItems && cachedItems.length)) {
+    if (reportHint && !teamPool.length) {
       reportHint.textContent = (remote && (remote.error || remote.message)) || 'Không tải được dữ liệu báo cáo từ hệ thống. Vui lòng thử lại.';
     }
-    return { ok: !!cachedItems.length, items: cachedItems, cached: true, error: remote && remote.error ? remote.error : '' };
+    return { ok: !!teamPool.length, items: teamPool, cached: true, error: remote && remote.error ? remote.error : '' };
   }
 
   async function openReportDashboard(options = {}) {
-    return openFacilityManager(TEAM_FACILITY_LABEL, {
-      systemAdmin: !!state.isSystemAdmin,
-      skipHistory: !!options.skipHistory,
-      showNotice: false
-    });
+    if (!isTeamFacilityView(state.currentFacilityManager) || $('adminPanel').classList.contains('hidden')) {
+      await openFacilityManager(TEAM_FACILITY_LABEL, {
+        systemAdmin: !!state.isSystemAdmin,
+        skipHistory: true,
+        showNotice: false
+      });
+    }
+    setMain('Báo cáo Cơ sở Đội 2', '');
+    showOnly('reportPanel');
+    if (!options.skipHistory) syncAppHistory('report');
+    return loadReportDashboard(!!options.forceRemote);
   }
 
   function closeReportDashboard(options = {}) {
@@ -5098,16 +4850,14 @@ function formatDateTime(value) {
   function printReportDashboard() {
     const items = Array.isArray(state.reportFacilities) ? state.reportFacilities : [];
     const total = items.length;
+    const managerRows = buildCountRows(items, item => item.owner || 'Chưa phân công');
     const fieldRows = buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực');
-    const groupRows = buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm');
-    const areaRows = buildCountRows(items, item => deriveAreaFromAddress(item.address));
-    const descriptionRows = buildCountRows(items, item => item.description || 'Chưa nhập mô tả');
     const issueRows = getReportIssueItems(items);
-    const wrapTable = (title, rows) => `
+    const wrapTable = (title, rows, label = 'Nội dung') => `
       <section style="margin-top:18px;">
         <h3 style="margin:0 0 8px;font-size:18px;">${title}</h3>
         <table style="width:100%;border-collapse:collapse;">
-          <thead><tr><th style="border:1px solid #222;padding:6px 8px;">STT</th><th style="border:1px solid #222;padding:6px 8px;">Nội dung</th><th style="border:1px solid #222;padding:6px 8px;">Số cơ sở</th><th style="border:1px solid #222;padding:6px 8px;">Tỷ lệ</th></tr></thead>
+          <thead><tr><th style="border:1px solid #222;padding:6px 8px;">STT</th><th style="border:1px solid #222;padding:6px 8px;">${label}</th><th style="border:1px solid #222;padding:6px 8px;">Số cơ sở</th><th style="border:1px solid #222;padding:6px 8px;">Tỷ lệ</th></tr></thead>
           <tbody>${rows.map((row, idx) => `<tr><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${idx+1}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.label)}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${row.count}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${total ? ((row.count/total)*100).toFixed(1) : '0.0'}%</td></tr>`).join('') || `<tr><td colspan="4" style="border:1px solid #222;padding:8px;text-align:center;">Không có dữ liệu</td></tr>`}</tbody>
         </table>
       </section>`;
@@ -5115,13 +4865,13 @@ function formatDateTime(value) {
       <section style="margin-top:18px;">
         <h3 style="margin:0 0 8px;font-size:18px;">${title}</h3>
         <table style="width:100%;border-collapse:collapse;">
-          <thead><tr><th style="border:1px solid #222;padding:6px 8px;">STT</th><th style="border:1px solid #222;padding:6px 8px;">Tên cơ sở</th><th style="border:1px solid #222;padding:6px 8px;">Loại tồn tại</th><th style="border:1px solid #222;padding:6px 8px;">Nội dung</th><th style="border:1px solid #222;padding:6px 8px;">Tiến độ khắc phục</th><th style="border:1px solid #222;padding:6px 8px;">Cán bộ quản lý</th></tr></thead>
-          <tbody>${rows.map((row, idx) => `<tr><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${idx+1}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.name || '-')}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${escapeHtml(row.issueType || 'Chưa chọn')}</td><td style="border:1px solid #222;padding:6px 8px;text-align:left;">${escapeHtml(row.issueContent || '-')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.issueProgress || '-')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.owner || '-')}</td></tr>`).join('') || `<tr><td colspan="6" style="border:1px solid #222;padding:8px;text-align:center;">Không có dữ liệu</td></tr>`}</tbody>
+          <thead><tr><th style="border:1px solid #222;padding:6px 8px;">STT</th><th style="border:1px solid #222;padding:6px 8px;">Tên cơ sở</th><th style="border:1px solid #222;padding:6px 8px;">Ghi chú</th><th style="border:1px solid #222;padding:6px 8px;">Địa chỉ</th><th style="border:1px solid #222;padding:6px 8px;">Lĩnh vực</th><th style="border:1px solid #222;padding:6px 8px;">Cán bộ quản lý</th></tr></thead>
+          <tbody>${rows.map((row, idx) => `<tr><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${idx+1}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.name || '-')}</td><td style="border:1px solid #222;padding:6px 8px;text-align:center;">${escapeHtml(row.issueType || row.issueContent || row.issueProgress || 'Có ghi chú')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.address || '-')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.field || '-')}</td><td style="border:1px solid #222;padding:6px 8px;">${escapeHtml(row.owner || '-')}</td></tr>`).join('') || `<tr><td colspan="6" style="border:1px solid #222;padding:8px;text-align:center;">Không có dữ liệu</td></tr>`}</tbody>
         </table>
       </section>`;
     const printWin = window.open('', '_blank', 'width=1100,height=800');
     if (!printWin) return;
-    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Báo cáo tổng hợp cơ sở</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style></head><body><h2 style="text-align:center;">BÁO CÁO TỔNG HỢP CƠ SỞ</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div><div class="summary"><div><strong>Tổng số cơ sở</strong><div>${total}</div></div><div><strong>Sắp hết hạn bảo hiểm</strong><div>${getFacilitiesByExpiry(items,'insurance','soon').length}</div></div><div><strong>Sắp hết hạn bảo dưỡng</strong><div>${getFacilitiesByExpiry(items,'maintenance','soon').length}</div></div></div>${wrapTable('1. Phân tích theo lĩnh vực', fieldRows)}${wrapTable('2. Phân tích theo nhóm', groupRows)}${wrapTable('3. Phân tích theo mô tả', descriptionRows)}${wrapTable('4. Phân tích theo địa bàn', areaRows)}${wrapIssueTable('5. Danh sách cơ sở còn tồn tại', issueRows)}</body></html>`);
+    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Báo cáo cơ sở Đội 2</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style></head><body><h2 style="text-align:center;">BÁO CÁO CƠ SỞ ĐỘI 2</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div><div class="summary"><div><strong>Tổng số cơ sở</strong><div>${total}</div></div><div><strong>Số cán bộ quản lý</strong><div>${managerRows.length}</div></div><div><strong>Số lĩnh vực</strong><div>${fieldRows.length}</div></div><div><strong>Cơ sở có ghi chú</strong><div>${issueRows.length}</div></div></div>${wrapTable('1. Phân tích theo cán bộ', managerRows, 'Cán bộ quản lý')}${wrapTable('2. Phân tích theo lĩnh vực', fieldRows, 'Lĩnh vực')}${wrapIssueTable('3. Danh sách cơ sở tồn tại', issueRows)}</body></html>`);
     printWin.document.close();
     printWin.focus();
     setTimeout(() => { printWin.print(); }, 250);
