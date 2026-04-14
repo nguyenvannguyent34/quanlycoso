@@ -2655,11 +2655,11 @@
 
   function rebuildTeamFacilityCacheFromOwnerCaches(options = {}) {
     const useLocalOnly = !!options.useLocalOnly;
-    const items = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => {
-      return useLocalOnly ? loadLocalFacilities(name) : getFacilityCache(name);
-    }));
+    const currentTeamCache = useLocalOnly ? [] : getFacilityCache(TEAM_FACILITY_LABEL);
+    const fallbackItems = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+    const items = dedupeFacilities((Array.isArray(currentTeamCache) && currentTeamCache.length) ? currentTeamCache : fallbackItems);
     setFacilityCache(TEAM_FACILITY_LABEL, items, {
-      source: useLocalOnly ? 'local-merged' : 'merged',
+      source: useLocalOnly ? 'local-merged' : (items === currentTeamCache ? 'team-cache' : 'local-merged'),
       loadedAt: Date.now()
     });
     return items;
@@ -2669,21 +2669,39 @@
     return rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
   }
 
+  function applyOwnerItemsToTeamCache(ownerName, items) {
+    const owner = String(ownerName || '').trim();
+    const normalizedOwnerItems = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner })).filter(item => item.name));
+    const currentTeamItems = dedupeFacilities([
+      ...getFacilityCache(TEAM_FACILITY_LABEL),
+      ...getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name))
+    ]);
+    const merged = dedupeFacilities([
+      ...currentTeamItems.filter(item => String(item.owner || '').trim() !== owner),
+      ...normalizedOwnerItems
+    ]);
+    setFacilityCache(TEAM_FACILITY_LABEL, merged, {
+      source: 'team-cache',
+      loadedAt: Date.now()
+    });
+    return merged;
+  }
+
   function saveFacilitiesForOwner(ownerName, items) {
     const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: ownerName })).filter(item => item.name));
     saveLocalFacilities(normalized, ownerName);
     setFacilityCache(ownerName, normalized);
-    rebuildTeamFacilityCacheFromLocals();
+    applyOwnerItemsToTeamCache(ownerName, normalized);
     return normalized;
   }
 
   function removeFacilityFromOwner(ownerName, facilityId) {
-    const currentItems = loadLocalFacilities(ownerName).filter(item => item.id !== facilityId);
+    const currentItems = getFacilityCache(ownerName).filter(item => item.id !== facilityId);
     return saveFacilitiesForOwner(ownerName, currentItems);
   }
 
   function upsertFacilityForOwner(ownerName, facilityItem, replaceId = "") {
-    const currentItems = loadLocalFacilities(ownerName).filter(item => item.id !== (replaceId || facilityItem.id));
+    const currentItems = getFacilityCache(ownerName).filter(item => item.id !== (replaceId || facilityItem.id));
     currentItems.push(normalizeFacility({ ...facilityItem, owner: ownerName }));
     return saveFacilitiesForOwner(ownerName, currentItems);
   }
@@ -2698,9 +2716,10 @@
   }
 
   function refreshReportFacilitiesFromCaches(preferredFacilityId = "", options = {}) {
-    const teamItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+    const teamItems = getFacilityCache(TEAM_FACILITY_LABEL);
+    const fallbackItems = teamItems.length ? teamItems : rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
     syncFacilityStateFromCaches(preferredFacilityId, { skipRender: !!options.skipFacilityRender });
-    state.reportFacilities = dedupeFacilities(teamItems.length ? teamItems : getKnownFacilitiesPool());
+    state.reportFacilities = dedupeFacilities(fallbackItems.length ? fallbackItems : getKnownFacilitiesPool());
     return state.reportFacilities;
   }
 
@@ -3264,6 +3283,8 @@ function formatDateTime(value) {
 
   function loadLocalFacilities(managerName = getCurrentFacilityManager()) {
     if (isTeamFacilityView(managerName)) {
+      const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
+      if (Array.isArray(teamCached) && teamCached.length) return dedupeFacilities(teamCached);
       return sortFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
     }
     try {
@@ -3303,6 +3324,13 @@ function formatDateTime(value) {
     }
     const localItems = loadLocalFacilities(key);
     if (Array.isArray(localItems) && localItems.length) return setFacilityCache(key, localItems, { source: 'local' });
+    if (!isTeamFacilityView(key)) {
+      const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
+      if (Array.isArray(teamCached) && teamCached.length) {
+        const ownerItems = teamCached.filter(item => String(item?.owner || '').trim() === key);
+        if (ownerItems.length) return setFacilityCache(key, ownerItems, { source: 'team-derived' });
+      }
+    }
     return [];
   }
 
@@ -3409,45 +3437,15 @@ function formatDateTime(value) {
       const localItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
       return { ok: !!localItems.length, items: localItems, localOnly: true };
     }
-    const maxAgeMs = Number(options.maxAgeMs || FACILITY_MEMORY_CACHE_TTL_MS);
+    const maxAgeMs = Number(options.maxAgeMs || FACILITY_REPORT_PREFETCH_TTL_MS);
     const force = !!options.force;
     const background = !!options.background;
-    const onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
-    const managers = getIndividualFacilityManagers();
-    const staleManagers = force
-      ? managers
-      : managers.filter(name => !isFacilityCacheFresh(name, maxAgeMs));
-
-    if (!staleManagers.length) {
-      const items = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-      return { ok: true, items, cached: true, fresh: true };
-    }
-
-    const taskFactories = staleManagers.map(owner => async () => {
-      const remote = await refreshFacilityCacheFromRemote(owner);
-      if (remote && remote.ok) {
-        const items = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-        if (onProgress) onProgress(owner, items, remote);
-      }
-      return remote;
-    });
-
-    const runner = runTasksWithConcurrency(taskFactories, TEAM_REMOTE_SYNC_CONCURRENCY).then(results => {
-      const items = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-      const failed = results.filter(item => !(item && item.ok));
-      return {
-        ok: failed.length < staleManagers.length,
-        items,
-        partial: failed.length > 0,
-        failedOwners: staleManagers.filter((_, index) => !(results[index] && results[index].ok))
-      };
-    });
-
+    const request = ensureFacilityCacheReady(TEAM_FACILITY_LABEL, { force, maxAgeMs, background });
     if (background) {
-      runner.catch(() => {});
-      return { ok: true, items: rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }), cached: true, background: true };
+      Promise.resolve(request).catch(() => {});
+      return { ok: true, items: getFacilityCache(TEAM_FACILITY_LABEL), cached: true, background: true };
     }
-    return runner;
+    return request;
   }
 
   async function loadFacilities() {
