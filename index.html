@@ -1406,7 +1406,6 @@
 <div class="facility-toolbar-title" id="facilityManagerLabel"></div>
 <div class="flex" style="justify-content:flex-end; width:100%">
 <button class="secondary hidden" id="btnFacilityPrint" type="button">In danh sách</button>
-<button class="secondary hidden" id="btnFacilityReport" type="button">Báo cáo</button>
 <button class="secondary hidden" id="btnFacilityExport" type="button">Xuất Excel</button>
 <button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
 </div>
@@ -2040,9 +2039,13 @@
     try {
       closeFacilityNoticeModal();
       if (targetState.view === 'report') {
-        state.currentFacilityManager = targetState.managerName || state.currentFacilityManager || TEAM_FACILITY_LABEL;
+        state.currentFacilityManager = TEAM_FACILITY_LABEL;
         state.isSystemAdmin = !!targetState.systemAdmin;
-        await openReportDashboard({ skipHistory: true });
+        await openFacilityManager(TEAM_FACILITY_LABEL, {
+          systemAdmin: !!targetState.systemAdmin,
+          skipHistory: true,
+          showNotice: false
+        });
         return;
       }
       if (targetState.view === 'admin') {
@@ -2233,28 +2236,56 @@
       .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'vi'));
   }
 
+  function forceReportTableVisible(body) {
+    if (!body) return;
+    const table = body.closest('table');
+    if (table) {
+      const staleFilterRow = table.querySelector('thead tr.column-filter-row');
+      if (staleFilterRow) staleFilterRow.remove();
+    }
+    Array.from(body.querySelectorAll('tr')).forEach(row => {
+      row.style.display = '';
+    });
+    const staleEmpty = body.querySelector('tr.table-filter-empty-row');
+    if (staleEmpty) staleEmpty.remove();
+  }
+
   function renderReportRows(targetId, rows, total, emptyLabel) {
     const body = $(targetId);
     if (!body) return;
-    if (!rows.length) {
+    const normalizedRows = Array.isArray(rows) ? rows.filter(row => row && Number(row.count || 0) > 0) : [];
+    if (!normalizedRows.length) {
       body.innerHTML = `<tr><td colspan="5"><div class="empty-state">${escapeHtml(emptyLabel)}</div></td></tr>`;
+      forceReportTableVisible(body);
       return;
     }
-    const maxCount = Math.max(...rows.map(row => row.count), 1);
-    body.innerHTML = rows.map((row, index) => {
-      const percent = total ? ((row.count / total) * 100) : 0;
-      const barWidth = Math.max(6, (row.count / maxCount) * 100);
-      return `<tr>
+    const maxCount = Math.max(...normalizedRows.map(row => Number(row.count || 0)), 1);
+    const fragment = document.createDocumentFragment();
+    normalizedRows.forEach((row, index) => {
+      const tr = document.createElement('tr');
+      const percent = total ? ((Number(row.count || 0) / total) * 100) : 0;
+      const barWidth = Math.max(6, (Number(row.count || 0) / maxCount) * 100);
+      tr.innerHTML = `
         <td class="report-rank">${index + 1}</td>
         <td>${escapeHtml(row.label)}</td>
-        <td class="report-count">${row.count}</td>
+        <td class="report-count">${Number(row.count || 0)}</td>
         <td class="report-percent">${percent.toFixed(1)}%</td>
-        <td class="report-bar-cell"><div class="report-bar-track"><div class="report-bar-fill" style="width:${barWidth}%"></div></div></td>
-      </tr>`;
-    }).join('');
-    applyGenericTableFilter(body.closest('table'), { colspan: 5 });
+        <td class="report-bar-cell"><div class="report-bar-track"><div class="report-bar-fill" style="width:${barWidth}%"></div></div></td>`;
+      fragment.appendChild(tr);
+    });
+    body.innerHTML = '';
+    body.appendChild(fragment);
+    forceReportTableVisible(body);
   }
 
+
+  function ensureReportPanelsRendered() {
+    ['reportFieldBody', 'reportGroupBody', 'reportDescriptionBody', 'reportAreaBody', 'reportIssueBody'].forEach(id => {
+      const body = $(id);
+      if (!body) return;
+      forceReportTableVisible(body);
+    });
+  }
 
   function renderReportDashboard() {
     const items = dedupeFacilities(Array.isArray(state.reportFacilities) ? state.reportFacilities : []);
@@ -2279,7 +2310,10 @@
         : 'Chưa có dữ liệu báo cáo để hiển thị.';
     }
 
-    renderReportIssueTable(items);
+    renderReportIssueTable(items, { ignoreFilters: true });
+    ensureReportPanelsRendered();
+    requestAnimationFrame(() => ensureReportPanelsRendered());
+    setTimeout(() => ensureReportPanelsRendered(), 60);
   }
 
   function isAbortLikeError(error) {
@@ -4864,17 +4898,21 @@ function formatDateTime(value) {
     });
   }
 
-  function renderReportIssueTable(items) {
+  function renderReportIssueTable(items, options = {}) {
     const body = $('reportIssueBody');
     if (!body) return;
+    const ignoreFilters = !!options.ignoreFilters;
     const allRows = getReportIssueItems(items);
-    const rows = getFilteredReportIssueItems(items);
+    const hasActiveFilter = !ignoreFilters && Object.values(state.reportIssueFilters || {}).some(value => String(value || '').trim() !== '');
+    const rows = hasActiveFilter ? getFilteredReportIssueItems(items) : allRows;
     if (!allRows.length) {
       body.innerHTML = '<tr><td colspan="6"><div class="empty-state">Chưa có cơ sở nào được nhập tồn tại NQ32, TDNT hoặc Tồn tại sau kiểm tra.</div></td></tr>';
+      forceReportTableVisible(body);
       return;
     }
     if (!rows.length) {
       body.innerHTML = '<tr><td colspan="6"><div class="empty-state">Không có cơ sở phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
+      forceReportTableVisible(body);
       return;
     }
     body.innerHTML = rows.map((item, index) => `
@@ -4886,6 +4924,7 @@ function formatDateTime(value) {
         <td class="report-issue-progress">${escapeHtml(item.issueProgress || '-')}</td>
         <td>${escapeHtml(item.owner || '-')}</td>
       </tr>`).join('');
+    forceReportTableVisible(body);
   }
 
   function openReportIssueModal(facilityId) {
@@ -5030,15 +5069,11 @@ function formatDateTime(value) {
   }
 
   async function openReportDashboard(options = {}) {
-    enterWorkMode();
-    setMain('', '');
-    showOnly('reportPanel');
-    resetReportIssueFilters();
-    clearHeaderFiltersByTable(document.querySelector('#reportPanel .report-issue-table'));
-    ensureAllTableHeaderFilters();
-    renderReportDashboard();
-    syncAppHistory('report', { replace: !!options.skipHistory });
-    return loadReportDashboard(!!options.forceRemote);
+    return openFacilityManager(TEAM_FACILITY_LABEL, {
+      systemAdmin: !!state.isSystemAdmin,
+      skipHistory: !!options.skipHistory,
+      showNotice: false
+    });
   }
 
   function closeReportDashboard(options = {}) {
