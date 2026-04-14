@@ -921,8 +921,20 @@
       margin-bottom:16px;
     }
     .facility-summary-grid{
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      grid-template-columns:repeat(8,minmax(0,1fr));
       margin-bottom:16px;
+      gap:10px;
+    }
+    .facility-summary-grid .summary-box{
+      padding:14px 12px;
+    }
+    .facility-summary-grid .summary-box .label{
+      font-size:13px;
+      line-height:1.25;
+    }
+    .facility-summary-grid .summary-box .value{
+      font-size:24px;
+      margin-top:8px;
     }
     .facility-summary-box{
       background:linear-gradient(180deg,#fff8ec,#fff);
@@ -1042,6 +1054,7 @@
     .facility-table .facility-col-stt{position:static; left:auto; z-index:auto; min-width:58px; width:58px; background:inherit;}
     .facility-table .facility-col-code{position:static; left:auto; z-index:auto; min-width:76px; width:76px; max-width:112px; white-space:nowrap; background:inherit; padding-left:8px; padding-right:8px;}
     .facility-table .facility-col-name{position:static; left:auto; z-index:auto; min-width:300px; width:300px; background:inherit; text-align:center;}
+    .facility-table .facility-col-file-number{white-space:nowrap; min-width:88px; width:88px;}
     .facility-table tbody td.facility-col-name{box-shadow:2px 0 0 rgba(221,227,238,.75);}
     .facility-table thead th.facility-col-name{box-shadow:2px 0 0 rgba(221,227,238,.9);}
     .facility-table .facility-col-name .facility-cell-main,.facility-table .facility-col-name .facility-cell-sub{text-align:center;}
@@ -1298,6 +1311,7 @@
     .facility-table .facility-col-stt{left:0 !important;z-index:21 !important;min-width:58px !important;width:58px !important;}
     .facility-table .facility-col-code{left:auto !important;z-index:21 !important;min-width:76px !important;width:76px !important;max-width:112px !important;white-space:nowrap !important;padding-left:8px !important;padding-right:8px !important;}
     .facility-table .facility-col-name{left:auto !important;z-index:21 !important;min-width:300px !important;width:300px !important;text-align:center !important;}
+    .facility-table .facility-col-file-number{min-width:88px !important;width:88px !important;white-space:nowrap !important;}
     .facility-table .facility-col-name .facility-cell-main,.facility-table .facility-col-name .facility-cell-sub{text-align:center !important;}
     .facility-table tbody tr:nth-child(odd){--sticky-bg:rgba(255,255,255,.96);}
     .facility-table tbody tr:nth-child(even){--sticky-bg:rgba(255,245,204,.72);}
@@ -1397,6 +1411,29 @@
 <button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
 </div>
 </div>
+<div class="panel-box hidden" id="facilityPasswordConfigPanel" style="margin-bottom:16px">
+<h3 style="margin:0 0 6px;font-size:22px">Cấu hình mật khẩu từng mục cá nhân</h3>
+<div class="muted small"></div>
+<div class="table-wrap" style="margin-top:12px; max-height:none">
+<table class="password-config-table">
+<thead>
+<tr>
+<th>STT</th>
+<th>Mục cá nhân</th>
+<th>Mật khẩu 1</th>
+<th>Mật khẩu 2</th>
+</tr>
+</thead>
+<tbody id="passwordConfigBody"></tbody>
+</table>
+</div>
+<div class="flex" style="margin-top:14px">
+<button class="success" id="btnSavePasswordConfigs" type="button">Lưu cấu hình mật khẩu</button>
+<button class="secondary" id="btnTogglePasswordConfigs" type="button">Hiện mật khẩu</button>
+<button class="secondary" id="btnResetPasswordConfigs" type="button">Khôi phục mặc định</button>
+</div>
+<div class="status info" id="passwordConfigStatus" style="margin-top:14px"></div>
+</div>
 <div class="panel-box compact-form-panel facility-form-panel" id="facilityFormPanel" style="margin-bottom:16px">
 <input id="facilityId" type="hidden"/>
 <input id="facilityInspectionDate" type="hidden"/>
@@ -1405,6 +1442,10 @@
 <input id="facilityDrill" type="hidden"/>
 <input id="facilityTraining" type="hidden"/>
 <div class="form-grid" style="margin-top:10px">
+<div class="hidden" id="facilityCreateOwnerWrap">
+<label for="facilityCreateOwner">Người quản lý</label>
+<select id="facilityCreateOwner"></select>
+</div>
 <div>
 <label for="facilityName">Tên cơ sở</label>
 <input id="facilityName" placeholder="Nhập tên cơ sở" type="text"/>
@@ -1412,6 +1453,10 @@
 <div>
 <label for="facilityCode">Mã cơ sở</label>
 <input id="facilityCode" placeholder="Nhập mã cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityFileNumber">Số hồ sơ</label>
+<input id="facilityFileNumber" placeholder="Nhập số hồ sơ" type="text"/>
 </div>
 <div>
 <label for="facilityAddress">Địa chỉ</label>
@@ -1440,51 +1485,32 @@
 <option value="II">II</option>
 </select>
 </div>
+<div class="full-col">
+<label for="facilityDescription">Mô tả</label>
+<input id="facilityDescription" placeholder="Nhập mô tả ngắn (nếu có)" type="text"/>
+</div>
 </div>
 <div class="flex" style="margin-top:14px; gap:10px; flex-wrap:wrap">
 <button class="success" id="btnSaveFacility" type="button">Lưu cơ sở</button>
 </div>
 <div class="status info" id="facilitySaveStatus" style="margin-top:14px"></div>
 </div>
-<div class="panel-box hidden" id="facilityPasswordConfigPanel" style="margin-bottom:16px">
-<h3 style="margin:0 0 6px;font-size:22px">Cấu hình mật khẩu từng mục cá nhân</h3>
-<div class="muted small"></div>
-<div class="table-wrap" style="margin-top:12px; max-height:none">
-<table class="password-config-table">
-<thead>
-<tr>
-<th>STT</th>
-<th>Mục cá nhân</th>
-<th>Mật khẩu 1</th>
-<th>Mật khẩu 2</th>
-</tr>
-</thead>
-<tbody id="passwordConfigBody"></tbody>
-</table>
-</div>
-<div class="flex" style="margin-top:14px">
-<button class="success" id="btnSavePasswordConfigs" type="button">Lưu cấu hình mật khẩu</button>
-<button class="secondary" id="btnTogglePasswordConfigs" type="button">Hiện mật khẩu</button>
-<button class="secondary" id="btnResetPasswordConfigs" type="button">Khôi phục mặc định</button>
-</div>
-<div class="status info" id="passwordConfigStatus" style="margin-top:14px"></div>
-</div>
 <div class="summary-grid facility-summary-grid">
 <div class="summary-box facility-summary-box active" data-view="all" id="facilityBoxTotal" title="Bấm để xem toàn bộ cơ sở">
 <div class="label">Tổng số cơ sở</div>
 <div class="value" id="facilityStatTotal">0</div>
 </div>
+<div class="summary-box facility-summary-box" data-view="codeMissing" id="facilityBoxCodeMissing" title="Bấm để xem danh sách cơ sở chưa có mã">
+<div class="label">Chưa có mã</div>
+<div class="value" id="facilityStatCodeMissing">0</div>
+</div>
+<div class="summary-box facility-summary-box" data-view="fileNumberMissing" id="facilityBoxFileNumberMissing" title="Bấm để xem danh sách cơ sở chưa có số hồ sơ">
+<div class="label">Chưa có số hồ sơ</div>
+<div class="value" id="facilityStatFileNumberMissing">0</div>
+</div>
 <div class="summary-box facility-summary-box" data-view="inspection" id="facilityBoxInspected" title="Bấm để xem danh sách cơ sở đã kiểm tra">
 <div class="label">Đã kiểm tra</div>
 <div class="value" id="facilityStatInspected">0</div>
-</div>
-<div class="summary-box facility-summary-box" data-view="insurance" id="facilityBoxInsurance" title="Bấm để xem danh sách cơ sở đã có bảo hiểm">
-<div class="label">Đã có bảo hiểm</div>
-<div class="value" id="facilityStatInsurance">0</div>
-</div>
-<div class="summary-box facility-summary-box" data-view="maintenance" id="facilityBoxMaintenance" title="Bấm để xem danh sách cơ sở đã bảo dưỡng">
-<div class="label">Đã bảo dưỡng</div>
-<div class="value" id="facilityStatMaintenance">0</div>
 </div>
 <div class="summary-box facility-summary-box" data-view="drill" id="facilityBoxDrill" title="Bấm để xem danh sách cơ sở đã thực tập">
 <div class="label">Đã thực tập</div>
@@ -1493,6 +1519,14 @@
 <div class="summary-box facility-summary-box" data-view="training" id="facilityBoxTraining" title="Bấm để xem danh sách cơ sở đã bồi dưỡng">
 <div class="label">Đã bồi dưỡng</div>
 <div class="value" id="facilityStatTraining">0</div>
+</div>
+<div class="summary-box facility-summary-box" data-view="insurance" id="facilityBoxInsurance" title="Bấm để xem danh sách cơ sở sắp hết hạn bảo hiểm">
+<div class="label">Sắp hết hạn bảo hiểm</div>
+<div class="value" id="facilityStatInsurance">0</div>
+</div>
+<div class="summary-box facility-summary-box" data-view="maintenance" id="facilityBoxMaintenance" title="Bấm để xem danh sách cơ sở sắp hết hạn bảo dưỡng">
+<div class="label">Sắp hết hạn bảo dưỡng</div>
+<div class="value" id="facilityStatMaintenance">0</div>
 </div>
 </div>
 
@@ -1517,7 +1551,7 @@
 <th>Bảo dưỡng</th>
 <th>Thực tập</th>
 <th>Bồi dưỡng</th>
-<th>Số hồ sơ</th>
+<th class="facility-col-file-number">Số hồ sơ</th>
 </tr>
 </thead>
 <tbody id="facilityBody"></tbody>
@@ -2649,6 +2683,7 @@
     const managerName = getCurrentFacilityManager();
     const isTeamView = isTeamFacilityView(managerName);
     const canEdit = canEditCurrentFacilityView(managerName);
+    const canCreate = !!canEdit && (!isTeamView || isSystemAdminMode());
     const saveButton = $("btnSaveFacility");
     const formPanel = $("facilityFormPanel");
     const saveStatus = $("facilitySaveStatus");
@@ -2659,16 +2694,25 @@
     const ownerFilter = $("facilityFilterOwner");
     const descriptionFilterWrap = $("facilityFilterDescriptionWrap");
     const descriptionFilter = $("facilityFilterDescription");
+    const createOwnerWrap = $("facilityCreateOwnerWrap");
+    const createOwnerSelect = $("facilityCreateOwner");
     const codeInput = $("facilityCode");
+    const fileNumberInput = $("facilityFileNumber");
     const nameInput = $("facilityName");
+    const descriptionInput = $("facilityDescription");
     const addressInput = $("facilityAddress");
     const fieldInput = $("facilityField");
     const appendixInput = $("facilityAppendix");
-    [codeInput, nameInput, addressInput, fieldInput, appendixInput].forEach(input => {
+    [codeInput, fileNumberInput, nameInput, descriptionInput, addressInput, fieldInput, appendixInput, createOwnerSelect].forEach(input => {
       if (!input) return;
-      input.disabled = !canEdit || isTeamView;
+      input.disabled = !canCreate;
     });
-    if (formPanel) formPanel.style.display = isTeamView ? "none" : "";
+    if (formPanel) formPanel.style.display = canCreate ? "" : "none";
+    if (createOwnerWrap) createOwnerWrap.classList.toggle('hidden', !(isTeamView && isSystemAdminMode()));
+    if (createOwnerSelect && isTeamView && isSystemAdminMode()) {
+      const selectedOwner = String(createOwnerSelect.value || '').trim();
+      renderFacilityOwnerOptions('facilityCreateOwner', selectedOwner || getIndividualFacilityManagers()[0] || '');
+    }
     if (ownerFilterWrap) ownerFilterWrap.style.display = isTeamView ? "" : "none";
     if (reportButton) reportButton.classList.toggle('hidden', !isTeamView);
     if (printButton) printButton.classList.toggle('hidden', !isTeamView);
@@ -2676,13 +2720,13 @@
     if (descriptionFilterWrap) descriptionFilterWrap.style.display = shouldShowFacilityDescriptionFilter(managerName) ? "" : "none";
     if (!isTeamView && ownerFilter) ownerFilter.value = '';
     if (!shouldShowFacilityDescriptionFilter(managerName) && descriptionFilter) descriptionFilter.value = '';
-    if (saveStatus) {
-      saveStatus.textContent = isTeamView ? '' : getFacilityReadyStatus(managerName);
-      saveStatus.style.display = isTeamView ? 'none' : '';
+    if (saveStatus && !String(saveStatus.textContent || '').trim()) {
+      saveStatus.textContent = '';
+      saveStatus.style.display = 'none';
     }
     if (saveButton) {
-      saveButton.disabled = isTeamView;
-      saveButton.title = isTeamView ? (isSystemAdminMode() ? "Admin dùng chức năng nhấp đúp để chỉnh sửa hoặc chuyển cơ sở." : "Mục này chỉ tổng hợp dữ liệu từ 9 danh sách cá nhân.") : "";
+      saveButton.disabled = !canCreate;
+      saveButton.title = canCreate ? "" : (isTeamView ? "Mục này chỉ tổng hợp dữ liệu từ 9 danh sách cá nhân." : "");
     }
     updateFacilityOwnerColumnVisibility(managerName);
     renderPasswordConfigPanel();
@@ -2982,11 +3026,7 @@ function formatDateTime(value) {
   }
 
   function buildFacilityCode(raw = {}) {
-    const direct = String(raw.code || raw.facilityCode || raw.maCoSo || raw.facility_code || '').trim();
-    if (direct) return direct;
-    const idSource = String(raw.id || '').trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    const tail = (idSource.slice(-6) || String(Date.now()).slice(-6)).padStart(6, '0');
-    return 'CS-' + tail;
+    return String(raw.code || raw.facilityCode || raw.maCoSo || raw.facility_code || '').trim();
   }
 
   function normalizeFacilityHistory(rawHistory) {
@@ -3308,38 +3348,30 @@ function formatDateTime(value) {
         state.facilities = loadLocalFacilities(managerName);
         renderFacilities();
       }
-      setFacilityStatus('warning', isSystemAdminMode()
-        ? 'Chế độ Admin đang hiển thị dữ liệu cục bộ gần nhất của toàn đội.'
-        : (isTeamFacilityView(managerName)
-          ? 'Chưa cấu hình Apps Script. Cơ sở Đội 2 đang hiển thị dữ liệu cục bộ gần nhất.'
-          : 'Chưa cấu hình Apps Script. Dữ liệu cơ sở đang lưu cục bộ trên trình duyệt này.'));
+      setFacilityStatus('info', '');
       return { ok: !!state.facilities.length, cached: true, items: state.facilities };
     }
 
     const cacheFresh = cachedFacilities.length && isFacilityCacheFresh(managerName, FACILITY_MEMORY_CACHE_TTL_MS);
     if (cacheFresh) {
-      setFacilityStatus('info', isTeamFacilityView(managerName)
-        ? `Đang xem dữ liệu bộ nhớ đệm (${cachedFacilities.length} cơ sở).`
-        : 'Đã nạp nhanh từ bộ nhớ đệm.');
+      setFacilityStatus('info', '');
       return { ok: true, cached: true, items: cachedFacilities };
     }
 
     if (cachedFacilities.length) {
-      setFacilityStatus('info', 'Đang làm mới dữ liệu nền từ hệ thống...');
+      setFacilityStatus('info', '');
       void ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS }).then(result => {
         if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
         if (result && result.ok) {
           state.facilities = getFacilityCache(managerName);
           renderFacilities();
-          setFacilityStatus('success', isTeamFacilityView(managerName)
-            ? `Đã cập nhật nền từ hệ thống (${state.facilities.length} cơ sở).`
-            : 'Đã làm mới dữ liệu từ hệ thống.');
+          setFacilityStatus('info', '');
         }
       }).catch(() => {});
       return { ok: true, cached: true, items: cachedFacilities, background: true };
     }
 
-    setFacilityStatus('info', 'Đang tải dữ liệu cơ sở từ hệ thống...');
+    setFacilityStatus('info', '');
     const result = await ensureFacilityCacheReady(managerName, { force: true, maxAgeMs: 0 });
 
     if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
@@ -3349,9 +3381,7 @@ function formatDateTime(value) {
     if (result && result.ok) {
       state.facilities = getFacilityCache(managerName);
       renderFacilities();
-      setFacilityStatus('success', isTeamFacilityView(managerName) && !isSystemAdminMode()
-        ? `Đang xem dữ liệu tổng hợp từ hệ thống (${state.facilities.length} cơ sở).`
-        : '');
+      setFacilityStatus('info', '');
       return result;
     }
 
@@ -3360,27 +3390,31 @@ function formatDateTime(value) {
     const fallbackMessage = (result && (result.error || result.message))
       ? String(result.error || result.message)
       : 'Không kết nối được Apps Script.';
-    setFacilityStatus('warning', state.facilities.length
-      ? `${fallbackMessage} Đang dùng dữ liệu cục bộ gần nhất trên trình duyệt này.`
-      : `${fallbackMessage} Chưa có dữ liệu cục bộ để hiển thị.`);
+    setFacilityStatus('info', '');
     return result;
   }
 
   function setFacilityStatus(type, message) {
     const statusBox = $('facilitySaveStatus');
     if (!statusBox) return;
+    const textValue = String(message || '').trim();
     statusBox.className = 'status ' + type;
-    statusBox.textContent = message;
+    statusBox.textContent = textValue;
+    statusBox.style.display = textValue ? '' : 'none';
   }
 
   function resetFacilityForm(options = {}) {
     const preserveStatus = !!options.preserveStatus;
+    const preserveOwner = options.preserveOwner !== false;
     if (!$('facilityId')) return;
+    const currentCreateOwner = preserveOwner ? String($('facilityCreateOwner')?.value || '').trim() : '';
     $('facilityId').value = '';
     $('facilityCode').value = '';
+    if ($('facilityFileNumber')) $('facilityFileNumber').value = '';
     $('facilityName').value = '';
+    if ($('facilityDescription')) $('facilityDescription').value = '';
     $('facilityAddress').value = '';
-    $('facilityField').value = 'Cơ sở thương mại, dịch vụ';
+    $('facilityField').value = 'Thương mại, dịch vụ';
     $('facilityAppendix').value = 'I';
     const hiddenInspection = $('facilityInspectionDate');
     const hiddenInsurance = $('facilityInsurance');
@@ -3394,6 +3428,7 @@ function formatDateTime(value) {
     if (hiddenTraining) hiddenTraining.value = '';
     state.selectedFacilityId = '';
     updateFacilityCreateModeUI();
+    if ($('facilityCreateOwner') && currentCreateOwner) $('facilityCreateOwner').value = currentCreateOwner;
     if (!preserveStatus) {
       setFacilityStatus('info', getFacilityReadyStatus());
     }
@@ -3481,8 +3516,10 @@ function formatDateTime(value) {
   function getFacilityQuickViewLabel(view = state.facilityQuickView || 'all') {
     switch (view) {
       case 'inspection': return 'Đã kiểm tra';
-      case 'insurance': return 'Đã có bảo hiểm';
-      case 'maintenance': return 'Đã bảo dưỡng';
+      case 'insurance': return 'Sắp hết hạn bảo hiểm';
+      case 'maintenance': return 'Sắp hết hạn bảo dưỡng';
+      case 'codeMissing': return 'Chưa có mã';
+      case 'fileNumberMissing': return 'Chưa có số hồ sơ';
       case 'drill': return 'Đã thực tập';
       case 'training': return 'Đã bồi dưỡng';
       default: return 'Tổng số cơ sở';
@@ -3493,15 +3530,23 @@ function formatDateTime(value) {
     return parseFacilityMetaValue(item?.[key]).hasValue || String(item?.[key] || '').trim() !== '';
   }
 
+  function isValidFacilityNumericCode(value) {
+    return /^\d+$/.test(String(value || '').trim());
+  }
+
   function applyFacilityQuickView(items) {
     const rows = Array.isArray(items) ? items : [];
     switch (state.facilityQuickView || 'all') {
       case 'inspection':
         return rows.filter(item => facilityFieldHasValue(item, 'inspectionDate'));
       case 'insurance':
-        return rows.filter(item => facilityFieldHasValue(item, 'insurance'));
+        return rows.filter(item => getFacilityExpiryInfo(item?.insurance).isSoon);
       case 'maintenance':
-        return rows.filter(item => facilityFieldHasValue(item, 'maintenance'));
+        return rows.filter(item => getFacilityExpiryInfo(item?.maintenance).isSoon);
+      case 'codeMissing':
+        return rows.filter(item => !isValidFacilityNumericCode(item?.code));
+      case 'fileNumberMissing':
+        return rows.filter(item => !String(item?.fileNumber || '').trim());
       case 'drill':
         return rows.filter(item => facilityFieldHasValue(item, 'drill'));
       case 'training':
@@ -3694,6 +3739,7 @@ function formatDateTime(value) {
     if (!table) return;
     const codeCells = Array.from(table.querySelectorAll('th.facility-col-code, td.facility-col-code'));
     const nameCells = Array.from(table.querySelectorAll('th.facility-col-name, td.facility-col-name'));
+    const fileNumberCells = Array.from(table.querySelectorAll('th.facility-col-file-number, td.facility-col-file-number'));
     if (!codeCells.length || !nameCells.length) return;
 
     const canvas = document.createElement('canvas');
@@ -3716,6 +3762,22 @@ function formatDateTime(value) {
       cell.style.whiteSpace = 'nowrap';
     });
 
+    if (fileNumberCells.length) {
+      let maxFileNumberWidth = 88;
+      fileNumberCells.forEach((cell) => {
+        const text = String(cell.textContent || '').trim() || 'Số hồ sơ';
+        const measured = ctx ? Math.ceil(ctx.measureText(text).width) : text.length * 8;
+        maxFileNumberWidth = Math.max(maxFileNumberWidth, measured + 26);
+      });
+      maxFileNumberWidth = Math.min(Math.max(maxFileNumberWidth, 88), 220);
+      fileNumberCells.forEach((cell) => {
+        cell.style.width = maxFileNumberWidth + 'px';
+        cell.style.minWidth = maxFileNumberWidth + 'px';
+        cell.style.maxWidth = maxFileNumberWidth + 'px';
+        cell.style.whiteSpace = 'nowrap';
+      });
+    }
+
     const nameWidth = Math.max(300, 360 - Math.max(0, maxCodeWidth - 76));
     nameCells.forEach((cell) => {
       cell.style.width = nameWidth + 'px';
@@ -3730,6 +3792,8 @@ function formatDateTime(value) {
     const inspectedBox = $('facilityStatInspected');
     const insuranceBox = $('facilityStatInsurance');
     const maintenanceBox = $('facilityStatMaintenance');
+    const codeMissingBox = $('facilityStatCodeMissing');
+    const fileNumberMissingBox = $('facilityStatFileNumberMissing');
     const drillBox = $('facilityStatDrill');
     const trainingBox = $('facilityStatTraining');
     if (!body || !totalBox) return;
@@ -3737,6 +3801,10 @@ function formatDateTime(value) {
 
     const allFacilities = Array.isArray(state.facilities) ? state.facilities : [];
     const countFilled = (key) => allFacilities.filter(item => facilityFieldHasValue(item, key)).length;
+    const countMissing = (key) => {
+      if (key === 'code') return allFacilities.filter(item => !isValidFacilityNumericCode(item?.code)).length;
+      return allFacilities.filter(item => !String(item?.[key] || '').trim()).length;
+    };
     const renderFlagWithHover = (value, label, options = {}) => {
       const useExpiry = !!options.useExpiry;
       const info = useExpiry ? getFacilityExpiryInfo(value) : null;
@@ -3780,8 +3848,10 @@ function formatDateTime(value) {
 
     totalBox.textContent = String(allFacilities.length);
     if (inspectedBox) inspectedBox.textContent = String(countFilled('inspectionDate'));
-    if (insuranceBox) insuranceBox.textContent = String(countFilled('insurance'));
-    if (maintenanceBox) maintenanceBox.textContent = String(countFilled('maintenance'));
+    if (insuranceBox) insuranceBox.textContent = String(countFacilitiesByExpiry(allFacilities, 'insurance', 'soon'));
+    if (maintenanceBox) maintenanceBox.textContent = String(countFacilitiesByExpiry(allFacilities, 'maintenance', 'soon'));
+    if (codeMissingBox) codeMissingBox.textContent = String(countMissing('code'));
+    if (fileNumberMissingBox) fileNumberMissingBox.textContent = String(countMissing('fileNumber'));
     if (drillBox) drillBox.textContent = String(countFilled('drill'));
     if (trainingBox) trainingBox.textContent = String(countFilled('training'));
 
@@ -3812,13 +3882,6 @@ function formatDateTime(value) {
       if (state.selectedFacilityId && state.selectedFacilityId === item.id) {
         tr.classList.add('facility-row-active');
       }
-      const insuranceInfo = getFacilityExpiryInfo(item.insurance);
-      const maintenanceInfo = getFacilityExpiryInfo(item.maintenance);
-      if (insuranceInfo.isExpired || maintenanceInfo.isExpired) {
-        tr.classList.add('task-row-overdue');
-      } else if (insuranceInfo.isSoon || maintenanceInfo.isSoon) {
-        tr.classList.add('task-row-soon');
-      }
       tr.innerHTML = `
         <td class="facility-col-stt">${idx + 1}</td>
         <td class="facility-col-code">${escapeHtml(item.code || '-')}</td>
@@ -3832,7 +3895,7 @@ function formatDateTime(value) {
         <td>${renderFlagWithHover(item.maintenance, 'Bảo dưỡng', { useExpiry: true })}</td>
         <td>${renderFlagWithHover(item.drill, 'Thực tập')}</td>
         <td>${renderFlagWithHover(item.training, 'Bồi dưỡng')}</td>
-        <td>${escapeHtml(item.fileNumber || '-')}</td>
+        <td class="facility-col-file-number">${escapeHtml(item.fileNumber || '-')}</td>
       `;
       body.appendChild(tr);
     });
@@ -3843,13 +3906,22 @@ function formatDateTime(value) {
     const managerName = getCurrentFacilityManager();
     if (!canEditCurrentFacilityView(managerName)) return;
 
+    const isTeamCreate = isTeamFacilityView(managerName);
+    const targetOwner = isTeamCreate ? String($('facilityCreateOwner')?.value || '').trim() : managerName;
     const code = $('facilityCode').value.trim();
+    const fileNumber = $('facilityFileNumber') ? $('facilityFileNumber').value.trim() : '';
     const name = $('facilityName').value.trim();
+    const description = $('facilityDescription') ? $('facilityDescription').value.trim() : '';
     const address = $('facilityAddress').value.trim();
-    const field = $('facilityField').value.trim() || 'Cơ sở thương mại, dịch vụ';
+    const field = $('facilityField').value.trim() || 'Thương mại, dịch vụ';
     const appendix = ($('facilityAppendix').value || 'I').trim();
     const duplicateFacility = findDuplicateFacilityCode(code);
 
+    if (isTeamCreate && !targetOwner) {
+      setFacilityStatus('error', 'Vui lòng chọn Người quản lý cho cơ sở mới.');
+      $('facilityCreateOwner')?.focus();
+      return;
+    }
     if (!name) {
       setFacilityStatus('error', 'Vui lòng nhập Tên cơ sở.');
       $('facilityName').focus();
@@ -3862,10 +3934,13 @@ function formatDateTime(value) {
     }
 
     const nowIso = new Date().toISOString();
+    const actorName = isSystemAdminMode() && isTeamCreate ? 'Admin hệ thống' : targetOwner;
     const facility = normalizeFacility({
       id: makeId(),
       code,
+      fileNumber,
       name,
+      description,
       address,
       field,
       appendix,
@@ -3874,16 +3949,16 @@ function formatDateTime(value) {
       maintenance: $('facilityMaintenance') ? $('facilityMaintenance').value : '',
       drill: $('facilityDrill') ? $('facilityDrill').value : '',
       training: $('facilityTraining') ? $('facilityTraining').value : '',
-      owner: managerName,
-      editHistory: [createFacilityHistoryEntry('Tạo mới', 'Khởi tạo cơ sở trong hệ thống.', managerName)],
+      owner: targetOwner,
+      editHistory: [createFacilityHistoryEntry('Tạo mới', 'Khởi tạo cơ sở trong hệ thống.', actorName)],
       createdAt: nowIso,
       updatedAt: nowIso
     });
 
-    upsertFacilityForOwner(managerName, facility);
+    upsertFacilityForOwner(targetOwner, facility);
     state.selectedFacilityId = facility.id;
     syncFacilityStateFromCaches(facility.id);
-    resetFacilityForm({ preserveStatus: true });
+    resetFacilityForm({ preserveStatus: true, preserveOwner: true });
     setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu nhanh trên máy, đang đồng bộ lên hệ thống...' : 'Đã lưu cơ sở thành công.');
     setTimeout(() => $('facilityName').focus(), 30);
 
@@ -3896,7 +3971,7 @@ function formatDateTime(value) {
     }
 
     const savedFacility = normalizeFacility(result.item || facility);
-    upsertFacilityForOwner(managerName, savedFacility, facility.id);
+    upsertFacilityForOwner(targetOwner, savedFacility, facility.id);
     state.selectedFacilityId = savedFacility.id;
     syncFacilityStateFromCaches(savedFacility.id);
     setFacilityStatus('success', 'Đã lưu và đồng bộ cơ sở thành công.');
@@ -4842,7 +4917,7 @@ function formatDateTime(value) {
     if (!row) return;
     openFacilityForEdit(row.dataset.id);
   });
-  ['facilityCode','facilityName','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
+  ['facilityCreateOwner','facilityCode','facilityFileNumber','facilityName','facilityDescription','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
   });
   ['facilityEditCode','facilityEditFileNumber','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining','facilityEditIssueType'].forEach(id => {
