@@ -1058,6 +1058,7 @@
     .facility-table tbody td.facility-col-name{box-shadow:2px 0 0 rgba(221,227,238,.75);}
     .facility-table thead th.facility-col-name{box-shadow:2px 0 0 rgba(221,227,238,.9);}
     .facility-table .facility-col-name .facility-cell-main,.facility-table .facility-col-name .facility-cell-sub{text-align:center;}
+    .facility-table .facility-col-name .facility-cell-main,.facility-table .facility-col-name .facility-cell-sub{cursor:pointer;}
     .report-grid.report-grid-3{grid-template-columns:repeat(2,minmax(0,1fr));}
     #adminPanel{position:relative; z-index:20;}
     .facility-admin-shell{position:relative; z-index:21; isolation:isolate;}
@@ -1679,6 +1680,112 @@
 </div>
 
 
+<div class="modal-backdrop hidden" id="facilityEditModal">
+<div class="modal-card modal-large">
+<div class="modal-head">
+<h3 style="margin:0;font-size:24px">Chỉnh sửa cơ sở</h3>
+<div class="muted small" style="margin-top:6px"></div>
+</div>
+<div class="modal-body">
+<input id="facilityEditId" type="hidden"/>
+<div class="form-grid">
+<div class="full-col">
+<label for="facilityEditName">Tên cơ sở</label>
+<input id="facilityEditName" placeholder="Nhập tên cơ sở" type="text"/>
+</div>
+<div class="full-col">
+<label for="facilityEditDescription">Mô tả</label>
+<input id="facilityEditDescription" placeholder="Nhập mô tả cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityEditCode">Mã cơ sở</label>
+<input id="facilityEditCode" placeholder="Nhập mã cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityEditFileNumber">Số hồ sơ</label>
+<input id="facilityEditFileNumber" placeholder="Nhập số hồ sơ" type="text"/>
+</div>
+<div class="full-col">
+<label for="facilityEditAddress">Địa chỉ</label>
+<input id="facilityEditAddress" placeholder="Nhập địa chỉ cơ sở" type="text"/>
+</div>
+<div>
+<label for="facilityEditField">Lĩnh vực</label>
+<select id="facilityEditField">
+<option value="Thương mại, dịch vụ">Thương mại, dịch vụ</option>
+<option value="Nhà ở, trụ sở làm việc, văn phòng, đa năng">Nhà ở, trụ sở làm việc, văn phòng, đa năng</option>
+<option value="Giáo dục">Giáo dục</option>
+<option value="Y tế">Y tế</option>
+<option value="Văn hóa, thể thao, du lịch">Văn hóa, thể thao, du lịch</option>
+<option value="Giao thông, vận tải">Giao thông, vận tải</option>
+<option value="Xăng dầu, dầu khí">Xăng dầu, dầu khí</option>
+<option value="Năng lượng">Năng lượng</option>
+<option value="Hóa chất">Hóa chất</option>
+<option value="Công nghiệp, nhà kho">Công nghiệp, nhà kho</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label for="facilityEditAppendix">Nhóm</label>
+<select id="facilityEditAppendix">
+<option value="I">I</option>
+<option value="II">II</option>
+</select>
+</div>
+<div class="hidden" id="facilityEditOwnerWrap">
+<label for="facilityEditOwner">Người quản lý</label>
+<select id="facilityEditOwner"></select>
+</div>
+<div>
+<label for="facilityEditInspectionDate">Ngày kiểm tra</label>
+<input id="facilityEditInspectionDate" type="date"/>
+</div>
+<div>
+<label for="facilityEditInsuranceDate">Bảo hiểm - Ngày mua</label>
+<input id="facilityEditInsuranceDate" type="date"/>
+</div>
+<div>
+<label for="facilityEditInsuranceCompany">Bảo hiểm - Công ty</label>
+<input id="facilityEditInsuranceCompany" placeholder="Nhập công ty bảo hiểm" type="text"/>
+</div>
+<div>
+<label for="facilityEditMaintenanceDate">Bảo dưỡng - Ngày mua</label>
+<input id="facilityEditMaintenanceDate" type="date"/>
+</div>
+<div>
+<label for="facilityEditMaintenanceCompany">Bảo dưỡng - Công ty</label>
+<input id="facilityEditMaintenanceCompany" placeholder="Nhập đơn vị/công ty bảo dưỡng" type="text"/>
+</div>
+<div>
+<label for="facilityEditDrill">Thực tập</label>
+<input id="facilityEditDrill" placeholder="Nhập thông tin thực tập" type="text"/>
+</div>
+<div>
+<label for="facilityEditTraining">Bồi dưỡng</label>
+<input id="facilityEditTraining" placeholder="Nhập thông tin bồi dưỡng" type="text"/>
+</div>
+<div>
+<label for="facilityEditIssueType">Ghi chú</label>
+<select id="facilityEditIssueType">
+<option value="">Chưa chọn</option>
+<option value="NQ32">NQ32</option>
+<option value="TDNT">TDNT</option>
+<option value="Tồn tại sau kiểm tra">Tồn tại sau kiểm tra</option>
+</select>
+</div>
+</div>
+<div class="modal-error" id="facilityEditModalError"></div>
+<div class="flex" style="justify-content:space-between; align-items:center; margin-top:8px; gap:10px; flex-wrap:wrap">
+<button class="danger" id="btnDeleteFacilityModal" type="button">Xóa cơ sở</button>
+<div class="flex" style="justify-content:flex-end">
+<button class="secondary" id="btnCancelFacilityModal" type="button">Hủy</button>
+<button class="success" id="btnSaveFacilityModal" type="button">Lưu chỉnh sửa</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
 <div class="modal-backdrop hidden" id="managerLoginModal">
 <div class="modal-card">
 <div class="modal-head">
@@ -2218,7 +2325,7 @@
   }
 
   function canEditCurrentFacilityView(managerName = getCurrentFacilityManager()) {
-    return !isTeamFacilityView(managerName) || isSystemAdminMode();
+    return true;
   }
 
   function getFacilityViewTitle(managerName = getCurrentFacilityManager()) {
@@ -3937,16 +4044,16 @@ function formatDateTime(value) {
     filteredFacilities.forEach((item, idx) => {
       const tr = document.createElement('tr');
       tr.dataset.id = item.id;
-      tr.title = isTeamFacilityView()
-        ? ('Dữ liệu tổng hợp - ' + (item.owner || ''))
-        : ('Nhấp đúp để chỉnh sửa cơ sở' + (item.owner ? ' - ' + item.owner : ''));
+      tr.title = 'Nhấp đúp để chỉnh sửa cơ sở' + (item.owner ? ' - ' + item.owner : '');
+      tr.setAttribute('ondblclick', `openFacilityForEdit(${JSON.stringify(String(item.id || ''))})`);
       if (state.selectedFacilityId && state.selectedFacilityId === item.id) {
         tr.classList.add('facility-row-active');
       }
+      const openIdAttr = escapeHtml(item.id || '');
       tr.innerHTML = `
         <td class="facility-col-stt">${idx + 1}</td>
         <td class="facility-col-code">${escapeHtml(item.code || '-')}</td>
-        <td class="facility-col-name"><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub">${escapeHtml(item.description)}</div>` : ''}</td>
+        <td class="facility-col-name"><div class="facility-cell-main" data-facility-open="${openIdAttr}" ondblclick="openFacilityForEdit('${openIdAttr}');event.stopPropagation();" title="Nhấp đúp để sửa cơ sở">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub" data-facility-open="${openIdAttr}" ondblclick="openFacilityForEdit('${openIdAttr}');event.stopPropagation();" title="Nhấp đúp để sửa cơ sở">${escapeHtml(item.description)}</div>` : ''}</td>
         <td>${escapeHtml(item.address || '-')}</td>
         <td>${escapeHtml(item.field || '-')}</td>
         <td>${escapeHtml(item.appendix || '-')}</td>
@@ -4989,12 +5096,6 @@ function formatDateTime(value) {
   if ($('btnFacilityExport')) $('btnFacilityExport').addEventListener('click', exportFacilitiesExcel);
   if ($('btnFacilityPrint')) $('btnFacilityPrint').addEventListener('click', printVisibleFacilities);
   if ($('btnFacilityLogout')) $('btnFacilityLogout').addEventListener('click', closeFacilityManager);
-  if ($('facilityBody')) $('facilityBody').addEventListener('dblclick', (event) => {
-    if (!canEditCurrentFacilityView()) return;
-    const row = event.target.closest('tr[data-id]');
-    if (!row) return;
-    openFacilityForEdit(row.dataset.id);
-  });
   ['facilityCreateOwner','facilityCode','facilityFileNumber','facilityName','facilityDescription','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
   });
@@ -5472,6 +5573,11 @@ function formatDateTime(value) {
 
   if ($('facilityBody')) $('facilityBody').addEventListener('dblclick', (event) => {
     if (event.target.closest('a, button, input, textarea, select, label')) return;
+    const explicitTarget = event.target.closest('[data-facility-open]');
+    if (explicitTarget && explicitTarget.dataset.facilityOpen) {
+      openFacilityForEdit(explicitTarget.dataset.facilityOpen);
+      return;
+    }
     const row = event.target.closest('tr[data-id]');
     if (!row) return;
     openFacilityForEdit(row.dataset.id);
