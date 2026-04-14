@@ -1934,7 +1934,7 @@
   ];
   const FACILITY_APPENDIX_OPTIONS = ["I", "II"];
   const FACILITY_MEMORY_CACHE_TTL_MS = 600000;
-  const FACILITY_REPORT_PREFETCH_TTL_MS = 300000;
+  const FACILITY_REPORT_PREFETCH_TTL_MS = 1800000;
   const FACILITY_WARM_DEBOUNCE_MS = 20000;
   const PASSWORD_CONFIG_CACHE_TTL_MS = 180000;
   const FACILITY_LOCAL_FLUSH_DELAY_MS = 25;
@@ -2695,9 +2695,9 @@
   }
 
   function refreshReportFacilitiesFromCaches(preferredFacilityId = "", options = {}) {
-    rebuildTeamFacilityCacheFromOwnerCaches();
+    const teamItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
     syncFacilityStateFromCaches(preferredFacilityId, { skipRender: !!options.skipFacilityRender });
-    state.reportFacilities = getKnownFacilitiesPool();
+    state.reportFacilities = dedupeFacilities(teamItems.length ? teamItems : getKnownFacilitiesPool());
     return state.reportFacilities;
   }
 
@@ -4939,8 +4939,9 @@ function formatDateTime(value) {
 
   async function loadReportDashboard(forceRemote = false) {
     const reportTitle = $('reportTitle');
-    const mergedItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-    let items = mergedItems;
+    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
+    const mergedOwnerItems = teamCachedItems.length ? teamCachedItems : rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+    let items = dedupeFacilities(mergedOwnerItems);
 
     if (items.length) {
       state.reportFacilities = items;
@@ -4949,49 +4950,36 @@ function formatDateTime(value) {
       renderReportDashboard();
     }
 
-    if (isFacilityCloudReady()) {
-      if (forceRemote || !mergedItems.length) {
-        const remote = await refreshTeamFacilityCacheFromOwnersRemote({
-          force: true,
-          maxAgeMs: 0,
-          onProgress: (_owner, nextItems) => {
-            state.reportFacilities = nextItems;
-            state.reportSource = 'remote';
-            if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-            renderReportDashboard();
-          }
-        });
-        if (remote && remote.ok) {
-          items = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
-          state.reportSource = 'remote';
-        }
-      } else {
-        const cacheFresh = isTeamFacilityView(TEAM_FACILITY_LABEL) && getIndividualFacilityManagers().every(name => isFacilityCacheFresh(name, FACILITY_REPORT_PREFETCH_TTL_MS));
-        if (!cacheFresh) {
-          void refreshTeamFacilityCacheFromOwnersRemote({
-            background: true,
-            maxAgeMs: FACILITY_REPORT_PREFETCH_TTL_MS,
-            onProgress: (_owner, nextItems) => {
-              state.reportFacilities = nextItems;
-              state.reportSource = 'remote';
-              if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-              renderReportDashboard();
-            }
-          }).then(remote => {
-            if (remote && remote.ok) {
-              state.reportFacilities = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
-              state.reportSource = 'remote';
-              if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-              renderReportDashboard();
-            }
-          }).catch(() => {});
-        }
-      }
+    if (!isFacilityCloudReady()) {
+      state.reportFacilities = items;
+      if (!state.reportSource) state.reportSource = items.length ? 'local' : '';
+      if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
+      renderReportDashboard();
+      return;
     }
 
-    items = dedupeFacilities(items);
+    const teamCacheFresh = isFacilityCacheFresh(TEAM_FACILITY_LABEL, FACILITY_REPORT_PREFETCH_TTL_MS);
+
+    if (forceRemote || !items.length) {
+      const remote = await refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL);
+      if (remote && remote.ok) {
+        items = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
+        state.reportSource = 'remote';
+      }
+    } else if (!teamCacheFresh) {
+      void refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL).then(remote => {
+        if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) return;
+        if (!remote || !remote.ok) return;
+        state.reportFacilities = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
+        state.reportSource = 'remote';
+        if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
+        renderReportDashboard();
+      }).catch(() => {});
+    }
+
+    items = dedupeFacilities(items.length ? items : getFacilityCache(TEAM_FACILITY_LABEL));
     state.reportFacilities = items;
-    if (!state.reportSource) state.reportSource = items.length ? (isFacilityCloudReady() ? 'cache' : 'local') : '';
+    if (!state.reportSource) state.reportSource = items.length ? (teamCacheFresh ? 'cache' : 'local') : '';
     if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
     renderReportDashboard();
   }
