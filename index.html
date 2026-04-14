@@ -1938,6 +1938,7 @@
   const FACILITY_WARM_DEBOUNCE_MS = 20000;
   const PASSWORD_CONFIG_CACHE_TTL_MS = 180000;
   const FACILITY_LOCAL_FLUSH_DELAY_MS = 25;
+  const TEAM_REMOTE_SYNC_CONCURRENCY = 3;
 
   const state = {
 
@@ -2649,10 +2650,20 @@
     setAdminPasswordConfigVisibility(!state.adminPasswordConfigVisible);
   }
 
-  function rebuildTeamFacilityCacheFromLocals() {
-    const items = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
-    setFacilityCache(TEAM_FACILITY_LABEL, items);
+  function rebuildTeamFacilityCacheFromOwnerCaches(options = {}) {
+    const useLocalOnly = !!options.useLocalOnly;
+    const items = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => {
+      return useLocalOnly ? loadLocalFacilities(name) : getFacilityCache(name);
+    }));
+    setFacilityCache(TEAM_FACILITY_LABEL, items, {
+      source: useLocalOnly ? 'local-merged' : 'merged',
+      loadedAt: Date.now()
+    });
     return items;
+  }
+
+  function rebuildTeamFacilityCacheFromLocals() {
+    return rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
   }
 
   function saveFacilitiesForOwner(ownerName, items) {
@@ -2684,6 +2695,7 @@
   }
 
   function refreshReportFacilitiesFromCaches(preferredFacilityId = "", options = {}) {
+    rebuildTeamFacilityCacheFromOwnerCaches();
     syncFacilityStateFromCaches(preferredFacilityId, { skipRender: !!options.skipFacilityRender });
     state.reportFacilities = getKnownFacilitiesPool();
     return state.reportFacilities;
@@ -3357,12 +3369,143 @@ function formatDateTime(value) {
     return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force });
   }
 
+
+  async function runTasksWithConcurrency(taskFactories, limit = TEAM_REMOTE_SYNC_CONCURRENCY) {
+    const queue = Array.isArray(taskFactories) ? taskFactories.slice() : [];
+    const concurrency = Math.max(1, Number(limit) || 1);
+    const results = [];
+    let cursor = 0;
+
+    async function worker() {
+      while (cursor < queue.length) {
+        const index = cursor++;
+        const task = queue[index];
+        if (typeof task !== 'function') {
+          results[index] = null;
+          continue;
+        }
+        try {
+          results[index] = await task();
+        } catch (error) {
+          results[index] = { ok: false, error };
+        }
+      }
+    }
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, queue.length || 1) }, () => worker()));
+    return results;
+  }
+
+  async function refreshTeamFacilityCacheFromOwnersRemote(options = {}) {
+    if (!isFacilityCloudReady()) {
+      const localItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+      return { ok: !!localItems.length, items: localItems, localOnly: true };
+    }
+    const maxAgeMs = Number(options.maxAgeMs || FACILITY_MEMORY_CACHE_TTL_MS);
+    const force = !!options.force;
+    const background = !!options.background;
+    const onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
+    const managers = getIndividualFacilityManagers();
+    const staleManagers = force
+      ? managers
+      : managers.filter(name => !isFacilityCacheFresh(name, maxAgeMs));
+
+    if (!staleManagers.length) {
+      const items = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+      return { ok: true, items, cached: true, fresh: true };
+    }
+
+    const taskFactories = staleManagers.map(owner => async () => {
+      const remote = await refreshFacilityCacheFromRemote(owner);
+      if (remote && remote.ok) {
+        const items = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+        if (onProgress) onProgress(owner, items, remote);
+      }
+      return remote;
+    });
+
+    const runner = runTasksWithConcurrency(taskFactories, TEAM_REMOTE_SYNC_CONCURRENCY).then(results => {
+      const items = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+      const failed = results.filter(item => !(item && item.ok));
+      return {
+        ok: failed.length < staleManagers.length,
+        items,
+        partial: failed.length > 0,
+        failedOwners: staleManagers.filter((_, index) => !(results[index] && results[index].ok))
+      };
+    });
+
+    if (background) {
+      runner.catch(() => {});
+      return { ok: true, items: rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }), cached: true, background: true };
+    }
+    return runner;
+  }
+
   async function loadFacilities() {
     const managerName = getCurrentFacilityManager();
     const loadToken = ++state.facilityLoadToken;
     updateFacilityManagerLabel();
     updateFacilityCreateModeUI();
     if (isTeamFacilityView()) closeFacilityEditModal();
+
+    if (isTeamFacilityView(managerName)) {
+      const mergedLocalItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+      if (mergedLocalItems.length) {
+        state.facilities = mergedLocalItems;
+        renderFacilities();
+      }
+
+      if (!isFacilityCloudReady()) {
+        if (!mergedLocalItems.length) {
+          state.facilities = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
+          renderFacilities();
+        }
+        setFacilityStatus('info', '');
+        return { ok: !!state.facilities.length, cached: true, items: state.facilities };
+      }
+
+      if (mergedLocalItems.length) {
+        setFacilityStatus('info', '');
+        void refreshTeamFacilityCacheFromOwnersRemote({
+          background: true,
+          maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS,
+          onProgress: (_owner, items) => {
+            if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
+            state.facilities = items;
+            renderFacilities();
+          }
+        }).then(result => {
+          if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
+          if (result && result.items) {
+            state.facilities = result.items;
+            renderFacilities();
+          }
+          setFacilityStatus('info', '');
+        }).catch(() => {});
+        return { ok: true, cached: true, items: mergedLocalItems, background: true };
+      }
+
+      setFacilityStatus('info', '');
+      const teamResult = await refreshTeamFacilityCacheFromOwnersRemote({
+        force: true,
+        maxAgeMs: 0,
+        onProgress: (_owner, items) => {
+          if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
+          state.facilities = items;
+          renderFacilities();
+        }
+      });
+
+      if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
+        return teamResult;
+      }
+
+      state.facilities = getFacilityCache(managerName);
+      renderFacilities();
+      setFacilityStatus('info', '');
+      return teamResult;
+    }
 
     const cachedFacilities = getFacilityCache(managerName);
     if (cachedFacilities.length) {
@@ -3391,6 +3534,7 @@ function formatDateTime(value) {
         if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
         if (result && result.ok) {
           state.facilities = getFacilityCache(managerName);
+          rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
           renderFacilities();
           setFacilityStatus('info', '');
         }
@@ -3407,6 +3551,7 @@ function formatDateTime(value) {
 
     if (result && result.ok) {
       state.facilities = getFacilityCache(managerName);
+      rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
       renderFacilities();
       setFacilityStatus('info', '');
       return result;
@@ -3414,14 +3559,12 @@ function formatDateTime(value) {
 
     state.facilities = getFacilityCache(managerName);
     renderFacilities();
-    const fallbackMessage = (result && (result.error || result.message))
-      ? String(result.error || result.message)
-      : 'Không kết nối được Apps Script.';
     setFacilityStatus('info', '');
     return result;
   }
 
   function setFacilityStatus(type, message) {
+
     const statusBox = $('facilitySaveStatus');
     if (!statusBox) return;
     const textValue = String(message || '').trim();
@@ -4795,83 +4938,62 @@ function formatDateTime(value) {
   }
 
   async function loadReportDashboard(forceRemote = false) {
-    const statusBox = $('facilitySaveStatus');
-    const cachedItems = dedupeFacilities(getFacilityCache(TEAM_FACILITY_LABEL));
-    const localFallbackItems = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+    const reportTitle = $('reportTitle');
+    const mergedItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+    let items = mergedItems;
 
-    if (cachedItems.length) {
-      state.reportFacilities = cachedItems;
-      state.reportSource = `Bộ nhớ đệm - ${cachedItems.length} cơ sở`;
+    if (items.length) {
+      state.reportFacilities = items;
+      state.reportSource = isFacilityCloudReady() ? 'cache' : 'local';
+      if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
       renderReportDashboard();
     }
 
-    let items = cachedItems.length ? cachedItems : localFallbackItems;
-    let source = cachedItems.length
-      ? `Bộ nhớ đệm - ${cachedItems.length} cơ sở`
-      : (localFallbackItems.length ? `Dữ liệu cục bộ - ${localFallbackItems.length} cơ sở` : 'Chưa có dữ liệu để báo cáo');
-
     if (isFacilityCloudReady()) {
-      const cacheFresh = cachedItems.length && isFacilityCacheFresh(TEAM_FACILITY_LABEL, FACILITY_REPORT_PREFETCH_TTL_MS);
-      if (forceRemote || !cachedItems.length) {
-        const remote = await ensureFacilityCacheReady(TEAM_FACILITY_LABEL, {
+      if (forceRemote || !mergedItems.length) {
+        const remote = await refreshTeamFacilityCacheFromOwnersRemote({
           force: true,
-          maxAgeMs: forceRemote ? 0 : FACILITY_REPORT_PREFETCH_TTL_MS
+          maxAgeMs: 0,
+          onProgress: (_owner, nextItems) => {
+            state.reportFacilities = nextItems;
+            state.reportSource = 'remote';
+            if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
+            renderReportDashboard();
+          }
         });
         if (remote && remote.ok) {
           items = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
-          source = `Đồng bộ hệ thống - ${items.length} cơ sở`;
+          state.reportSource = 'remote';
         }
-      } else if (!cacheFresh) {
-        void refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL).then(remote => {
-          if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) return;
-          if (!remote || !remote.ok) return;
-          const refreshedItems = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
-          state.reportFacilities = refreshedItems;
-          state.reportSource = `Đồng bộ hệ thống - ${refreshedItems.length} cơ sở`;
-          renderReportDashboard();
-        }).catch(() => {});
+      } else {
+        const cacheFresh = isTeamFacilityView(TEAM_FACILITY_LABEL) && getIndividualFacilityManagers().every(name => isFacilityCacheFresh(name, FACILITY_REPORT_PREFETCH_TTL_MS));
+        if (!cacheFresh) {
+          void refreshTeamFacilityCacheFromOwnersRemote({
+            background: true,
+            maxAgeMs: FACILITY_REPORT_PREFETCH_TTL_MS,
+            onProgress: (_owner, nextItems) => {
+              state.reportFacilities = nextItems;
+              state.reportSource = 'remote';
+              if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
+              renderReportDashboard();
+            }
+          }).then(remote => {
+            if (remote && remote.ok) {
+              state.reportFacilities = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
+              state.reportSource = 'remote';
+              if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
+              renderReportDashboard();
+            }
+          }).catch(() => {});
+        }
       }
     }
 
-    if (!items.length) {
-      items = localFallbackItems;
-      source = items.length ? `Dữ liệu cục bộ - ${items.length} cơ sở` : 'Chưa có dữ liệu để báo cáo';
-    }
-
+    items = dedupeFacilities(items);
     state.reportFacilities = items;
-    state.reportSource = source;
+    if (!state.reportSource) state.reportSource = items.length ? (isFacilityCloudReady() ? 'cache' : 'local') : '';
+    if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
     renderReportDashboard();
-    if (statusBox) {
-      statusBox.className = items.length ? 'status success' : 'status warning';
-      statusBox.textContent = items.length ? '' : 'Chưa có dữ liệu cơ sở để tạo báo cáo.';
-    }
-  }
-
-  function renderReportDashboard() {
-    const items = Array.isArray(state.reportFacilities) ? state.reportFacilities : [];
-    const total = items.length;
-    const fieldRows = buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực');
-    const groupRows = buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm');
-    const areaRows = buildCountRows(items, item => deriveAreaFromAddress(item.address));
-    const descriptionRows = buildCountRows(items, item => item.description || 'Chưa nhập mô tả');
-    const insuranceSoon = getFacilitiesByExpiry(items, 'insurance', 'soon').length;
-    const maintenanceSoon = getFacilitiesByExpiry(items, 'maintenance', 'soon').length;
-    const drillCount = items.filter(item => facilityFieldHasValue(item, 'drill')).length;
-    const trainingCount = items.filter(item => facilityFieldHasValue(item, 'training')).length;
-
-    if ($('reportStatTotal')) $('reportStatTotal').textContent = String(total);
-    if ($('reportStatDrill')) $('reportStatDrill').textContent = String(drillCount);
-    if ($('reportStatTraining')) $('reportStatTraining').textContent = String(trainingCount);
-    if ($('reportStatInsuranceSoon')) $('reportStatInsuranceSoon').textContent = String(insuranceSoon);
-    if ($('reportStatMaintenanceSoon')) $('reportStatMaintenanceSoon').textContent = String(maintenanceSoon);
-
-    renderReportRows('reportFieldBody', fieldRows, total, 'Chưa có dữ liệu theo lĩnh vực.');
-    renderReportRows('reportGroupBody', groupRows, total, 'Chưa có dữ liệu theo nhóm.');
-    renderReportRows('reportAreaBody', areaRows, total, 'Chưa có dữ liệu theo địa bàn.');
-    renderReportRows('reportDescriptionBody', descriptionRows, total, 'Chưa có dữ liệu theo mô tả.');
-    renderReportIssueTable(items);
-    applyAllGenericTableFilters();
-    if ($('reportIssueHint')) $('reportIssueHint').textContent = 'Nhấp đúp vào tên cơ sở trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.';
   }
 
   async function openReportDashboard(options = {}) {
