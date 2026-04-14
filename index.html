@@ -1834,7 +1834,6 @@
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5PckpbLp4b3WXEQuQP9WmGy4IWMJkpOWI2LSrfon1VADS15Tc3Ea5h10j7q9a2Jjr/exec";
   const ADMIN_PASSWORD = "101212019";
   const MANAGER_PASSWORD_CONFIG_STORAGE_KEY = "pc07_manager_password_configs_v1";
-  const FACILITY_LOCAL_STORAGE_PREFIX = "pc07_facility_manager_v2";
   const TEAM_FACILITY_LABEL = "Cơ sở Đội 2";
   const INDIVIDUAL_FACILITY_MANAGERS = [
     "Phạm Thái Sơn",
@@ -1847,17 +1846,6 @@
     "Phí Văn Tuyển",
     "Tạ Minh Phương"
   ];
-  const MANAGER_STORAGE_IDS = {
-    "Phạm Thái Sơn": "pham_thai_son",
-    "Phan Văn Thanh": "phan_van_thanh",
-    "Phạm Thanh Tùng": "pham_thanh_tung",
-    "Hoàng Minh Quang": "hoang_minh_quang",
-    "Nguyễn Xuân Quang": "nguyen_xuan_quang",
-    "Nguyễn Văn Nguyên": "nguyen_van_nguyen",
-    "Phạm Quyền Anh": "pham_quyen_anh",
-    "Phí Văn Tuyển": "phi_van_tuyen",
-    "Tạ Minh Phương": "ta_minh_phuong"
-  };
   const FACILITY_ISSUE_TYPES = ["NQ32", "TDNT", "Tồn tại sau kiểm tra"];
   const FACILITY_FIELD_OPTIONS = [
     "Thương mại, dịch vụ",
@@ -1875,10 +1863,7 @@
   const FACILITY_APPENDIX_OPTIONS = ["I", "II"];
   const FACILITY_MEMORY_CACHE_TTL_MS = 600000;
   const FACILITY_REPORT_PREFETCH_TTL_MS = 1800000;
-  const FACILITY_WARM_DEBOUNCE_MS = 20000;
   const PASSWORD_CONFIG_CACHE_TTL_MS = 180000;
-  const FACILITY_LOCAL_FLUSH_DELAY_MS = 25;
-  const TEAM_REMOTE_SYNC_CONCURRENCY = 3;
 
   const state = {
 
@@ -2373,11 +2358,6 @@
     return [...INDIVIDUAL_FACILITY_MANAGERS];
   }
 
-  function getFacilityStorageKey(managerName = getCurrentFacilityManager()) {
-    const manager = managerName || getCurrentFacilityManager();
-    const suffix = MANAGER_STORAGE_IDS[manager] || manager.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_");
-    return `${FACILITY_LOCAL_STORAGE_PREFIX}_${suffix}`;
-  }
 
   function renderFacilityOwnerOptions(selectId, selectedValue = "") {
     const select = $(selectId);
@@ -2654,43 +2634,33 @@
   }
 
   function rebuildTeamFacilityCacheFromOwnerCaches(options = {}) {
-    const useLocalOnly = !!options.useLocalOnly;
-    const currentTeamCache = useLocalOnly ? [] : getFacilityCache(TEAM_FACILITY_LABEL);
-    const fallbackItems = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
-    const items = dedupeFacilities((Array.isArray(currentTeamCache) && currentTeamCache.length) ? currentTeamCache : fallbackItems);
-    setFacilityCache(TEAM_FACILITY_LABEL, items, {
-      source: useLocalOnly ? 'local-merged' : (items === currentTeamCache ? 'team-cache' : 'local-merged'),
+    const ownerPool = getIndividualFacilityManagers().flatMap(name => state.facilityCache[name] || []);
+    const currentTeamCache = Array.isArray(state.facilityCache[TEAM_FACILITY_LABEL]) ? state.facilityCache[TEAM_FACILITY_LABEL] : [];
+    const items = dedupeFacilities(currentTeamCache.length ? currentTeamCache : ownerPool);
+    return setFacilityCache(TEAM_FACILITY_LABEL, items, {
+      source: currentTeamCache.length ? 'team-cache' : 'owner-cache',
       loadedAt: Date.now()
     });
-    return items;
   }
 
   function rebuildTeamFacilityCacheFromLocals() {
-    return rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
+    return rebuildTeamFacilityCacheFromOwnerCaches();
   }
 
   function applyOwnerItemsToTeamCache(ownerName, items) {
     const owner = String(ownerName || '').trim();
     const normalizedOwnerItems = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner })).filter(item => item.name));
-    const currentTeamItems = dedupeFacilities([
-      ...getFacilityCache(TEAM_FACILITY_LABEL),
-      ...getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name))
-    ]);
-    const merged = dedupeFacilities([
-      ...currentTeamItems.filter(item => String(item.owner || '').trim() !== owner),
-      ...normalizedOwnerItems
-    ]);
-    setFacilityCache(TEAM_FACILITY_LABEL, merged, {
+    const currentTeamItems = getFacilityCache(TEAM_FACILITY_LABEL).filter(item => String(item.owner || '').trim() !== owner);
+    const merged = dedupeFacilities([...currentTeamItems, ...normalizedOwnerItems]);
+    return setFacilityCache(TEAM_FACILITY_LABEL, merged, {
       source: 'team-cache',
       loadedAt: Date.now()
     });
-    return merged;
   }
 
   function saveFacilitiesForOwner(ownerName, items) {
     const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: ownerName })).filter(item => item.name));
-    saveLocalFacilities(normalized, ownerName);
-    setFacilityCache(ownerName, normalized);
+    setFacilityCache(ownerName, normalized, { source: 'memory', loadedAt: Date.now() });
     applyOwnerItemsToTeamCache(ownerName, normalized);
     return normalized;
   }
@@ -2717,13 +2687,14 @@
 
   function refreshReportFacilitiesFromCaches(preferredFacilityId = "", options = {}) {
     const teamItems = getFacilityCache(TEAM_FACILITY_LABEL);
-    const fallbackItems = teamItems.length ? teamItems : rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+    const fallbackItems = teamItems.length ? teamItems : rebuildTeamFacilityCacheFromOwnerCaches();
     syncFacilityStateFromCaches(preferredFacilityId, { skipRender: !!options.skipFacilityRender });
     state.reportFacilities = dedupeFacilities(fallbackItems.length ? fallbackItems : getKnownFacilitiesPool());
     return state.reportFacilities;
   }
 
   function updateFacilityManagerLabel() {
+
     const label = $("facilityManagerLabel");
     const hint = $("facilityTableHint");
     if (label) label.textContent = getFacilityViewTitle();
@@ -3200,106 +3171,36 @@ function formatDateTime(value) {
   }
 
   function syncFacilityCacheByOwner(items, managerName = getCurrentFacilityManager()) {
+    const key = managerName || getCurrentFacilityManager();
     const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility(item)).filter(item => item.name));
-    if (isTeamFacilityView(managerName)) {
+
+    if (isTeamFacilityView(key)) {
+      setFacilityCache(TEAM_FACILITY_LABEL, normalized, { source: 'remote', loadedAt: Date.now() });
       const grouped = {};
-      getIndividualFacilityManagers().forEach(name => grouped[name] = []);
+      getIndividualFacilityManagers().forEach(owner => { grouped[owner] = []; });
       normalized.forEach(item => {
-        const owner = String(item.owner || "").trim();
-        if (grouped[owner]) grouped[owner].push(item);
+        const owner = String(item.owner || '').trim();
+        if (!grouped[owner]) grouped[owner] = [];
+        grouped[owner].push(item);
       });
-      Object.keys(grouped).forEach(owner => saveLocalFacilities(grouped[owner], owner));
-      return;
-    }
-    saveLocalFacilities(normalized, managerName);
-  }
-
-  const facilityRemoteRequests = new Map();
-  const facilityLocalWriteTimers = new Map();
-  const facilityLocalWriteCache = new Map();
-
-  function setFacilityCacheMeta(managerName = getCurrentFacilityManager(), meta = {}) {
-    const key = managerName || getCurrentFacilityManager();
-    const previous = state.facilityCacheMeta[key] || {};
-    state.facilityCacheMeta[key] = {
-      ...previous,
-      ...meta,
-      loadedAt: Number(meta.loadedAt || Date.now())
-    };
-    return state.facilityCacheMeta[key];
-  }
-
-  function getFacilityCacheMeta(managerName = getCurrentFacilityManager()) {
-    return state.facilityCacheMeta[managerName || getCurrentFacilityManager()] || {};
-  }
-
-  function getFacilityCacheAgeMs(managerName = getCurrentFacilityManager()) {
-    const loadedAt = Number(getFacilityCacheMeta(managerName).loadedAt || 0);
-    if (!loadedAt) return Number.POSITIVE_INFINITY;
-    return Date.now() - loadedAt;
-  }
-
-  function isFacilityCacheFresh(managerName = getCurrentFacilityManager(), maxAgeMs = FACILITY_MEMORY_CACHE_TTL_MS) {
-    const key = managerName || getCurrentFacilityManager();
-    const hasItems = Array.isArray(state.facilityCache[key]);
-    return hasItems && getFacilityCacheAgeMs(key) <= maxAgeMs;
-  }
-
-  function flushFacilityLocalWrite(storageKey) {
-    try {
-      const payload = facilityLocalWriteCache.get(storageKey);
-      if (typeof payload === 'string') {
-        localStorage.setItem(storageKey, payload);
-      }
-    } catch (err) {
-      console.warn('Không lưu được dữ liệu cơ sở cục bộ:', err);
-    } finally {
-      const timerId = facilityLocalWriteTimers.get(storageKey);
-      if (timerId) clearTimeout(timerId);
-      facilityLocalWriteTimers.delete(storageKey);
-    }
-  }
-
-  function flushAllFacilityLocalWrites() {
-    Array.from(facilityLocalWriteCache.keys()).forEach(storageKey => flushFacilityLocalWrite(storageKey));
-  }
-
-  function saveLocalFacilities(items, managerName = getCurrentFacilityManager()) {
-    if (isTeamFacilityView(managerName)) return [];
-    try {
-      const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: managerName })).filter(item => item.name));
-      const key = getFacilityStorageKey(managerName);
-      const payload = JSON.stringify(normalized);
-      facilityLocalWriteCache.set(key, payload);
-      const timerId = facilityLocalWriteTimers.get(key);
-      if (timerId) clearTimeout(timerId);
-      facilityLocalWriteTimers.set(key, window.setTimeout(() => flushFacilityLocalWrite(key), FACILITY_LOCAL_FLUSH_DELAY_MS));
+      Object.keys(grouped).forEach(owner => {
+        setFacilityCache(owner, grouped[owner], {
+          source: 'team-derived',
+          loadedAt: Date.now()
+        });
+      });
       return normalized;
-    } catch (err) {
-      console.warn('Không lưu được dữ liệu cơ sở cục bộ:', err);
-      return [];
     }
+
+    setFacilityCache(key, normalized, { source: 'remote', loadedAt: Date.now() });
+    applyOwnerItemsToTeamCache(key, normalized);
+    return normalized;
   }
 
-  function loadLocalFacilities(managerName = getCurrentFacilityManager()) {
-    if (isTeamFacilityView(managerName)) {
-      const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
-      if (Array.isArray(teamCached) && teamCached.length) return dedupeFacilities(teamCached);
-      return sortFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
-    }
-    try {
-      const key = getFacilityStorageKey(managerName);
-      const raw = facilityLocalWriteCache.get(key) || localStorage.getItem(key);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed)
-        ? sortFacilities(parsed.map(item => normalizeFacility({ ...item, owner: item?.owner || managerName })).filter(item => item.name))
-        : [];
-    } catch (err) {
-      console.warn('Không đọc được dữ liệu cơ sở cục bộ:', err);
-      return [];
-    }
-  }
+  function flushFacilityLocalWrite() {}
+
+  function flushAllFacilityLocalWrites() {}
+
 
   function setFacilityCache(managerName = getCurrentFacilityManager(), items = [], meta = {}) {
     const key = managerName || getCurrentFacilityManager();
@@ -3322,13 +3223,13 @@ function formatDateTime(value) {
     if (Array.isArray(cached)) {
       return isTeamFacilityView(key) ? dedupeFacilities(cached) : sortFacilities(cached);
     }
-    const localItems = loadLocalFacilities(key);
-    if (Array.isArray(localItems) && localItems.length) return setFacilityCache(key, localItems, { source: 'local' });
     if (!isTeamFacilityView(key)) {
       const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
       if (Array.isArray(teamCached) && teamCached.length) {
         const ownerItems = teamCached.filter(item => String(item?.owner || '').trim() === key);
-        if (ownerItems.length) return setFacilityCache(key, ownerItems, { source: 'team-derived' });
+        if (ownerItems.length) {
+          return setFacilityCache(key, ownerItems, { source: 'team-derived', loadedAt: getFacilityCacheMeta(TEAM_FACILITY_LABEL).loadedAt || Date.now() });
+        }
       }
     }
     return [];
@@ -3390,62 +3291,7 @@ function formatDateTime(value) {
     if (!isFacilityCloudReady()) return Promise.resolve({ ok: false, localOnly: true, message: 'Chưa cấu hình Apps Script' });
     const key = targetManager || getCurrentFacilityManager();
     const maxAgeMs = Number(options.maxAgeMs || FACILITY_MEMORY_CACHE_TTL_MS);
-    const force = !!options.force;
-    if (!force && isFacilityCacheFresh(key, maxAgeMs)) {
-      return Promise.resolve({ ok: true, items: getFacilityCache(key), cached: true, fresh: true });
-    }
-    const warmMarks = state.facilityWarmStarted && typeof state.facilityWarmStarted === 'object' ? state.facilityWarmStarted : {};
-    const lastWarm = Number(warmMarks[key] || 0);
-    const now = Date.now();
-    if (!force && lastWarm && (now - lastWarm) < FACILITY_WARM_DEBOUNCE_MS) {
-      return Promise.resolve({ ok: true, items: getFacilityCache(key), cached: true, skipped: true });
-    }
-    warmMarks[key] = now;
-    state.facilityWarmStarted = warmMarks;
-    return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force });
-  }
-
-
-  async function runTasksWithConcurrency(taskFactories, limit = TEAM_REMOTE_SYNC_CONCURRENCY) {
-    const queue = Array.isArray(taskFactories) ? taskFactories.slice() : [];
-    const concurrency = Math.max(1, Number(limit) || 1);
-    const results = [];
-    let cursor = 0;
-
-    async function worker() {
-      while (cursor < queue.length) {
-        const index = cursor++;
-        const task = queue[index];
-        if (typeof task !== 'function') {
-          results[index] = null;
-          continue;
-        }
-        try {
-          results[index] = await task();
-        } catch (error) {
-          results[index] = { ok: false, error };
-        }
-      }
-    }
-
-    await Promise.all(Array.from({ length: Math.min(concurrency, queue.length || 1) }, () => worker()));
-    return results;
-  }
-
-  async function refreshTeamFacilityCacheFromOwnersRemote(options = {}) {
-    if (!isFacilityCloudReady()) {
-      const localItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-      return { ok: !!localItems.length, items: localItems, localOnly: true };
-    }
-    const maxAgeMs = Number(options.maxAgeMs || FACILITY_REPORT_PREFETCH_TTL_MS);
-    const force = !!options.force;
-    const background = !!options.background;
-    const request = ensureFacilityCacheReady(TEAM_FACILITY_LABEL, { force, maxAgeMs, background });
-    if (background) {
-      Promise.resolve(request).catch(() => {});
-      return { ok: true, items: getFacilityCache(TEAM_FACILITY_LABEL), cached: true, background: true };
-    }
-    return request;
+    return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force: !!options.force });
   }
 
   async function loadFacilities() {
@@ -3455,78 +3301,37 @@ function formatDateTime(value) {
     updateFacilityCreateModeUI();
     if (isTeamFacilityView()) closeFacilityEditModal();
 
-    if (isTeamFacilityView(managerName)) {
-      const teamCachedItems = getFacilityCache(managerName);
-      if (teamCachedItems.length) {
-        state.facilities = teamCachedItems;
-        renderFacilities();
-      }
-
-      if (!isFacilityCloudReady()) {
-        if (!teamCachedItems.length) {
-          state.facilities = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
-          renderFacilities();
-        }
-        setFacilityStatus('info', '');
-        return { ok: !!state.facilities.length, cached: true, items: state.facilities, localOnly: true };
-      }
-
-      const teamCacheFresh = teamCachedItems.length && isFacilityCacheFresh(managerName, FACILITY_REPORT_PREFETCH_TTL_MS);
-      if (teamCacheFresh) {
-        setFacilityStatus('info', '');
-        return { ok: true, cached: true, items: teamCachedItems };
-      }
-
-      if (teamCachedItems.length) {
-        setFacilityStatus('info', '');
-        void ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_REPORT_PREFETCH_TTL_MS }).then(result => {
-          if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
-          if (result && result.ok) {
-            state.facilities = getFacilityCache(managerName);
-            renderFacilities();
-            setFacilityStatus('info', '');
-          }
-        }).catch(() => {});
-        return { ok: true, cached: true, items: teamCachedItems, background: true };
-      }
-
-      setFacilityStatus('info', '');
-      const teamResult = await ensureFacilityCacheReady(managerName, { force: true, maxAgeMs: 0 });
-
-      if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
-        return teamResult;
-      }
-
-      state.facilities = getFacilityCache(managerName);
-      renderFacilities();
-      setFacilityStatus('info', '');
-      return teamResult;
-    }
-
     const cachedFacilities = getFacilityCache(managerName);
     if (cachedFacilities.length) {
       state.facilities = cachedFacilities;
       renderFacilities();
     }
 
+    setFacilityStatus('info', '');
+
     if (!isFacilityCloudReady()) {
-      if (!cachedFacilities.length) {
-        state.facilities = loadLocalFacilities(managerName);
-        renderFacilities();
-      }
-      setFacilityStatus('info', '');
-      return { ok: !!state.facilities.length, cached: true, items: state.facilities };
+      state.facilities = cachedFacilities;
+      renderFacilities();
+      return { ok: !!cachedFacilities.length, cached: true, items: cachedFacilities, localOnly: true };
     }
 
-    const cacheFresh = cachedFacilities.length && isFacilityCacheFresh(managerName, FACILITY_MEMORY_CACHE_TTL_MS);
-    if (cacheFresh) {
-      setFacilityStatus('info', '');
+    const maxAgeMs = isTeamFacilityView(managerName)
+      ? FACILITY_REPORT_PREFETCH_TTL_MS
+      : FACILITY_MEMORY_CACHE_TTL_MS;
+
+    if (cachedFacilities.length && isFacilityCacheFresh(managerName, maxAgeMs)) {
       return { ok: true, cached: true, items: cachedFacilities };
     }
 
-    if (cachedFacilities.length) {
-      setFacilityStatus('info', '');
-      void ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS }).then(result => {
+    const shouldAwaitRemote = !cachedFacilities.length;
+    const request = ensureFacilityCacheReady(managerName, {
+      force: shouldAwaitRemote,
+      maxAgeMs: shouldAwaitRemote ? 0 : maxAgeMs,
+      background: !shouldAwaitRemote
+    });
+
+    if (!shouldAwaitRemote) {
+      void Promise.resolve(request).then(result => {
         if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
         if (result && result.ok) {
           state.facilities = getFacilityCache(managerName);
@@ -3537,17 +3342,8 @@ function formatDateTime(value) {
       return { ok: true, cached: true, items: cachedFacilities, background: true };
     }
 
-    setFacilityStatus('info', '');
-    const result = await ensureFacilityCacheReady(managerName, { force: true, maxAgeMs: 0 });
-
+    const result = await request;
     if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
-      return result;
-    }
-
-    if (result && result.ok) {
-      state.facilities = getFacilityCache(managerName);
-      renderFacilities();
-      setFacilityStatus('info', '');
       return result;
     }
 
@@ -3558,6 +3354,7 @@ function formatDateTime(value) {
   }
 
   function setFacilityStatus(type, message) {
+
 
     const statusBox = $('facilitySaveStatus');
     if (!statusBox) return;
@@ -4125,14 +3922,14 @@ function formatDateTime(value) {
     state.selectedFacilityId = facility.id;
     syncFacilityStateFromCaches(facility.id);
     resetFacilityForm({ preserveStatus: true, preserveOwner: true });
-    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu nhanh trên máy, đang đồng bộ lên hệ thống...' : 'Đã lưu cơ sở thành công.');
+    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu tạm trong phiên làm việc này, đang đồng bộ lên hệ thống...' : 'Đã lưu cơ sở thành công.');
     setTimeout(() => $('facilityName').focus(), 30);
 
     if (!isFacilityCloudReady()) return;
 
     const result = await saveFacilityRemote(facility);
     if (!result || !result.ok) {
-      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được lên hệ thống.') + ' Dữ liệu vẫn được giữ cục bộ trên trình duyệt này.');
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được lên hệ thống.') + ' Dữ liệu tạm thời vẫn được giữ trong phiên làm việc hiện tại.');
       return;
     }
 
@@ -4258,7 +4055,7 @@ function formatDateTime(value) {
       applyFacilityLocalEdit(currentOwnerName, id, facility);
       closeFacilityEditModal();
       resetFacilityForm({ preserveStatus: true });
-      setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu nhanh trên máy, đang đồng bộ chỉnh sửa...' : 'Đã lưu chỉnh sửa cơ sở thành công.');
+      setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu tạm chỉnh sửa trong phiên làm việc này, đang đồng bộ...' : 'Đã lưu chỉnh sửa cơ sở thành công.');
 
       if (!isFacilityCloudReady()) {
         return;
@@ -4266,7 +4063,7 @@ function formatDateTime(value) {
 
       const result = await saveFacilityRemote(facility);
       if (!result || !result.ok) {
-        setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được chỉnh sửa lên hệ thống.') + ' Dữ liệu chỉnh sửa vẫn được giữ cục bộ trên trình duyệt này.');
+        setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được chỉnh sửa lên hệ thống.') + ' Dữ liệu chỉnh sửa tạm thời vẫn được giữ trong phiên làm việc hiện tại.');
         return;
       }
 
@@ -4330,7 +4127,7 @@ function formatDateTime(value) {
     syncFacilityStateFromCaches();
     closeFacilityEditModal();
     resetFacilityForm({ preserveStatus: true });
-    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã xóa nhanh trên máy, đang đồng bộ lên hệ thống...' : 'Đã xóa cơ sở thành công.');
+    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã cập nhật tạm trong phiên làm việc này, đang đồng bộ xóa lên hệ thống...' : 'Đã xóa cơ sở thành công.');
 
     if (!isFacilityCloudReady()) return;
 
@@ -4338,7 +4135,7 @@ function formatDateTime(value) {
     if (!result || !result.ok) {
       upsertFacilityForOwner(ownerName, facility);
       syncFacilityStateFromCaches();
-      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không xóa được trên hệ thống.') + ' Hệ thống đã khôi phục bản ghi cục bộ.');
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không xóa được trên hệ thống.') + ' Hệ thống đã khôi phục lại bản ghi trong phiên làm việc hiện tại.');
       return;
     }
 
@@ -4548,7 +4345,7 @@ function formatDateTime(value) {
       return;
     }
 
-    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : (MANAGER_STORAGE_IDS[getCurrentFacilityManager()] || 'co_so');
+    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : slugText(getCurrentFacilityManager()).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'co_so';
     if (typeof XLSX === 'undefined') {
       exportFacilitiesExcelFallback(headers, rows, exportSlug);
       return;
@@ -4936,10 +4733,10 @@ function formatDateTime(value) {
       return;
     }
 
-    setFacilityStatus('info', 'Đã lưu nhanh trên máy, đang đồng bộ tồn tại cơ sở...');
+    setFacilityStatus('info', 'Đã lưu tạm thông tin tồn tại trong phiên làm việc này, đang đồng bộ...');
     const result = await saveFacilityRemote(nextFacility);
     if (!result || !result.ok) {
-      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được cập nhật tồn tại lên hệ thống.') + ' Dữ liệu đã được giữ cục bộ trên trình duyệt này.');
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được cập nhật tồn tại lên hệ thống.') + ' Dữ liệu tạm thời vẫn được giữ trong phiên làm việc hiện tại.');
       return;
     }
     const savedFacility = normalizeFacility({ ...nextFacility, ...(result.item || {}) });
@@ -4953,10 +4750,10 @@ function formatDateTime(value) {
     const reportTitle = $('reportTitle');
     const reportHint = $('reportIssueHint');
     const applyReportItems = (items, source = '') => {
-      const normalized = dedupeFacilities(items || []);
+      const normalized = dedupeFacilities(Array.isArray(items) ? items : []);
       state.reportFacilities = normalized;
-      if (source) state.reportSource = source;
-      if (reportTitle) reportTitle.textContent = 'BÁO CÁO CƠ SỞ ĐỘI 2';
+      state.reportSource = source || '';
+      if (reportTitle) reportTitle.textContent = 'Báo cáo Cơ sở Đội 2';
       renderReportDashboard();
       if (reportHint && !normalized.length) {
         reportHint.textContent = 'Chưa có dữ liệu báo cáo để hiển thị.';
@@ -4964,29 +4761,24 @@ function formatDateTime(value) {
       return normalized;
     };
 
-    const teamPool = dedupeFacilities([
-      ...(Array.isArray(state.reportFacilities) ? state.reportFacilities : []),
-      ...getFacilityCache(TEAM_FACILITY_LABEL),
-      ...(Array.isArray(state.facilities) && isTeamFacilityView(state.currentFacilityManager) ? state.facilities : [])
-    ]);
-
-    if (teamPool.length) {
-      applyReportItems(teamPool, isFacilityCloudReady() ? 'cache' : 'local');
+    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
+    if (teamCachedItems.length) {
+      applyReportItems(teamCachedItems, isFacilityCloudReady() ? 'cache' : 'memory');
     } else {
       applyReportItems([], '');
     }
 
     if (!isFacilityCloudReady()) {
-      return { ok: !!teamPool.length, items: teamPool, cached: true, localOnly: true };
+      return { ok: !!teamCachedItems.length, items: teamCachedItems, cached: true, localOnly: true };
     }
 
     if (reportHint) {
-      reportHint.textContent = teamPool.length
+      reportHint.textContent = teamCachedItems.length
         ? 'Đang cập nhật dữ liệu mới nhất cho báo cáo...'
         : 'Đang đồng bộ dữ liệu báo cáo...';
     }
 
-    const shouldAwaitRemote = !!forceRemote || !teamPool.length;
+    const shouldAwaitRemote = !!forceRemote || !teamCachedItems.length;
     const syncRequest = ensureFacilityCacheReady(TEAM_FACILITY_LABEL, {
       force: shouldAwaitRemote,
       maxAgeMs: shouldAwaitRemote ? 0 : FACILITY_REPORT_PREFETCH_TTL_MS,
@@ -4999,7 +4791,7 @@ function formatDateTime(value) {
         if (!remote || !remote.ok) return;
         applyReportItems(getFacilityCache(TEAM_FACILITY_LABEL), 'remote');
       }).catch(() => {});
-      return { ok: true, items: teamPool, cached: true, background: true };
+      return { ok: true, items: teamCachedItems, cached: true, background: true };
     }
 
     const remote = await syncRequest;
@@ -5007,13 +4799,14 @@ function formatDateTime(value) {
       return { ok: true, items: applyReportItems(getFacilityCache(TEAM_FACILITY_LABEL), 'remote') };
     }
 
-    if (reportHint && !teamPool.length) {
+    if (reportHint && !teamCachedItems.length) {
       reportHint.textContent = (remote && (remote.error || remote.message)) || 'Không tải được dữ liệu báo cáo từ hệ thống. Vui lòng thử lại.';
     }
-    return { ok: !!teamPool.length, items: teamPool, cached: true, error: remote && remote.error ? remote.error : '' };
+    return { ok: !!teamCachedItems.length, items: teamCachedItems, cached: true, error: remote && remote.error ? remote.error : '' };
   }
 
   async function openReportDashboard(options = {}) {
+
     if (!isTeamFacilityView(state.currentFacilityManager) || $('adminPanel').classList.contains('hidden')) {
       await openFacilityManager(TEAM_FACILITY_LABEL, {
         systemAdmin: !!state.isSystemAdmin,
