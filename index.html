@@ -4942,19 +4942,22 @@ function formatDateTime(value) {
 
   async function loadReportDashboard(forceRemote = false) {
     const reportTitle = $('reportTitle');
+    const reportHint = $('reportIssueHint');
     const applyReportItems = (items, source = '') => {
       const normalized = dedupeFacilities(items || []);
       state.reportFacilities = normalized;
       if (source) state.reportSource = source;
       if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
+      if (reportHint) {
+        reportHint.textContent = normalized.length
+          ? 'Nhấp đúp vào dòng trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.'
+          : 'Đang đồng bộ dữ liệu báo cáo...';
+      }
       renderReportDashboard();
       return normalized;
     };
 
-    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
-    const ownerMergedItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-    const cachedItems = dedupeFacilities(teamCachedItems.length ? teamCachedItems : ownerMergedItems);
-
+    const cachedItems = dedupeFacilities(rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }));
     if (cachedItems.length) {
       applyReportItems(cachedItems, isFacilityCloudReady() ? 'cache' : 'local');
     } else {
@@ -4966,22 +4969,33 @@ function formatDateTime(value) {
     }
 
     const shouldAwaitRemote = !!forceRemote || !cachedItems.length;
-    const syncRequest = refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL, { fresh: true });
+    const syncRequest = refreshTeamFacilityCacheFromOwnersRemote({
+      force: shouldAwaitRemote,
+      maxAgeMs: shouldAwaitRemote ? 0 : FACILITY_REPORT_PREFETCH_TTL_MS,
+      background: !shouldAwaitRemote,
+      onProgress: (_owner, items) => {
+        if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) return;
+        applyReportItems(items, 'remote-progress');
+      }
+    });
 
     if (!shouldAwaitRemote) {
-      void syncRequest.then(remote => {
+      void Promise.resolve(syncRequest).then(remote => {
         if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) return;
         if (!remote || !remote.ok) return;
-        applyReportItems(remote.items || getFacilityCache(TEAM_FACILITY_LABEL), 'remote');
+        applyReportItems(remote.items || rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }), 'remote');
       }).catch(() => {});
       return { ok: true, items: cachedItems, cached: true, background: true };
     }
 
     const remote = await syncRequest;
     if (remote && remote.ok) {
-      return { ok: true, items: applyReportItems(remote.items || getFacilityCache(TEAM_FACILITY_LABEL), 'remote') };
+      return { ok: true, items: applyReportItems(remote.items || rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false }), 'remote') };
     }
 
+    if (reportHint && !(cachedItems && cachedItems.length)) {
+      reportHint.textContent = (remote && (remote.error || remote.message)) || 'Không tải được dữ liệu báo cáo từ hệ thống. Vui lòng thử lại.';
+    }
     return { ok: !!cachedItems.length, items: cachedItems, cached: true, error: remote && remote.error ? remote.error : '' };
   }
 
