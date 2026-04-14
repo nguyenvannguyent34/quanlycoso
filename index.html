@@ -126,6 +126,7 @@
     body.work-mode #mainGrid.expanded .panel-box,
     body.work-mode #mainGrid.expanded .table-wrap,
     body.work-mode #mainGrid.expanded table,
+    body.work-mode #mainGrid.expanded #viewerPanel,
     body.work-mode #mainGrid.expanded #adminPanel,
     body.work-mode #mainGrid.expanded #reportPanel{
       width:100%;
@@ -395,7 +396,12 @@
     .filter-grid .filter-action button{
       margin-top:0;
     }
-
+    .task-layout{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:18px;
+      align-items:start;
+    }
     .admin-toolbar{
       display:flex;
       justify-content:space-between;
@@ -427,14 +433,58 @@
     .form-grid .full-col{
       grid-column:1 / -1;
     }
-
+    .split-field{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      align-items:stretch;
+    }
+    .split-field .field-box{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .split-field textarea{
+      flex:1;
+      min-height:118px;
+    }
+    .split-field .attachment-box{
+      margin-top:0;
+      flex:1;
+      min-height:118px;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
+    }
+    .split-field input[type="file"]{
+      width:100%;
+    }
+    .priority-tag,
+    .state-tag{
+      display:inline-flex;
+      align-items:center;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .priority-hot{background:#fff1f1;color:#a12626;border-color:#f0c7c7}
+    .priority-high{background:#fff8e8;color:#8b5a00;border-color:#f5e2a8}
+    .priority-normal{background:#eef4ff;color:#194185;border-color:#d6e5ff}
+    .priority-low{background:#f5f7fa;color:#475467;border-color:#d9e0ea}
+    .state-todo{background:#eef4ff;color:#194185;border-color:#d6e5ff}
+    .state-doing{background:#ecfdf3;color:#0f6d33;border-color:#ccebd8}
+    .state-done{background:#fff8e8;color:#8b5a00;border-color:#f5e2a8}
+    .state-hold{background:#f5f7fa;color:#475467;border-color:#d9e0ea}
+    .state-overdue{background:#fff1f1;color:#a12626;border-color:#f0c7c7}
     table{
       width:100%;
       border-collapse:collapse;
       margin-top:12px;
       background:#fff;
     }
-
     th, td{
       border-bottom:1px solid #e6ebf3;
       border-right:1px solid rgba(221,227,238,.6);
@@ -459,7 +509,14 @@
       max-height:600px;
       background:#fff;
     }
-
+    .task-title{font-weight:700; color:#7d1010; text-align:center}
+    .task-desc{color:#475467; margin-top:4px; line-height:1.45; text-align:center}
+    .task-meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
+    .empty-state{
+      padding:28px 16px;
+      text-align:center;
+      color:var(--muted);
+    }
     .note-box{
       padding:14px;
       border-radius:14px;
@@ -469,7 +526,9 @@
       margin-top:14px;
       line-height:1.45;
     }
-
+    .task-note-cell{
+      min-width:140px;
+    }
     .week-stacked{
       display:inline-flex;
       flex-direction:column;
@@ -482,7 +541,33 @@
     .week-stacked .month-line{
       margin-top:2px;
     }
-
+    .task-note-text{
+      line-height:1.45;
+      white-space:pre-wrap;
+      text-align:center;
+    }
+    .task-note-attachment{
+      margin-top:8px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+    .task-note-image{
+      max-width:180px;
+      max-height:120px;
+      border-radius:10px;
+      border:1px solid #e1e7f0;
+      box-shadow:0 6px 16px rgba(16,24,40,.08);
+    }
+    .task-note-file-link{
+      color:#194185;
+      text-decoration:none;
+      font-weight:700;
+    }
+    .task-note-file-link:hover{
+      text-decoration:underline;
+    }
     .task-row-soon td{
       background:#ffe3ee;
     }
@@ -575,6 +660,218 @@
       min-height:20px;
     }
 
+    .attachment-box{
+      margin-top:10px;
+      border:1px dashed #d7deea;
+      border-radius:14px;
+      padding:12px;
+      background:#fcfdff;
+    }
+    .attachment-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .attachment-hint{
+      color:#667085;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .attachment-inline-preview{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      flex:1;
+      min-width:0;
+    }
+    .attachment-inline-preview:empty{
+      display:none;
+    }
+    .attachment-inline-preview .viewer-quick-file-chip{
+      max-width:100%;
+    }
+    .image-preview-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .image-preview-card{
+      border:1px solid #e1e7f0;
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+      text-align:center;
+    }
+    .image-preview-card img{
+      max-width:100%;
+      max-height:220px;
+      border-radius:10px;
+      display:block;
+      margin:0 auto 8px;
+    }
+    .viewer-quick-panel{
+      padding:12px 14px;
+    }
+    .viewer-quick-panel .muted.small{
+      font-size:13px;
+      margin-bottom:6px;
+    }
+    .viewer-quick-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.65fr) minmax(240px,.85fr);
+      gap:12px;
+      align-items:start;
+      margin-top:8px;
+    }
+    .viewer-quick-column{
+      min-width:0;
+      display:grid;
+      gap:10px;
+      align-content:start;
+    }
+    .viewer-quick-field{
+      min-width:0;
+    }
+    .viewer-quick-content-wrap{
+      min-width:0;
+    }
+    .viewer-quick-content-wrap textarea,
+    .viewer-quick-column textarea{
+      min-height:48px;
+      height:48px;
+      resize:vertical;
+      overflow:auto;
+    }
+    .viewer-quick-column .attachment-box{
+      margin-top:0;
+      padding:10px 12px;
+    }
+    .viewer-quick-inline-label{
+      display:block;
+      font-weight:700;
+      margin:0 0 6px;
+      font-size:14px;
+    }
+    .viewer-quick-column .attachment-actions{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .viewer-quick-column .image-preview-grid{
+      grid-template-columns:repeat(auto-fit,minmax(92px,1fr));
+      gap:8px;
+      margin-top:8px;
+    }
+    .viewer-quick-inline-preview{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      flex:1;
+      min-width:0;
+    }
+    .viewer-quick-file-chip{
+      display:inline-flex;
+      align-items:center;
+      max-width:100%;
+      min-height:36px;
+      padding:6px 10px;
+      border:1px solid #d7deea;
+      border-radius:10px;
+      background:#f8fafc;
+      color:#344054;
+      font-size:13px;
+      line-height:1.35;
+      box-shadow:0 2px 6px rgba(16,24,40,.04);
+    }
+    .viewer-quick-file-chip strong{
+      margin-right:6px;
+      color:#194185;
+      flex:none;
+    }
+    .viewer-quick-file-chip span{
+      display:inline-block;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width:220px;
+    }
+    .viewer-quick-column .image-preview-card{
+      padding:8px;
+      border-radius:12px;
+    }
+    .viewer-quick-column .image-preview-card img{
+      max-height:92px;
+      margin-bottom:6px;
+    }
+    .viewer-quick-column .image-preview-file{
+      min-height:56px;
+    }
+    .viewer-quick-footer{
+      margin-top:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .viewer-quick-footer .status{
+      margin:0;
+      flex:1;
+      min-width:240px;
+      padding:10px 12px;
+      font-size:14px;
+    }
+    .image-preview-file{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:86px;
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      background:#f5f7fa;
+      border:1px solid #d9e0ea;
+      font-weight:700;
+      color:#475467;
+    }
+    .image-preview-name{
+      font-size:13px;
+      color:#475467;
+      word-break:break-word;
+    }
+    .task-desc-attachment{
+      margin-top:8px;
+      text-align:center;
+    }
+    .task-desc-image-link{
+      display:inline-block;
+      margin-top:8px;
+    }
+    .task-desc-image{
+      max-width:160px;
+      max-height:110px;
+      border-radius:10px;
+      border:1px solid #e1e7f0;
+      display:block;
+      margin:0 auto;
+    }
+    .task-desc-file-link{
+      display:inline-block;
+      margin-top:8px;
+      padding:8px 12px;
+      border-radius:10px;
+      background:#f5f7fa;
+      border:1px solid #d9e0ea;
+      color:#344054;
+      text-decoration:none;
+      font-weight:700;
+      word-break:break-word;
+    }
     .copyright{
       text-align:center;
       color:#fff;
@@ -584,7 +881,10 @@
     }
     @media (max-width: 1120px){
       .filter-grid{flex-wrap:nowrap;}
-
+      .task-layout{grid-template-columns:1fr}
+      .compact-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .facility-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
     @media (max-width: 980px){
       .grid{grid-template-columns:1fr}
       .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -597,7 +897,29 @@
       .top-unit .line1{font-size:24px}
       .top-unit .line2{font-size:24px}
       .form-grid,.compact-form-panel .form-grid,.facility-form-panel .form-grid{grid-template-columns:1fr}
-
+      .viewer-quick-grid{grid-template-columns:1fr}
+      .viewer-quick-column{gap:10px}
+      .split-field{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .split-field textarea{min-height:96px}
+      .split-field .attachment-box{min-height:96px;padding:10px}
+      .attachment-actions{display:grid;grid-template-columns:1fr}
+      .attachment-actions button{width:100%}
+      .modal-card .modal-body{padding:16px}
+    }
+    @media (max-width: 480px){
+      .split-field{grid-template-columns:1fr}
+      .split-field textarea{min-height:88px}
+      .split-field .attachment-box{min-height:auto}
+      .image-preview-grid{grid-template-columns:1fr}
+    }
+  
+    .facility-toolbar{
+      justify-content:flex-end;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
     .facility-summary-grid{
       grid-template-columns:repeat(8,minmax(0,1fr));
       margin-bottom:16px;
@@ -1087,6 +1409,7 @@
 </button>
 </div>
 
+
 </div>
 </div>
 <div class="card" id="contentCard">
@@ -1097,7 +1420,7 @@
 <div class="card-body">
 <div id="welcomePanel">
 <div class="welcome-illustration">
-<img alt="Quản lý cơ sở đội" src="ready-exam.png"/>
+<img alt="Quản lý công việc đội" src="ready-exam.png"/>
 </div>
 </div>
 
@@ -1356,6 +1679,7 @@
   </div>
 </div>
 
+
 <div class="modal-backdrop hidden" id="facilityEditModal">
 <div class="modal-card modal-large">
 <div class="modal-head">
@@ -1507,9 +1831,10 @@
 <script>
 (() => {
   // Dán link Web App Apps Script dạng /exec vào dòng dưới để cả đội cùng xem chung dữ liệu.
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5PckpbLp4b3WXEQuQP9WmGy4IWMJkpOWI2LSrfon1VADS15Tc3Ea5h10j7q9a2Jjr/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjCSScLHHyJeKF0VS6DfFkRZEcGt4SaQtr115rBPjWSAWedDv6B4LnaZK3BJtEt0nhJQ/exec";
   const ADMIN_PASSWORD = "101212019";
   const MANAGER_PASSWORD_CONFIG_STORAGE_KEY = "pc07_manager_password_configs_v1";
+  const FACILITY_LOCAL_STORAGE_PREFIX = "pc07_facility_manager_v2";
   const TEAM_FACILITY_LABEL = "Cơ sở Đội 2";
   const INDIVIDUAL_FACILITY_MANAGERS = [
     "Phạm Thái Sơn",
@@ -1522,6 +1847,17 @@
     "Phí Văn Tuyển",
     "Tạ Minh Phương"
   ];
+  const MANAGER_STORAGE_IDS = {
+    "Phạm Thái Sơn": "pham_thai_son",
+    "Phan Văn Thanh": "phan_van_thanh",
+    "Phạm Thanh Tùng": "pham_thanh_tung",
+    "Hoàng Minh Quang": "hoang_minh_quang",
+    "Nguyễn Xuân Quang": "nguyen_xuan_quang",
+    "Nguyễn Văn Nguyên": "nguyen_van_nguyen",
+    "Phạm Quyền Anh": "pham_quyen_anh",
+    "Phí Văn Tuyển": "phi_van_tuyen",
+    "Tạ Minh Phương": "ta_minh_phuong"
+  };
   const FACILITY_ISSUE_TYPES = ["NQ32", "TDNT", "Tồn tại sau kiểm tra"];
   const FACILITY_FIELD_OPTIONS = [
     "Thương mại, dịch vụ",
@@ -1539,7 +1875,10 @@
   const FACILITY_APPENDIX_OPTIONS = ["I", "II"];
   const FACILITY_MEMORY_CACHE_TTL_MS = 600000;
   const FACILITY_REPORT_PREFETCH_TTL_MS = 1800000;
+  const FACILITY_WARM_DEBOUNCE_MS = 20000;
   const PASSWORD_CONFIG_CACHE_TTL_MS = 180000;
+  const FACILITY_LOCAL_FLUSH_DELAY_MS = 25;
+  const TEAM_REMOTE_SYNC_CONCURRENCY = 3;
 
   const state = {
 
@@ -1548,6 +1887,7 @@
     facilityCacheMeta: {},
     facilityWarmStarted: {},
     facilityLoadToken: 0,
+    pendingFacilityDeletes: {},
     currentFacilityManager: "Nguyễn Văn Nguyên",
     pendingFacilityManager: "",
     pendingAdminMode: "",
@@ -1587,6 +1927,7 @@
   const $ = (id) => document.getElementById(id);
   const APP_HISTORY_KEY = '__pc07FacilityApp';
   let isApplyingAppHistory = false;
+
 
   function getVisibleAppSection() {
     if ($('reportPanel') && !$('reportPanel').classList.contains('hidden')) return 'report';
@@ -1881,6 +2222,7 @@
     forceReportTableVisible(body);
   }
 
+
   function ensureReportPanelsRendered() {
     ['reportManagerBody', 'reportFieldBody', 'reportIssueBody'].forEach(id => {
       const body = $(id);
@@ -1984,7 +2326,11 @@
   }
 
   function canEditCurrentFacilityView(managerName = getCurrentFacilityManager()) {
-    return true;
+    return !isTeamFacilityView(managerName);
+  }
+
+  function canCreateInCurrentFacilityView(managerName = getCurrentFacilityManager()) {
+    return !isTeamFacilityView(managerName) || isSystemAdminMode();
   }
 
   function getFacilityViewTitle(managerName = getCurrentFacilityManager()) {
@@ -1992,10 +2338,9 @@
   }
 
   function getFacilityViewHint(managerName = getCurrentFacilityManager()) {
+    if (isTeamFacilityView(managerName)) return "Danh sách tổng hợp chỉ để xem, không cho sửa trực tiếp bằng nhấp đúp.";
     if (isSystemAdminMode()) return "Nhấp đúp vào dòng để chỉnh sửa hoặc chuyển cơ sở sang người khác.";
-    return isTeamFacilityView(managerName)
-      ? ""
-      : "Nhấp đúp vào dòng để mở lại biểu mẫu sửa.";
+    return "Nhấp đúp vào dòng để mở lại biểu mẫu sửa.";
   }
 
   function getFacilityReadyStatus(managerName = getCurrentFacilityManager()) {
@@ -2030,6 +2375,12 @@
 
   function getIndividualFacilityManagers() {
     return [...INDIVIDUAL_FACILITY_MANAGERS];
+  }
+
+  function getFacilityStorageKey(managerName = getCurrentFacilityManager()) {
+    const manager = managerName || getCurrentFacilityManager();
+    const suffix = MANAGER_STORAGE_IDS[manager] || manager.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_");
+    return `${FACILITY_LOCAL_STORAGE_PREFIX}_${suffix}`;
   }
 
   function renderFacilityOwnerOptions(selectId, selectedValue = "") {
@@ -2307,33 +2658,43 @@
   }
 
   function rebuildTeamFacilityCacheFromOwnerCaches(options = {}) {
-    const ownerPool = getIndividualFacilityManagers().flatMap(name => state.facilityCache[name] || []);
-    const currentTeamCache = Array.isArray(state.facilityCache[TEAM_FACILITY_LABEL]) ? state.facilityCache[TEAM_FACILITY_LABEL] : [];
-    const items = dedupeFacilities(currentTeamCache.length ? currentTeamCache : ownerPool);
-    return setFacilityCache(TEAM_FACILITY_LABEL, items, {
-      source: currentTeamCache.length ? 'team-cache' : 'owner-cache',
+    const useLocalOnly = !!options.useLocalOnly;
+    const currentTeamCache = useLocalOnly ? [] : getFacilityCache(TEAM_FACILITY_LABEL);
+    const fallbackItems = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+    const items = dedupeFacilities((Array.isArray(currentTeamCache) && currentTeamCache.length) ? currentTeamCache : fallbackItems);
+    setFacilityCache(TEAM_FACILITY_LABEL, items, {
+      source: useLocalOnly ? 'local-merged' : (items === currentTeamCache ? 'team-cache' : 'local-merged'),
       loadedAt: Date.now()
     });
+    return items;
   }
 
   function rebuildTeamFacilityCacheFromLocals() {
-    return rebuildTeamFacilityCacheFromOwnerCaches();
+    return rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
   }
 
   function applyOwnerItemsToTeamCache(ownerName, items) {
     const owner = String(ownerName || '').trim();
     const normalizedOwnerItems = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner })).filter(item => item.name));
-    const currentTeamItems = getFacilityCache(TEAM_FACILITY_LABEL).filter(item => String(item.owner || '').trim() !== owner);
-    const merged = dedupeFacilities([...currentTeamItems, ...normalizedOwnerItems]);
-    return setFacilityCache(TEAM_FACILITY_LABEL, merged, {
+    const currentTeamItems = dedupeFacilities([
+      ...getFacilityCache(TEAM_FACILITY_LABEL),
+      ...getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name))
+    ]);
+    const merged = dedupeFacilities([
+      ...currentTeamItems.filter(item => String(item.owner || '').trim() !== owner),
+      ...normalizedOwnerItems
+    ]);
+    setFacilityCache(TEAM_FACILITY_LABEL, merged, {
       source: 'team-cache',
       loadedAt: Date.now()
     });
+    return merged;
   }
 
   function saveFacilitiesForOwner(ownerName, items) {
-    const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: ownerName })).filter(item => item.name));
-    setFacilityCache(ownerName, normalized, { source: 'memory', loadedAt: Date.now() });
+    const normalized = filterPendingDeletedFacilities(sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: ownerName })).filter(item => item.name)), ownerName);
+    saveLocalFacilities(normalized, ownerName);
+    setFacilityCache(ownerName, normalized);
     applyOwnerItemsToTeamCache(ownerName, normalized);
     return normalized;
   }
@@ -2344,6 +2705,7 @@
   }
 
   function upsertFacilityForOwner(ownerName, facilityItem, replaceId = "") {
+    clearFacilityPendingDelete(replaceId || facilityItem.id);
     const currentItems = getFacilityCache(ownerName).filter(item => item.id !== (replaceId || facilityItem.id));
     currentItems.push(normalizeFacility({ ...facilityItem, owner: ownerName }));
     return saveFacilitiesForOwner(ownerName, currentItems);
@@ -2360,14 +2722,13 @@
 
   function refreshReportFacilitiesFromCaches(preferredFacilityId = "", options = {}) {
     const teamItems = getFacilityCache(TEAM_FACILITY_LABEL);
-    const fallbackItems = teamItems.length ? teamItems : rebuildTeamFacilityCacheFromOwnerCaches();
+    const fallbackItems = teamItems.length ? teamItems : rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
     syncFacilityStateFromCaches(preferredFacilityId, { skipRender: !!options.skipFacilityRender });
     state.reportFacilities = dedupeFacilities(fallbackItems.length ? fallbackItems : getKnownFacilitiesPool());
     return state.reportFacilities;
   }
 
   function updateFacilityManagerLabel() {
-
     const label = $("facilityManagerLabel");
     const hint = $("facilityTableHint");
     if (label) label.textContent = getFacilityViewTitle();
@@ -2377,8 +2738,7 @@
   function updateFacilityCreateModeUI() {
     const managerName = getCurrentFacilityManager();
     const isTeamView = isTeamFacilityView(managerName);
-    const canEdit = canEditCurrentFacilityView(managerName);
-    const canCreate = !!canEdit && (!isTeamView || isSystemAdminMode());
+    const canCreate = canCreateInCurrentFacilityView(managerName);
     const saveButton = $("btnSaveFacility");
     const formPanel = $("facilityFormPanel");
     const saveStatus = $("facilitySaveStatus");
@@ -2844,41 +3204,160 @@ function formatDateTime(value) {
   }
 
   function syncFacilityCacheByOwner(items, managerName = getCurrentFacilityManager()) {
-    const key = managerName || getCurrentFacilityManager();
     const normalized = sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility(item)).filter(item => item.name));
-
-    if (isTeamFacilityView(key)) {
-      setFacilityCache(TEAM_FACILITY_LABEL, normalized, { source: 'remote', loadedAt: Date.now() });
+    if (isTeamFacilityView(managerName)) {
       const grouped = {};
-      getIndividualFacilityManagers().forEach(owner => { grouped[owner] = []; });
+      getIndividualFacilityManagers().forEach(name => grouped[name] = []);
       normalized.forEach(item => {
-        const owner = String(item.owner || '').trim();
-        if (!grouped[owner]) grouped[owner] = [];
-        grouped[owner].push(item);
+        const owner = String(item.owner || "").trim();
+        if (grouped[owner]) grouped[owner].push(item);
       });
-      Object.keys(grouped).forEach(owner => {
-        setFacilityCache(owner, grouped[owner], {
-          source: 'team-derived',
-          loadedAt: Date.now()
-        });
-      });
-      return normalized;
+      Object.keys(grouped).forEach(owner => saveLocalFacilities(grouped[owner], owner));
+      return;
     }
-
-    setFacilityCache(key, normalized, { source: 'remote', loadedAt: Date.now() });
-    applyOwnerItemsToTeamCache(key, normalized);
-    return normalized;
+    saveLocalFacilities(normalized, managerName);
   }
 
-  function flushFacilityLocalWrite() {}
+  const facilityRemoteRequests = new Map();
+  const facilityLocalWriteTimers = new Map();
+  const facilityLocalWriteCache = new Map();
 
-  function flushAllFacilityLocalWrites() {}
+  function setFacilityCacheMeta(managerName = getCurrentFacilityManager(), meta = {}) {
+    const key = managerName || getCurrentFacilityManager();
+    const previous = state.facilityCacheMeta[key] || {};
+    state.facilityCacheMeta[key] = {
+      ...previous,
+      ...meta,
+      loadedAt: Number(meta.loadedAt || Date.now())
+    };
+    return state.facilityCacheMeta[key];
+  }
+
+  function getFacilityCacheMeta(managerName = getCurrentFacilityManager()) {
+    return state.facilityCacheMeta[managerName || getCurrentFacilityManager()] || {};
+  }
+
+  function getFacilityCacheAgeMs(managerName = getCurrentFacilityManager()) {
+    const loadedAt = Number(getFacilityCacheMeta(managerName).loadedAt || 0);
+    if (!loadedAt) return Number.POSITIVE_INFINITY;
+    return Date.now() - loadedAt;
+  }
+
+  function isFacilityCacheFresh(managerName = getCurrentFacilityManager(), maxAgeMs = FACILITY_MEMORY_CACHE_TTL_MS) {
+    const key = managerName || getCurrentFacilityManager();
+    const hasItems = Array.isArray(state.facilityCache[key]);
+    return hasItems && getFacilityCacheAgeMs(key) <= maxAgeMs;
+  }
+
+
+  const FACILITY_DELETE_GUARD_MS = 30000;
+
+  function cleanupPendingFacilityDeletes() {
+    const next = {};
+    const now = Date.now();
+    Object.entries(state.pendingFacilityDeletes || {}).forEach(([id, meta]) => {
+      const createdAt = Number(meta && meta.createdAt || 0);
+      if (id && createdAt && (now - createdAt) < FACILITY_DELETE_GUARD_MS) {
+        next[id] = meta;
+      }
+    });
+    state.pendingFacilityDeletes = next;
+    return next;
+  }
+
+  function markFacilityPendingDelete(facilityId, ownerName = '') {
+    const id = String(facilityId || '').trim();
+    if (!id) return;
+    cleanupPendingFacilityDeletes();
+    state.pendingFacilityDeletes[id] = {
+      owner: String(ownerName || '').trim(),
+      createdAt: Date.now()
+    };
+  }
+
+  function clearFacilityPendingDelete(facilityId) {
+    const id = String(facilityId || '').trim();
+    if (!id) return;
+    cleanupPendingFacilityDeletes();
+    delete state.pendingFacilityDeletes[id];
+  }
+
+  function filterPendingDeletedFacilities(items = [], managerName = getCurrentFacilityManager()) {
+    const pending = cleanupPendingFacilityDeletes();
+    const key = String(managerName || '').trim();
+    return (Array.isArray(items) ? items : []).filter(item => {
+      const id = String(item?.id || '').trim();
+      if (!id || !pending[id]) return true;
+      const owner = String(item?.owner || '').trim();
+      const pendingOwner = String(pending[id]?.owner || '').trim();
+      if (!pendingOwner) return false;
+      if (pendingOwner && owner && pendingOwner === owner) return false;
+      if (key && pendingOwner === key) return false;
+      return !(isTeamFacilityView(key) && pendingOwner);
+    });
+  }
+
+  function flushFacilityLocalWrite(storageKey) {
+    try {
+      const payload = facilityLocalWriteCache.get(storageKey);
+      if (typeof payload === 'string') {
+        localStorage.setItem(storageKey, payload);
+      }
+    } catch (err) {
+      console.warn('Không lưu được dữ liệu cơ sở cục bộ:', err);
+    } finally {
+      const timerId = facilityLocalWriteTimers.get(storageKey);
+      if (timerId) clearTimeout(timerId);
+      facilityLocalWriteTimers.delete(storageKey);
+    }
+  }
+
+  function flushAllFacilityLocalWrites() {
+    Array.from(facilityLocalWriteCache.keys()).forEach(storageKey => flushFacilityLocalWrite(storageKey));
+  }
+
+  function saveLocalFacilities(items, managerName = getCurrentFacilityManager()) {
+    if (isTeamFacilityView(managerName)) return [];
+    try {
+      const normalized = filterPendingDeletedFacilities(sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: managerName })).filter(item => item.name)), managerName);
+      const key = getFacilityStorageKey(managerName);
+      const payload = JSON.stringify(normalized);
+      facilityLocalWriteCache.set(key, payload);
+      const timerId = facilityLocalWriteTimers.get(key);
+      if (timerId) clearTimeout(timerId);
+      facilityLocalWriteTimers.set(key, window.setTimeout(() => flushFacilityLocalWrite(key), FACILITY_LOCAL_FLUSH_DELAY_MS));
+      return normalized;
+    } catch (err) {
+      console.warn('Không lưu được dữ liệu cơ sở cục bộ:', err);
+      return [];
+    }
+  }
+
+  function loadLocalFacilities(managerName = getCurrentFacilityManager()) {
+    if (isTeamFacilityView(managerName)) {
+      const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
+      if (Array.isArray(teamCached) && teamCached.length) return dedupeFacilities(teamCached);
+      return sortFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+    }
+    try {
+      const key = getFacilityStorageKey(managerName);
+      const raw = facilityLocalWriteCache.get(key) || localStorage.getItem(key);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed)
+        ? filterPendingDeletedFacilities(sortFacilities(parsed.map(item => normalizeFacility({ ...item, owner: item?.owner || managerName })).filter(item => item.name)), managerName)
+        : [];
+    } catch (err) {
+      console.warn('Không đọc được dữ liệu cơ sở cục bộ:', err);
+      return [];
+    }
+  }
 
   function setFacilityCache(managerName = getCurrentFacilityManager(), items = [], meta = {}) {
     const key = managerName || getCurrentFacilityManager();
     const normalized = isTeamFacilityView(key)
-      ? dedupeFacilities(items)
-      : sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility(item)).filter(item => item.name));
+      ? filterPendingDeletedFacilities(dedupeFacilities(items), key)
+      : filterPendingDeletedFacilities(sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility(item)).filter(item => item.name)), key);
     state.facilityCache[key] = normalized;
     setFacilityCacheMeta(key, {
       source: meta.source || getFacilityCacheMeta(key).source || 'memory',
@@ -2893,15 +3372,17 @@ function formatDateTime(value) {
     const key = managerName || getCurrentFacilityManager();
     const cached = state.facilityCache[key];
     if (Array.isArray(cached)) {
-      return isTeamFacilityView(key) ? dedupeFacilities(cached) : sortFacilities(cached);
+      return isTeamFacilityView(key)
+        ? filterPendingDeletedFacilities(dedupeFacilities(cached), key)
+        : filterPendingDeletedFacilities(sortFacilities(cached), key);
     }
+    const localItems = loadLocalFacilities(key);
+    if (Array.isArray(localItems) && localItems.length) return setFacilityCache(key, localItems, { source: 'local' });
     if (!isTeamFacilityView(key)) {
       const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
       if (Array.isArray(teamCached) && teamCached.length) {
         const ownerItems = teamCached.filter(item => String(item?.owner || '').trim() === key);
-        if (ownerItems.length) {
-          return setFacilityCache(key, ownerItems, { source: 'team-derived', loadedAt: getFacilityCacheMeta(TEAM_FACILITY_LABEL).loadedAt || Date.now() });
-        }
+        if (ownerItems.length) return setFacilityCache(key, ownerItems, { source: 'team-derived' });
       }
     }
     return [];
@@ -2963,7 +3444,62 @@ function formatDateTime(value) {
     if (!isFacilityCloudReady()) return Promise.resolve({ ok: false, localOnly: true, message: 'Chưa cấu hình Apps Script' });
     const key = targetManager || getCurrentFacilityManager();
     const maxAgeMs = Number(options.maxAgeMs || FACILITY_MEMORY_CACHE_TTL_MS);
-    return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force: !!options.force });
+    const force = !!options.force;
+    if (!force && isFacilityCacheFresh(key, maxAgeMs)) {
+      return Promise.resolve({ ok: true, items: getFacilityCache(key), cached: true, fresh: true });
+    }
+    const warmMarks = state.facilityWarmStarted && typeof state.facilityWarmStarted === 'object' ? state.facilityWarmStarted : {};
+    const lastWarm = Number(warmMarks[key] || 0);
+    const now = Date.now();
+    if (!force && lastWarm && (now - lastWarm) < FACILITY_WARM_DEBOUNCE_MS) {
+      return Promise.resolve({ ok: true, items: getFacilityCache(key), cached: true, skipped: true });
+    }
+    warmMarks[key] = now;
+    state.facilityWarmStarted = warmMarks;
+    return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force });
+  }
+
+
+  async function runTasksWithConcurrency(taskFactories, limit = TEAM_REMOTE_SYNC_CONCURRENCY) {
+    const queue = Array.isArray(taskFactories) ? taskFactories.slice() : [];
+    const concurrency = Math.max(1, Number(limit) || 1);
+    const results = [];
+    let cursor = 0;
+
+    async function worker() {
+      while (cursor < queue.length) {
+        const index = cursor++;
+        const task = queue[index];
+        if (typeof task !== 'function') {
+          results[index] = null;
+          continue;
+        }
+        try {
+          results[index] = await task();
+        } catch (error) {
+          results[index] = { ok: false, error };
+        }
+      }
+    }
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, queue.length || 1) }, () => worker()));
+    return results;
+  }
+
+  async function refreshTeamFacilityCacheFromOwnersRemote(options = {}) {
+    if (!isFacilityCloudReady()) {
+      const localItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+      return { ok: !!localItems.length, items: localItems, localOnly: true };
+    }
+    const maxAgeMs = Number(options.maxAgeMs || FACILITY_REPORT_PREFETCH_TTL_MS);
+    const force = !!options.force;
+    const background = !!options.background;
+    const request = ensureFacilityCacheReady(TEAM_FACILITY_LABEL, { force, maxAgeMs, background });
+    if (background) {
+      Promise.resolve(request).catch(() => {});
+      return { ok: true, items: getFacilityCache(TEAM_FACILITY_LABEL), cached: true, background: true };
+    }
+    return request;
   }
 
   async function loadFacilities() {
@@ -2973,37 +3509,78 @@ function formatDateTime(value) {
     updateFacilityCreateModeUI();
     if (isTeamFacilityView()) closeFacilityEditModal();
 
+    if (isTeamFacilityView(managerName)) {
+      const teamCachedItems = getFacilityCache(managerName);
+      if (teamCachedItems.length) {
+        state.facilities = teamCachedItems;
+        renderFacilities();
+      }
+
+      if (!isFacilityCloudReady()) {
+        if (!teamCachedItems.length) {
+          state.facilities = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: true });
+          renderFacilities();
+        }
+        setFacilityStatus('info', '');
+        return { ok: !!state.facilities.length, cached: true, items: state.facilities, localOnly: true };
+      }
+
+      const teamCacheFresh = teamCachedItems.length && isFacilityCacheFresh(managerName, FACILITY_REPORT_PREFETCH_TTL_MS);
+      if (teamCacheFresh) {
+        setFacilityStatus('info', '');
+        return { ok: true, cached: true, items: teamCachedItems };
+      }
+
+      if (teamCachedItems.length) {
+        setFacilityStatus('info', '');
+        void ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_REPORT_PREFETCH_TTL_MS }).then(result => {
+          if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
+          if (result && result.ok) {
+            state.facilities = getFacilityCache(managerName);
+            renderFacilities();
+            setFacilityStatus('info', '');
+          }
+        }).catch(() => {});
+        return { ok: true, cached: true, items: teamCachedItems, background: true };
+      }
+
+      setFacilityStatus('info', '');
+      const teamResult = await ensureFacilityCacheReady(managerName, { force: true, maxAgeMs: 0 });
+
+      if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
+        return teamResult;
+      }
+
+      state.facilities = getFacilityCache(managerName);
+      renderFacilities();
+      setFacilityStatus('info', '');
+      return teamResult;
+    }
+
     const cachedFacilities = getFacilityCache(managerName);
     if (cachedFacilities.length) {
       state.facilities = cachedFacilities;
       renderFacilities();
     }
 
-    setFacilityStatus('info', '');
-
     if (!isFacilityCloudReady()) {
-      state.facilities = cachedFacilities;
-      renderFacilities();
-      return { ok: !!cachedFacilities.length, cached: true, items: cachedFacilities, localOnly: true };
+      if (!cachedFacilities.length) {
+        state.facilities = loadLocalFacilities(managerName);
+        renderFacilities();
+      }
+      setFacilityStatus('info', '');
+      return { ok: !!state.facilities.length, cached: true, items: state.facilities };
     }
 
-    const maxAgeMs = isTeamFacilityView(managerName)
-      ? FACILITY_REPORT_PREFETCH_TTL_MS
-      : FACILITY_MEMORY_CACHE_TTL_MS;
-
-    if (cachedFacilities.length && isFacilityCacheFresh(managerName, maxAgeMs)) {
+    const cacheFresh = cachedFacilities.length && isFacilityCacheFresh(managerName, FACILITY_MEMORY_CACHE_TTL_MS);
+    if (cacheFresh) {
+      setFacilityStatus('info', '');
       return { ok: true, cached: true, items: cachedFacilities };
     }
 
-    const shouldAwaitRemote = !cachedFacilities.length;
-    const request = ensureFacilityCacheReady(managerName, {
-      force: shouldAwaitRemote,
-      maxAgeMs: shouldAwaitRemote ? 0 : maxAgeMs,
-      background: !shouldAwaitRemote
-    });
-
-    if (!shouldAwaitRemote) {
-      void Promise.resolve(request).then(result => {
+    if (cachedFacilities.length) {
+      setFacilityStatus('info', '');
+      void ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS }).then(result => {
         if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) return;
         if (result && result.ok) {
           state.facilities = getFacilityCache(managerName);
@@ -3014,8 +3591,17 @@ function formatDateTime(value) {
       return { ok: true, cached: true, items: cachedFacilities, background: true };
     }
 
-    const result = await request;
+    setFacilityStatus('info', '');
+    const result = await ensureFacilityCacheReady(managerName, { force: true, maxAgeMs: 0 });
+
     if (state.currentFacilityManager !== managerName || loadToken !== state.facilityLoadToken) {
+      return result;
+    }
+
+    if (result && result.ok) {
+      state.facilities = getFacilityCache(managerName);
+      renderFacilities();
+      setFacilityStatus('info', '');
       return result;
     }
 
@@ -3130,7 +3716,10 @@ function formatDateTime(value) {
   }
 
   function openFacilityForEdit(facilityId) {
-    openFacilityEditModal(facilityId);
+    if (!canEditCurrentFacilityView()) return;
+    const id = String(facilityId || '').trim();
+    if (!id) return;
+    openFacilityEditModal(id);
   }
 
   function readFacilityFiltersFromInputs() {
@@ -3507,19 +4096,22 @@ function formatDateTime(value) {
 
     ensureAllTableHeaderFilters();
 
+    const allowInlineEdit = canEditCurrentFacilityView();
     filteredFacilities.forEach((item, idx) => {
       const tr = document.createElement('tr');
       tr.dataset.id = item.id;
-      tr.title = 'Nhấp đúp để chỉnh sửa cơ sở' + (item.owner ? ' - ' + item.owner : '');
-      tr.setAttribute('ondblclick', `openFacilityForEdit(${JSON.stringify(String(item.id || ''))})`);
+      if (allowInlineEdit) {
+        tr.title = 'Nhấp đúp để chỉnh sửa cơ sở' + (item.owner ? ' - ' + item.owner : '');
+      } else {
+        tr.title = item.owner ? ('Cơ sở do ' + item.owner + ' quản lý') : 'Danh sách tổng hợp chỉ để xem';
+      }
       if (state.selectedFacilityId && state.selectedFacilityId === item.id) {
         tr.classList.add('facility-row-active');
       }
-      const openIdAttr = escapeHtml(item.id || '');
       tr.innerHTML = `
         <td class="facility-col-stt">${idx + 1}</td>
         <td class="facility-col-code">${escapeHtml(item.code || '-')}</td>
-        <td class="facility-col-name"><div class="facility-cell-main" data-facility-open="${openIdAttr}" ondblclick="openFacilityForEdit('${openIdAttr}');event.stopPropagation();" title="Nhấp đúp để sửa cơ sở">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub" data-facility-open="${openIdAttr}" ondblclick="openFacilityForEdit('${openIdAttr}');event.stopPropagation();" title="Nhấp đúp để sửa cơ sở">${escapeHtml(item.description)}</div>` : ''}</td>
+        <td class="facility-col-name"><div class="facility-cell-main">${escapeHtml(item.name || '-')}</div>${item.description ? `<div class="facility-cell-sub">${escapeHtml(item.description)}</div>` : ''}</td>
         <td>${escapeHtml(item.address || '-')}</td>
         <td>${escapeHtml(item.field || '-')}</td>
         <td>${escapeHtml(item.appendix || '-')}</td>
@@ -3538,7 +4130,7 @@ function formatDateTime(value) {
 
   async function handleSaveFacility() {
     const managerName = getCurrentFacilityManager();
-    if (!canEditCurrentFacilityView(managerName)) return;
+    if (!canCreateInCurrentFacilityView(managerName)) return;
 
     const isTeamCreate = isTeamFacilityView(managerName);
     const targetOwner = isTeamCreate ? String($('facilityCreateOwner')?.value || '').trim() : managerName;
@@ -3593,14 +4185,14 @@ function formatDateTime(value) {
     state.selectedFacilityId = facility.id;
     syncFacilityStateFromCaches(facility.id);
     resetFacilityForm({ preserveStatus: true, preserveOwner: true });
-    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu tạm trong phiên làm việc này, đang đồng bộ lên hệ thống...' : 'Đã lưu cơ sở thành công.');
+    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu nhanh trên máy, đang đồng bộ lên hệ thống...' : 'Đã lưu cơ sở thành công.');
     setTimeout(() => $('facilityName').focus(), 30);
 
     if (!isFacilityCloudReady()) return;
 
     const result = await saveFacilityRemote(facility);
     if (!result || !result.ok) {
-      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được lên hệ thống.') + ' Dữ liệu tạm thời vẫn được giữ trong phiên làm việc hiện tại.');
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được lên hệ thống.') + ' Dữ liệu vẫn được giữ cục bộ trên trình duyệt này.');
       return;
     }
 
@@ -3726,7 +4318,7 @@ function formatDateTime(value) {
       applyFacilityLocalEdit(currentOwnerName, id, facility);
       closeFacilityEditModal();
       resetFacilityForm({ preserveStatus: true });
-      setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu tạm chỉnh sửa trong phiên làm việc này, đang đồng bộ...' : 'Đã lưu chỉnh sửa cơ sở thành công.');
+      setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã lưu nhanh trên máy, đang đồng bộ chỉnh sửa...' : 'Đã lưu chỉnh sửa cơ sở thành công.');
 
       if (!isFacilityCloudReady()) {
         return;
@@ -3734,7 +4326,7 @@ function formatDateTime(value) {
 
       const result = await saveFacilityRemote(facility);
       if (!result || !result.ok) {
-        setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được chỉnh sửa lên hệ thống.') + ' Dữ liệu chỉnh sửa tạm thời vẫn được giữ trong phiên làm việc hiện tại.');
+        setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được chỉnh sửa lên hệ thống.') + ' Dữ liệu chỉnh sửa vẫn được giữ cục bộ trên trình duyệt này.');
         return;
       }
 
@@ -3793,23 +4385,34 @@ function formatDateTime(value) {
     if (!confirm('Bạn chắc chắn muốn xóa cơ sở "' + facility.name + '"?')) return;
 
     const ownerName = facility.owner || getCurrentFacilityManager();
+    markFacilityPendingDelete(id, ownerName);
     removeFacilityFromOwner(ownerName, id);
+    flushFacilityLocalWrite(getFacilityStorageKey(ownerName));
+    setFacilityCacheMeta(ownerName, { loadedAt: 0 });
+    setFacilityCacheMeta(TEAM_FACILITY_LABEL, { loadedAt: 0 });
     state.selectedFacilityId = '';
     syncFacilityStateFromCaches();
     closeFacilityEditModal();
     resetFacilityForm({ preserveStatus: true });
-    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã cập nhật tạm trong phiên làm việc này, đang đồng bộ xóa lên hệ thống...' : 'Đã xóa cơ sở thành công.');
+    setFacilityStatus(isFacilityCloudReady() ? 'info' : 'success', isFacilityCloudReady() ? 'Đã xóa nhanh trên máy, đang đồng bộ lên hệ thống...' : 'Đã xóa cơ sở thành công.');
 
     if (!isFacilityCloudReady()) return;
 
     const result = await deleteFacilityRemote(id, ownerName);
     if (!result || !result.ok) {
+      clearFacilityPendingDelete(id);
       upsertFacilityForOwner(ownerName, facility);
       syncFacilityStateFromCaches();
-      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không xóa được trên hệ thống.') + ' Hệ thống đã khôi phục lại bản ghi trong phiên làm việc hiện tại.');
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không xóa được trên hệ thống.') + ' Hệ thống đã khôi phục bản ghi cục bộ.');
       return;
     }
 
+    void refreshFacilityCacheFromRemote(ownerName, { fresh: true }).then(() => {
+      if (getCurrentFacilityManager() === ownerName) syncFacilityStateFromCaches();
+    }).catch(() => {});
+    void refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL, { fresh: true }).then(() => {
+      if (isTeamFacilityView()) syncFacilityStateFromCaches();
+    }).catch(() => {});
     setFacilityStatus('success', 'Đã xóa cơ sở thành công.');
   }
 
@@ -4016,7 +4619,7 @@ function formatDateTime(value) {
       return;
     }
 
-    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : slugText(getCurrentFacilityManager()).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'co_so';
+    const exportSlug = isTeamFacilityView() ? 'co_so_doi_2' : (MANAGER_STORAGE_IDS[getCurrentFacilityManager()] || 'co_so');
     if (typeof XLSX === 'undefined') {
       exportFacilitiesExcelFallback(headers, rows, exportSlug);
       return;
@@ -4404,10 +5007,10 @@ function formatDateTime(value) {
       return;
     }
 
-    setFacilityStatus('info', 'Đã lưu tạm thông tin tồn tại trong phiên làm việc này, đang đồng bộ...');
+    setFacilityStatus('info', 'Đã lưu nhanh trên máy, đang đồng bộ tồn tại cơ sở...');
     const result = await saveFacilityRemote(nextFacility);
     if (!result || !result.ok) {
-      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được cập nhật tồn tại lên hệ thống.') + ' Dữ liệu tạm thời vẫn được giữ trong phiên làm việc hiện tại.');
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được cập nhật tồn tại lên hệ thống.') + ' Dữ liệu đã được giữ cục bộ trên trình duyệt này.');
       return;
     }
     const savedFacility = normalizeFacility({ ...nextFacility, ...(result.item || {}) });
@@ -4421,10 +5024,10 @@ function formatDateTime(value) {
     const reportTitle = $('reportTitle');
     const reportHint = $('reportIssueHint');
     const applyReportItems = (items, source = '') => {
-      const normalized = dedupeFacilities(Array.isArray(items) ? items : []);
+      const normalized = dedupeFacilities(items || []);
       state.reportFacilities = normalized;
-      state.reportSource = source || '';
-      if (reportTitle) reportTitle.textContent = 'Báo cáo Cơ sở Đội 2';
+      if (source) state.reportSource = source;
+      if (reportTitle) reportTitle.textContent = 'BÁO CÁO CƠ SỞ ĐỘI 2';
       renderReportDashboard();
       if (reportHint && !normalized.length) {
         reportHint.textContent = 'Chưa có dữ liệu báo cáo để hiển thị.';
@@ -4432,24 +5035,29 @@ function formatDateTime(value) {
       return normalized;
     };
 
-    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
-    if (teamCachedItems.length) {
-      applyReportItems(teamCachedItems, isFacilityCloudReady() ? 'cache' : 'memory');
+    const teamPool = dedupeFacilities([
+      ...(Array.isArray(state.reportFacilities) ? state.reportFacilities : []),
+      ...getFacilityCache(TEAM_FACILITY_LABEL),
+      ...(Array.isArray(state.facilities) && isTeamFacilityView(state.currentFacilityManager) ? state.facilities : [])
+    ]);
+
+    if (teamPool.length) {
+      applyReportItems(teamPool, isFacilityCloudReady() ? 'cache' : 'local');
     } else {
       applyReportItems([], '');
     }
 
     if (!isFacilityCloudReady()) {
-      return { ok: !!teamCachedItems.length, items: teamCachedItems, cached: true, localOnly: true };
+      return { ok: !!teamPool.length, items: teamPool, cached: true, localOnly: true };
     }
 
     if (reportHint) {
-      reportHint.textContent = teamCachedItems.length
+      reportHint.textContent = teamPool.length
         ? 'Đang cập nhật dữ liệu mới nhất cho báo cáo...'
         : 'Đang đồng bộ dữ liệu báo cáo...';
     }
 
-    const shouldAwaitRemote = !!forceRemote || !teamCachedItems.length;
+    const shouldAwaitRemote = !!forceRemote || !teamPool.length;
     const syncRequest = ensureFacilityCacheReady(TEAM_FACILITY_LABEL, {
       force: shouldAwaitRemote,
       maxAgeMs: shouldAwaitRemote ? 0 : FACILITY_REPORT_PREFETCH_TTL_MS,
@@ -4462,7 +5070,7 @@ function formatDateTime(value) {
         if (!remote || !remote.ok) return;
         applyReportItems(getFacilityCache(TEAM_FACILITY_LABEL), 'remote');
       }).catch(() => {});
-      return { ok: true, items: teamCachedItems, cached: true, background: true };
+      return { ok: true, items: teamPool, cached: true, background: true };
     }
 
     const remote = await syncRequest;
@@ -4470,14 +5078,13 @@ function formatDateTime(value) {
       return { ok: true, items: applyReportItems(getFacilityCache(TEAM_FACILITY_LABEL), 'remote') };
     }
 
-    if (reportHint && !teamCachedItems.length) {
+    if (reportHint && !teamPool.length) {
       reportHint.textContent = (remote && (remote.error || remote.message)) || 'Không tải được dữ liệu báo cáo từ hệ thống. Vui lòng thử lại.';
     }
-    return { ok: !!teamCachedItems.length, items: teamCachedItems, cached: true, error: remote && remote.error ? remote.error : '' };
+    return { ok: !!teamPool.length, items: teamPool, cached: true, error: remote && remote.error ? remote.error : '' };
   }
 
   async function openReportDashboard(options = {}) {
-
     if (!isTeamFacilityView(state.currentFacilityManager) || $('adminPanel').classList.contains('hidden')) {
       await openFacilityManager(TEAM_FACILITY_LABEL, {
         systemAdmin: !!state.isSystemAdmin,
@@ -4551,26 +5158,6 @@ function formatDateTime(value) {
   window.openReportIssueModal = openReportIssueModal;
   window.handleSaveReportIssue = handleSaveReportIssue;
 
-  if ($('btnSaveFacility')) $('btnSaveFacility').addEventListener('click', handleSaveFacility);
-  if ($('btnSaveFacilityModal')) $('btnSaveFacilityModal').addEventListener('click', handleSaveFacilityModal);
-  if ($('btnDeleteFacilityModal')) $('btnDeleteFacilityModal').addEventListener('click', handleDeleteFacilityModal);
-  if ($('btnCancelFacilityModal')) $('btnCancelFacilityModal').addEventListener('click', closeFacilityEditModal);
-  if ($('btnFacilityExport')) $('btnFacilityExport').addEventListener('click', exportFacilitiesExcel);
-  if ($('btnFacilityPrint')) $('btnFacilityPrint').addEventListener('click', printVisibleFacilities);
-  if ($('btnFacilityLogout')) $('btnFacilityLogout').addEventListener('click', closeFacilityManager);
-  ['facilityCreateOwner','facilityCode','facilityFileNumber','facilityName','facilityDescription','facilityAddress','facilityField','facilityAppendix'].forEach(id => {
-    if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacility));
-  });
-  ['facilityEditCode','facilityEditFileNumber','facilityEditName','facilityEditDescription','facilityEditAddress','facilityEditField','facilityEditAppendix','facilityEditOwner','facilityEditInspectionDate','facilityEditInsuranceDate','facilityEditInsuranceCompany','facilityEditMaintenanceDate','facilityEditMaintenanceCompany','facilityEditDrill','facilityEditTraining','facilityEditIssueType'].forEach(id => {
-    if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
-  });
-  ['facilityFilterName','facilityFilterDescription','facilityFilterAddress','facilityFilterField','facilityFilterAppendix','facilityFilterCodeStatus','facilityFilterOwner'].forEach(id => {
-    if (!$(id)) return;
-    const eventName = $(id).tagName === 'SELECT' || $(id).type === 'date' ? 'change' : 'input';
-    $(id).addEventListener(eventName, applyFacilityFilters);
-    if (eventName !== 'change') $(id).addEventListener('change', applyFacilityFilters);
-  });
-  if ($('btnClearFacilityFilters')) $('btnClearFacilityFilters').addEventListener('click', () => resetFacilityFilters());
   document.querySelectorAll('.facility-summary-box[data-view]').forEach(box => {
     box.addEventListener('click', () => setFacilityQuickView(box.dataset.view || 'all'));
   });
@@ -4710,6 +5297,17 @@ function formatDateTime(value) {
       emptyRow.style.display = 'none';
     }
   }
+
+  function getViewerHeaderFilters() {
+    return {
+      task: $('viewerTaskHeaderFilter1') ? $('viewerTaskHeaderFilter1').value : '',
+      week: $('viewerTaskHeaderFilter2') ? $('viewerTaskHeaderFilter2').value : '',
+      dueDate: $('viewerTaskHeaderFilter3') ? $('viewerTaskHeaderFilter3').value : '',
+      status: $('viewerTaskHeaderFilter4') ? $('viewerTaskHeaderFilter4').value : '',
+      note: $('viewerTaskHeaderFilter5') ? $('viewerTaskHeaderFilter5').value : ''
+    };
+  }
+
   function getFacilityHeaderFilters() {
     return {
       code: $('facilityTableHeaderFilter1') ? $('facilityTableHeaderFilter1').value : '',
@@ -4963,7 +5561,7 @@ function formatDateTime(value) {
   if ($('btnReportPrint')) $('btnReportPrint').addEventListener('click', printReportDashboard);
   if ($('btnFacilityExport')) $('btnFacilityExport').addEventListener('click', exportFacilitiesExcel);
   if ($('btnFacilityPrint')) $('btnFacilityPrint').addEventListener('click', printVisibleFacilities);
-  if ($('btnFacilityLogout')) $('btnFacilityLogout').addEventListener('click', closeFacilityManager);
+  if ($('btnFacilityLogout')) $('btnFacilityLogout').onclick = () => closeFacilityManager({ skipHistory: true });
   if ($('btnSaveFacility')) $('btnSaveFacility').addEventListener('click', handleSaveFacility);
   if ($('btnClearFacilityFilters')) $('btnClearFacilityFilters').addEventListener('click', () => resetFacilityFilters());
   if ($('btnSavePasswordConfigs')) $('btnSavePasswordConfigs').addEventListener('click', handleSavePasswordConfigs);
@@ -5023,14 +5621,10 @@ function formatDateTime(value) {
   });
 
   if ($('facilityBody')) $('facilityBody').addEventListener('dblclick', (event) => {
+    if (!canEditCurrentFacilityView()) return;
     if (event.target.closest('a, button, input, textarea, select, label')) return;
-    const explicitTarget = event.target.closest('[data-facility-open]');
-    if (explicitTarget && explicitTarget.dataset.facilityOpen) {
-      openFacilityForEdit(explicitTarget.dataset.facilityOpen);
-      return;
-    }
     const row = event.target.closest('tr[data-id]');
-    if (!row) return;
+    if (!row || !row.dataset.id) return;
     openFacilityForEdit(row.dataset.id);
   });
 
