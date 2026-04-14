@@ -3116,7 +3116,7 @@ function formatDateTime(value) {
     return !!SCRIPT_URL && !SCRIPT_URL.includes("PASTE_YOUR");
   }
 
-  async function listFacilitiesRemote(managerName = getCurrentFacilityManager()) {
+  async function listFacilitiesRemote(managerName = getCurrentFacilityManager(), options = {}) {
     if (!isFacilityCloudReady()) {
       return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
     }
@@ -3125,8 +3125,9 @@ function formatDateTime(value) {
         action: "listFacilities",
         manager: managerName || getCurrentFacilityManager()
       });
+      if (options && options.fresh) params.set('fresh', '1');
       const url = SCRIPT_URL + (SCRIPT_URL.includes("?") ? "&" : "?") + params.toString();
-      const resp = await fetchWithTimeout(url, {}, 15000, "Tải dữ liệu cơ sở quá lâu. Vui lòng thử lại.");
+      const resp = await fetchWithTimeout(url, { cache: 'no-store' }, 15000, "Tải dữ liệu cơ sở quá lâu. Vui lòng thử lại.");
       const data = await resp.json().catch(() => ({ ok: false, error: "Không đọc được phản hồi từ hệ thống." }));
       if (data && typeof data.ok !== "undefined") return data;
       return { ok: false, error: "Không nhận được phản hồi hợp lệ từ hệ thống." };
@@ -3300,16 +3301,18 @@ function formatDateTime(value) {
     return [];
   }
 
-  async function refreshFacilityCacheFromRemote(managerName = getCurrentFacilityManager()) {
+  async function refreshFacilityCacheFromRemote(managerName = getCurrentFacilityManager(), options = {}) {
     const key = managerName || getCurrentFacilityManager();
+    const fresh = !!(options && options.fresh);
+    const requestKey = fresh ? `${key}::fresh` : key;
     if (!isFacilityCloudReady()) {
       return { ok: false, localOnly: true, message: "Chưa cấu hình Apps Script" };
     }
-    if (facilityRemoteRequests.has(key)) {
-      return facilityRemoteRequests.get(key);
+    if (facilityRemoteRequests.has(requestKey)) {
+      return facilityRemoteRequests.get(requestKey);
     }
     const promise = (async () => {
-      const result = await listFacilitiesRemote(key);
+      const result = await listFacilitiesRemote(key, { fresh });
       if (result && result.ok) {
         const remoteItems = Array.isArray(result.items) ? result.items : [];
         const normalized = setFacilityCache(key, remoteItems.map(item => normalizeFacility(item)).filter(item => item.name), {
@@ -3321,9 +3324,9 @@ function formatDateTime(value) {
       }
       return result || { ok: false, error: "Không tải được dữ liệu cơ sở từ hệ thống." };
     })().finally(() => {
-      facilityRemoteRequests.delete(key);
+      facilityRemoteRequests.delete(requestKey);
     });
-    facilityRemoteRequests.set(key, promise);
+    facilityRemoteRequests.set(requestKey, promise);
     return promise;
   }
 
@@ -4939,49 +4942,47 @@ function formatDateTime(value) {
 
   async function loadReportDashboard(forceRemote = false) {
     const reportTitle = $('reportTitle');
-    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
-    const mergedOwnerItems = teamCachedItems.length ? teamCachedItems : rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
-    let items = dedupeFacilities(mergedOwnerItems);
-
-    if (items.length) {
-      state.reportFacilities = items;
-      state.reportSource = isFacilityCloudReady() ? 'cache' : 'local';
+    const applyReportItems = (items, source = '') => {
+      const normalized = dedupeFacilities(items || []);
+      state.reportFacilities = normalized;
+      if (source) state.reportSource = source;
       if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
       renderReportDashboard();
+      return normalized;
+    };
+
+    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
+    const ownerMergedItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
+    const cachedItems = dedupeFacilities(teamCachedItems.length ? teamCachedItems : ownerMergedItems);
+
+    if (cachedItems.length) {
+      applyReportItems(cachedItems, isFacilityCloudReady() ? 'cache' : 'local');
+    } else {
+      applyReportItems([], '');
     }
 
     if (!isFacilityCloudReady()) {
-      state.reportFacilities = items;
-      if (!state.reportSource) state.reportSource = items.length ? 'local' : '';
-      if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-      renderReportDashboard();
-      return;
+      return { ok: !!cachedItems.length, items: cachedItems, cached: true, localOnly: true };
     }
 
-    const teamCacheFresh = isFacilityCacheFresh(TEAM_FACILITY_LABEL, FACILITY_REPORT_PREFETCH_TTL_MS);
+    const shouldAwaitRemote = !!forceRemote || !cachedItems.length;
+    const syncRequest = refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL, { fresh: true });
 
-    if (forceRemote || !items.length) {
-      const remote = await refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL);
-      if (remote && remote.ok) {
-        items = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
-        state.reportSource = 'remote';
-      }
-    } else if (!teamCacheFresh) {
-      void refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL).then(remote => {
+    if (!shouldAwaitRemote) {
+      void syncRequest.then(remote => {
         if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) return;
         if (!remote || !remote.ok) return;
-        state.reportFacilities = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
-        state.reportSource = 'remote';
-        if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-        renderReportDashboard();
+        applyReportItems(remote.items || getFacilityCache(TEAM_FACILITY_LABEL), 'remote');
       }).catch(() => {});
+      return { ok: true, items: cachedItems, cached: true, background: true };
     }
 
-    items = dedupeFacilities(items.length ? items : getFacilityCache(TEAM_FACILITY_LABEL));
-    state.reportFacilities = items;
-    if (!state.reportSource) state.reportSource = items.length ? (teamCacheFresh ? 'cache' : 'local') : '';
-    if (reportTitle) reportTitle.textContent = 'BÁO CÁO TỔNG HỢP CƠ SỞ ĐỘI 2';
-    renderReportDashboard();
+    const remote = await syncRequest;
+    if (remote && remote.ok) {
+      return { ok: true, items: applyReportItems(remote.items || getFacilityCache(TEAM_FACILITY_LABEL), 'remote') };
+    }
+
+    return { ok: !!cachedItems.length, items: cachedItems, cached: true, error: remote && remote.error ? remote.error : '' };
   }
 
   async function openReportDashboard(options = {}) {
