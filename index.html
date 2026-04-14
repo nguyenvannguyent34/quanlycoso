@@ -2255,6 +2255,33 @@
     applyGenericTableFilter(body.closest('table'), { colspan: 5 });
   }
 
+
+  function renderReportDashboard() {
+    const items = dedupeFacilities(Array.isArray(state.reportFacilities) ? state.reportFacilities : []);
+    state.reportFacilities = items;
+    const total = items.length;
+
+    if ($('reportStatTotal')) $('reportStatTotal').textContent = String(total);
+    if ($('reportStatTraining')) $('reportStatTraining').textContent = String(items.filter(item => hasFacilityFlag(item.training)).length);
+    if ($('reportStatDrill')) $('reportStatDrill').textContent = String(items.filter(item => hasFacilityFlag(item.drill)).length);
+    if ($('reportStatInsuranceSoon')) $('reportStatInsuranceSoon').textContent = String(getFacilitiesByExpiry(items, 'insurance', 'soon').length);
+    if ($('reportStatMaintenanceSoon')) $('reportStatMaintenanceSoon').textContent = String(getFacilitiesByExpiry(items, 'maintenance', 'soon').length);
+
+    renderReportRows('reportFieldBody', buildCountRows(items, item => item.field || 'Chưa nhập lĩnh vực'), total, 'Chưa có dữ liệu lĩnh vực.');
+    renderReportRows('reportGroupBody', buildCountRows(items, item => item.appendix || 'Chưa nhập nhóm'), total, 'Chưa có dữ liệu nhóm.');
+    renderReportRows('reportDescriptionBody', buildCountRows(items, item => item.description || 'Chưa nhập mô tả'), total, 'Chưa có dữ liệu mô tả.');
+    renderReportRows('reportAreaBody', buildCountRows(items, item => deriveAreaFromAddress(item.address)), total, 'Chưa có dữ liệu địa bàn.');
+
+    const hint = $('reportIssueHint');
+    if (hint) {
+      hint.textContent = total
+        ? 'Nhấp đúp vào dòng trong danh sách để bổ sung loại tồn tại, nội dung và tiến độ khắc phục.'
+        : 'Chưa có dữ liệu báo cáo để hiển thị.';
+    }
+
+    renderReportIssueTable(items);
+  }
+
   function isAbortLikeError(error) {
     const message = String(error?.message || '').toLowerCase();
     return error?.name === 'AbortError' || message.includes('abort');
@@ -4820,6 +4847,9 @@ function formatDateTime(value) {
     if ($('reportIssueFilterProgress')) $('reportIssueFilterProgress').value = '';
     if ($('reportIssueFilterOwner')) $('reportIssueFilterOwner').value = '';
     state.reportIssueFilters = { name: '', type: '', content: '', progress: '', owner: '' };
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#reportPanel')) {
+      document.activeElement.blur();
+    }
   }
 
   function getFilteredReportIssueItems(items) {
@@ -5004,7 +5034,9 @@ function formatDateTime(value) {
     setMain('', '');
     showOnly('reportPanel');
     resetReportIssueFilters();
+    clearHeaderFiltersByTable(document.querySelector('#reportPanel .report-issue-table'));
     ensureAllTableHeaderFilters();
+    renderReportDashboard();
     syncAppHistory('report', { replace: !!options.skipHistory });
     return loadReportDashboard(!!options.forceRemote);
   }
