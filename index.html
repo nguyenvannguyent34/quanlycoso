@@ -1933,7 +1933,9 @@
     "Khác"
   ];
   const FACILITY_APPENDIX_OPTIONS = ["I", "II"];
-  const FACILITY_MEMORY_CACHE_TTL_MS = 60000;
+  const FACILITY_MEMORY_CACHE_TTL_MS = 600000;
+  const FACILITY_REPORT_PREFETCH_TTL_MS = 300000;
+  const FACILITY_WARM_DEBOUNCE_MS = 20000;
   const PASSWORD_CONFIG_CACHE_TTL_MS = 180000;
   const FACILITY_LOCAL_FLUSH_DELAY_MS = 25;
 
@@ -1942,7 +1944,7 @@
     facilities: [],
     facilityCache: {},
     facilityCacheMeta: {},
-    facilityWarmStarted: false,
+    facilityWarmStarted: {},
     facilityLoadToken: 0,
     currentFacilityManager: "Nguyễn Văn Nguyên",
     pendingFacilityManager: "",
@@ -3330,19 +3332,29 @@ function formatDateTime(value) {
     return request;
   }
 
-  function prefetchFacilityManager(managerName = getCurrentFacilityManager()) {
-    return ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS });
+  function prefetchFacilityManager(managerName = getCurrentFacilityManager(), options = {}) {
+    const key = managerName || getCurrentFacilityManager();
+    const maxAgeMs = Number(options.maxAgeMs || FACILITY_MEMORY_CACHE_TTL_MS);
+    return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force: !!options.force });
   }
 
-  function warmFacilityCaches() {
-    if (!isFacilityCloudReady() || state.facilityWarmStarted) return;
-    state.facilityWarmStarted = true;
-    const managers = [TEAM_FACILITY_LABEL, ...getIndividualFacilityManagers()];
-    managers.forEach((managerName, index) => {
-      window.setTimeout(() => {
-        void ensureFacilityCacheReady(managerName, { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS });
-      }, 80 * index);
-    });
+  function warmFacilityCaches(targetManager = getCurrentFacilityManager(), options = {}) {
+    if (!isFacilityCloudReady()) return Promise.resolve({ ok: false, localOnly: true, message: 'Chưa cấu hình Apps Script' });
+    const key = targetManager || getCurrentFacilityManager();
+    const maxAgeMs = Number(options.maxAgeMs || FACILITY_MEMORY_CACHE_TTL_MS);
+    const force = !!options.force;
+    if (!force && isFacilityCacheFresh(key, maxAgeMs)) {
+      return Promise.resolve({ ok: true, items: getFacilityCache(key), cached: true, fresh: true });
+    }
+    const warmMarks = state.facilityWarmStarted && typeof state.facilityWarmStarted === 'object' ? state.facilityWarmStarted : {};
+    const lastWarm = Number(warmMarks[key] || 0);
+    const now = Date.now();
+    if (!force && lastWarm && (now - lastWarm) < FACILITY_WARM_DEBOUNCE_MS) {
+      return Promise.resolve({ ok: true, items: getFacilityCache(key), cached: true, skipped: true });
+    }
+    warmMarks[key] = now;
+    state.facilityWarmStarted = warmMarks;
+    return ensureFacilityCacheReady(key, { background: true, maxAgeMs, force });
   }
 
   async function loadFacilities() {
@@ -4785,6 +4797,7 @@ function formatDateTime(value) {
   async function loadReportDashboard(forceRemote = false) {
     const statusBox = $('facilitySaveStatus');
     const cachedItems = dedupeFacilities(getFacilityCache(TEAM_FACILITY_LABEL));
+    const localFallbackItems = dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
 
     if (cachedItems.length) {
       state.reportFacilities = cachedItems;
@@ -4792,24 +4805,36 @@ function formatDateTime(value) {
       renderReportDashboard();
     }
 
-    let items = [];
-    let source = cachedItems.length ? `Bộ nhớ đệm - ${cachedItems.length} cơ sở` : 'Dữ liệu cục bộ gần nhất';
+    let items = cachedItems.length ? cachedItems : localFallbackItems;
+    let source = cachedItems.length
+      ? `Bộ nhớ đệm - ${cachedItems.length} cơ sở`
+      : (localFallbackItems.length ? `Dữ liệu cục bộ - ${localFallbackItems.length} cơ sở` : 'Chưa có dữ liệu để báo cáo');
 
     if (isFacilityCloudReady()) {
-      const shouldFetchRemote = forceRemote || !cachedItems.length || !isFacilityCacheFresh(TEAM_FACILITY_LABEL, FACILITY_MEMORY_CACHE_TTL_MS);
-      if (shouldFetchRemote) {
-        const remote = await ensureFacilityCacheReady(TEAM_FACILITY_LABEL, { force: forceRemote || !cachedItems.length, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS });
+      const cacheFresh = cachedItems.length && isFacilityCacheFresh(TEAM_FACILITY_LABEL, FACILITY_REPORT_PREFETCH_TTL_MS);
+      if (forceRemote || !cachedItems.length) {
+        const remote = await ensureFacilityCacheReady(TEAM_FACILITY_LABEL, {
+          force: true,
+          maxAgeMs: forceRemote ? 0 : FACILITY_REPORT_PREFETCH_TTL_MS
+        });
         if (remote && remote.ok) {
           items = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
           source = `Đồng bộ hệ thống - ${items.length} cơ sở`;
         }
-      } else {
-        items = cachedItems;
+      } else if (!cacheFresh) {
+        void refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL).then(remote => {
+          if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) return;
+          if (!remote || !remote.ok) return;
+          const refreshedItems = dedupeFacilities(remote.items || getFacilityCache(TEAM_FACILITY_LABEL));
+          state.reportFacilities = refreshedItems;
+          state.reportSource = `Đồng bộ hệ thống - ${refreshedItems.length} cơ sở`;
+          renderReportDashboard();
+        }).catch(() => {});
       }
     }
 
     if (!items.length) {
-      items = cachedItems.length ? cachedItems : dedupeFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
+      items = localFallbackItems;
       source = items.length ? `Dữ liệu cục bộ - ${items.length} cơ sở` : 'Chưa có dữ liệu để báo cáo';
     }
 
@@ -4856,7 +4881,7 @@ function formatDateTime(value) {
     resetReportIssueFilters();
     ensureAllTableHeaderFilters();
     syncAppHistory('report', { replace: !!options.skipHistory });
-    return loadReportDashboard();
+    return loadReportDashboard(!!options.forceRemote);
   }
 
   function closeReportDashboard(options = {}) {
@@ -5444,7 +5469,7 @@ function formatDateTime(value) {
   state.managerPasswordConfigs = saveManagerPasswordConfigs(loadManagerPasswordConfigs());
   renderFacilities();
   renderPasswordConfigPanel();
-  if (document.visibilityState === 'visible') warmFacilityCaches();
+  if (document.visibilityState === 'visible') void warmFacilityCaches(getCurrentFacilityManager(), { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS });
   void ensureManagerPasswordConfigsReady({ force: true, maxAgeMs: 0 }).then(() => {
     renderPasswordConfigPanel();
   }).catch(() => {});
@@ -5455,7 +5480,13 @@ function formatDateTime(value) {
     }
     if (document.visibilityState === 'visible' && isFacilityCloudReady()) {
       void ensureManagerPasswordConfigsReady({ force: false, background: true, maxAgeMs: PASSWORD_CONFIG_CACHE_TTL_MS });
-      warmFacilityCaches();
+      const targetManager = (!$('reportPanel') || $('reportPanel').classList.contains('hidden'))
+        ? getCurrentFacilityManager()
+        : TEAM_FACILITY_LABEL;
+      void warmFacilityCaches(targetManager, {
+        background: true,
+        maxAgeMs: targetManager === TEAM_FACILITY_LABEL ? FACILITY_REPORT_PREFETCH_TTL_MS : FACILITY_MEMORY_CACHE_TTL_MS
+      });
     }
   });
   window.addEventListener('beforeunload', flushAllFacilityLocalWrites);
@@ -5463,6 +5494,12 @@ function formatDateTime(value) {
   window.addEventListener('focus', () => {
     if (isFacilityCloudReady()) {
       void ensureManagerPasswordConfigsReady({ force: false, background: true, maxAgeMs: PASSWORD_CONFIG_CACHE_TTL_MS });
+      if (!$('reportPanel') || $('reportPanel').classList.contains('hidden')) {
+        const currentManager = getCurrentFacilityManager();
+        if (!getFacilityCache(currentManager).length) {
+          void warmFacilityCaches(currentManager, { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS });
+        }
+      }
     }
   });
 
