@@ -1253,16 +1253,39 @@
       font-weight:700;
     }
     .report-issue-text{
-      text-align:left;
+      text-align:center;
       line-height:1.45;
       white-space:pre-wrap;
-      min-width:240px;
-    }
-    .report-issue-progress{
       min-width:220px;
     }
-    .report-issue-table td.report-issue-text{
-      text-align:left !important;
+    .report-issue-progress{
+      min-width:200px;
+      text-align:center;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+    .report-issue-address{
+      min-width:0;
+      width:auto;
+      text-align:center;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+    .report-issue-difficulty{
+      min-width:200px;
+      text-align:center;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+    .report-issue-table td.report-issue-text,
+    .report-issue-table td.report-issue-progress,
+    .report-issue-table td.report-issue-address,
+    .report-issue-table td.report-issue-difficulty{
+      text-align:center !important;
+    }
+    .report-issue-table th:nth-child(3),
+    .report-issue-table td:nth-child(3){
+      width:auto;
     }
     .report-issue-filter-row th{
       background:#fffdf6 !important;
@@ -1595,17 +1618,67 @@
 </div>
 <div class="panel-box report-issue-panel">
 <h3 style="margin:0 0 6px;font-size:22px">Danh sách cơ sở tồn tại</h3>
-<div class="muted small" id="reportIssueHint">Hiển thị các cơ sở có dữ liệu Ghi chú.</div>
+<div class="muted small" id="reportIssueHint"></div>
 <div class="table-wrap" style="margin-top:12px">
 <table class="report-table report-issue-table">
 <thead>
-<tr><th class="report-rank">STT</th><th>Tên cơ sở</th><th>Ghi chú</th><th>Địa chỉ</th><th>Lĩnh vực</th><th>Cán bộ quản lý</th></tr>
+<tr><th class="report-rank">STT</th><th>Tên cơ sở</th><th>Địa chỉ</th><th>Loại tồn tại</th><th>Nội dung tồn tại</th><th>Tiến độ khắc phục</th><th>Khó khăn</th></tr>
+<tr class="report-issue-filter-row">
+<th><div class="facility-stt-filter-cell"><button class="secondary facility-inline-clear-filter" id="btnReportIssueClearFilters" type="button">Xóa lọc</button></div></th>
+<th><input id="reportIssueFilterName" type="text" placeholder="Lọc tên cơ sở"/></th>
+<th><input id="reportIssueFilterAddress" type="text" placeholder="Lọc địa chỉ"/></th>
+<th><input id="reportIssueFilterType" type="text" placeholder="Lọc loại tồn tại"/></th>
+<th><input id="reportIssueFilterContent" type="text" placeholder="Lọc nội dung tồn tại"/></th>
+<th><input id="reportIssueFilterProgress" type="text" placeholder="Lọc tiến độ khắc phục"/></th>
+<th><input id="reportIssueFilterDifficulty" type="text" placeholder="Lọc khó khăn"/></th>
+</tr>
 </thead>
 <tbody id="reportIssueBody"></tbody>
 </table>
 </div>
 </div>
 </div>
+
+<div class="modal-backdrop hidden" id="reportIssueModal">
+  <div class="modal-card modal-large">
+    <div class="modal-head">
+      <div>
+        <h3 style="margin:0;font-size:22px;">Cập nhật cơ sở tồn tại</h3>
+              </div>
+    </div>
+    <div class="modal-body">
+      <input id="reportIssueFacilityId" type="hidden"/>
+      <div class="form-grid">
+        <div class="full-col">
+          <label for="reportIssueFacilityName">Tên cơ sở</label>
+          <input id="reportIssueFacilityName" type="text" readonly/>
+        </div>
+        <div class="full-col">
+          <label for="reportIssueType">Loại tồn tại (dữ liệu trong cột Ghi chú)</label>
+          <input id="reportIssueType" type="text" readonly/>
+        </div>
+        <div class="full-col">
+          <label for="reportIssueContent">Nội dung tồn tại</label>
+          <textarea id="reportIssueContent" rows="5" placeholder="Nhập nội dung tồn tại"></textarea>
+        </div>
+        <div class="full-col">
+          <label for="reportIssueProgress">Tiến độ khắc phục</label>
+          <textarea id="reportIssueProgress" rows="4" placeholder="Nhập tiến độ khắc phục"></textarea>
+        </div>
+        <div class="full-col">
+          <label for="reportIssueDifficulty">Khó khăn</label>
+          <textarea id="reportIssueDifficulty" rows="4" placeholder="Nhập khó khăn"></textarea>
+        </div>
+      </div>
+      <div class="status info" id="reportIssueModalError" style="margin-top:14px;"></div>
+      <div class="flex" style="justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <button class="secondary" id="btnCancelReportIssue" type="button">Đóng</button>
+        <button class="success" id="btnSaveReportIssue" type="button">Lưu cập nhật</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="copyright">Design by Đội 2, Phòng PC07 Quảng Ninh</div>
 <script>
 (() => {
@@ -1694,10 +1767,11 @@
     reportSource: "",
     reportIssueFilters: {
       name: "",
+      address: "",
       type: "",
       content: "",
       progress: "",
-      owner: ""
+      difficulty: ""
     }
   };
 
@@ -2026,28 +2100,10 @@
 
     const hint = $('reportIssueHint');
     if (hint) {
-      hint.textContent = issueRows.length
-        ? ''
-        : 'Chưa có cơ sở nào có dữ liệu Ghi chú.';
+      hint.textContent = issueRows.length ? '' : 'Chưa có cơ sở nào được nhập dữ liệu Ghi chú.';
     }
 
-    const issueBody = $('reportIssueBody');
-    if (issueBody) {
-      if (!issueRows.length) {
-        issueBody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Chưa có cơ sở nào có dữ liệu Ghi chú.</div></td></tr>';
-      } else {
-        issueBody.innerHTML = issueRows.map((item, index) => `
-          <tr>
-            <td class="report-rank">${index + 1}</td>
-            <td>${escapeHtml(item.name || '-')}</td>
-            <td><span class="report-issue-type-tag">${escapeHtml(item.issueType || item.issueContent || item.issueProgress || 'Có ghi chú')}</span></td>
-            <td>${escapeHtml(item.address || '-')}</td>
-            <td>${escapeHtml(item.field || '-')}</td>
-            <td>${escapeHtml(item.owner || '-')}</td>
-          </tr>`).join('');
-      }
-      forceReportTableVisible(issueBody);
-    }
+    renderReportIssueTable(items, { ignoreFilters: true });
 
     ensureReportPanelsRendered();
     requestAnimationFrame(() => ensureReportPanelsRendered());
@@ -2836,7 +2892,8 @@ function formatDateTime(value) {
       training: 'Bồi dưỡng',
       issueType: 'Loại tồn tại',
       issueContent: 'Nội dung tồn tại',
-      issueProgress: 'Tiến độ khắc phục'
+      issueProgress: 'Tiến độ khắc phục',
+      issueDifficulty: 'Khó khăn'
     };
     const changed = [];
     Object.keys(labels).forEach(key => {
@@ -2896,6 +2953,7 @@ function formatDateTime(value) {
       issueType: normalizeFacilityIssueType(raw.issueType || raw.loaiTonTai || raw.tonTaiType || raw.violationType || ''),
       issueContent: String(raw.issueContent || raw.noiDungTonTai || raw.tonTaiContent || raw.violationContent || '').trim(),
       issueProgress: String(raw.issueProgress || raw.tienDoKhacPhuc || raw.tonTaiProgress || raw.remediationProgress || '').trim(),
+      issueDifficulty: String(raw.issueDifficulty || raw.khoKhan || raw.tonTaiDifficulty || raw.difficulty || raw.issueObstacle || '').trim(),
       owner: String(raw.owner || raw.ownerManager || raw.manager || '').trim(),
       editHistory: normalizeFacilityHistory(raw.editHistory || raw.history || raw.lichSuChinhSua || raw.edit_history || raw.EDIT_HISTORY || raw.HISTORY || raw.editHistoryJson),
       createdAt: String(raw.createdAt || new Date().toISOString()).trim(),
@@ -3806,7 +3864,8 @@ function formatDateTime(value) {
       const issueType = normalizeFacilityIssueType(item?.issueType || '');
       const issueContent = String(item?.issueContent || '').trim();
       const issueProgress = String(item?.issueProgress || '').trim();
-      if (!issueType && !issueContent && !issueProgress) return '-';
+      const issueDifficulty = String(item?.issueDifficulty || '').trim();
+      if (!issueType && !issueContent && !issueProgress && !issueDifficulty) return '-';
       let className = 'facility-date-mark facility-note-mark';
       if (issueType === 'NQ32') className += ' facility-flag-expired';
       else className += ' facility-flag-soon';
@@ -3814,6 +3873,7 @@ function formatDateTime(value) {
       if (issueType) tooltipParts.push(`Ghi chú: ${issueType}`);
       if (issueContent) tooltipParts.push(`Cụ thể: ${issueContent}`);
       if (issueProgress) tooltipParts.push(`Tiến độ khắc phục: ${issueProgress}`);
+      if (issueDifficulty) tooltipParts.push(`Khó khăn: ${issueDifficulty}`);
       const displayValue = issueType || 'X';
       return `<span class="${className}" title="${escapeHtml(tooltipParts.join('\n') || 'Có ghi chú')}">${escapeHtml(displayValue)}</span>`;
     };
@@ -4594,7 +4654,7 @@ function formatDateTime(value) {
   function getReportIssueItems(items) {
     const order = Object.fromEntries(FACILITY_ISSUE_TYPES.map((item, index) => [item, index]));
     return (Array.isArray(items) ? items : [])
-      .filter(item => String(item.issueType || '').trim() || String(item.issueContent || '').trim() || String(item.issueProgress || '').trim())
+      .filter(item => String(item.issueType || '').trim())
       .sort((a, b) => {
         const typeDiff = (order[a.issueType] ?? 99) - (order[b.issueType] ?? 99);
         if (typeDiff !== 0) return typeDiff;
@@ -4605,20 +4665,22 @@ function formatDateTime(value) {
   function readReportIssueFiltersFromInputs() {
     state.reportIssueFilters = {
       name: $('reportIssueFilterName') ? $('reportIssueFilterName').value.trim().toLowerCase() : '',
-      type: $('reportIssueFilterType') ? $('reportIssueFilterType').value.trim() : '',
+      address: $('reportIssueFilterAddress') ? $('reportIssueFilterAddress').value.trim().toLowerCase() : '',
+      type: $('reportIssueFilterType') ? $('reportIssueFilterType').value.trim().toLowerCase() : '',
       content: $('reportIssueFilterContent') ? $('reportIssueFilterContent').value.trim().toLowerCase() : '',
       progress: $('reportIssueFilterProgress') ? $('reportIssueFilterProgress').value.trim().toLowerCase() : '',
-      owner: $('reportIssueFilterOwner') ? $('reportIssueFilterOwner').value.trim() : ''
+      difficulty: $('reportIssueFilterDifficulty') ? $('reportIssueFilterDifficulty').value.trim().toLowerCase() : ''
     };
   }
 
   function resetReportIssueFilters() {
     if ($('reportIssueFilterName')) $('reportIssueFilterName').value = '';
+    if ($('reportIssueFilterAddress')) $('reportIssueFilterAddress').value = '';
     if ($('reportIssueFilterType')) $('reportIssueFilterType').value = '';
     if ($('reportIssueFilterContent')) $('reportIssueFilterContent').value = '';
     if ($('reportIssueFilterProgress')) $('reportIssueFilterProgress').value = '';
-    if ($('reportIssueFilterOwner')) $('reportIssueFilterOwner').value = '';
-    state.reportIssueFilters = { name: '', type: '', content: '', progress: '', owner: '' };
+    if ($('reportIssueFilterDifficulty')) $('reportIssueFilterDifficulty').value = '';
+    state.reportIssueFilters = { name: '', address: '', type: '', content: '', progress: '', difficulty: '' };
     if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#reportPanel')) {
       document.activeElement.blur();
     }
@@ -4628,11 +4690,12 @@ function formatDateTime(value) {
     const filters = state.reportIssueFilters || {};
     return getReportIssueItems(items).filter(item => {
       const nameOk = !filters.name || String(item.name || '').toLowerCase().includes(filters.name);
-      const typeOk = !filters.type || String(item.issueType || '') === filters.type;
+      const addressOk = !filters.address || String(item.address || '').toLowerCase().includes(filters.address);
+      const typeOk = !filters.type || String(item.issueType || '').toLowerCase().includes(filters.type);
       const contentOk = !filters.content || String(item.issueContent || '').toLowerCase().includes(filters.content);
       const progressOk = !filters.progress || String(item.issueProgress || '').toLowerCase().includes(filters.progress);
-      const ownerOk = !filters.owner || String(item.owner || '') === filters.owner;
-      return nameOk && typeOk && contentOk && progressOk && ownerOk;
+      const difficultyOk = !filters.difficulty || String(item.issueDifficulty || '').toLowerCase().includes(filters.difficulty);
+      return nameOk && addressOk && typeOk && contentOk && progressOk && difficultyOk;
     });
   }
 
@@ -4644,23 +4707,24 @@ function formatDateTime(value) {
     const hasActiveFilter = !ignoreFilters && Object.values(state.reportIssueFilters || {}).some(value => String(value || '').trim() !== '');
     const rows = hasActiveFilter ? getFilteredReportIssueItems(items) : allRows;
     if (!allRows.length) {
-      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">Chưa có cơ sở nào được nhập tồn tại NQ32, TDNT hoặc Tồn tại sau kiểm tra.</div></td></tr>';
+      body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Chưa có cơ sở nào được nhập dữ liệu Ghi chú.</div></td></tr>';
       forceReportTableVisible(body);
       return;
     }
     if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">Không có cơ sở phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
+      body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Không có cơ sở phù hợp với điều kiện lọc hiện tại.</div></td></tr>';
       forceReportTableVisible(body);
       return;
     }
     body.innerHTML = rows.map((item, index) => `
-      <tr data-id="${escapeHtml(item.id)}">
+      <tr data-id="${escapeHtml(item.id)}" title="Nhấp đúp để sửa nội dung tồn tại">
         <td class="report-rank">${index + 1}</td>
         <td><span class="report-issue-name" data-report-issue-open="${escapeHtml(item.id)}" title="Nhấp đúp vào dòng để cập nhật tồn tại">${escapeHtml(item.name || '-')}</span></td>
+        <td class="report-issue-address">${escapeHtml(item.address || '-')}</td>
         <td><span class="report-issue-type-tag">${escapeHtml(item.issueType || 'Chưa chọn')}</span></td>
         <td class="report-issue-text">${escapeHtml(item.issueContent || '-')}</td>
         <td class="report-issue-progress">${escapeHtml(item.issueProgress || '-')}</td>
-        <td>${escapeHtml(item.owner || '-')}</td>
+        <td class="report-issue-difficulty">${escapeHtml(item.issueDifficulty || '-')}</td>
       </tr>`).join('');
     forceReportTableVisible(body);
   }
@@ -4673,11 +4737,12 @@ function formatDateTime(value) {
     $('reportIssueType').value = item.issueType || '';
     $('reportIssueContent').value = item.issueContent || '';
     $('reportIssueProgress').value = item.issueProgress || '';
+    $('reportIssueDifficulty').value = item.issueDifficulty || '';
     $('reportIssueModalError').textContent = '';
     $('reportIssueModal').classList.remove('hidden');
     const modalBody = $('reportIssueModal').querySelector('.modal-body');
     if (modalBody) modalBody.scrollTop = 0;
-    setTimeout(() => $('reportIssueType').focus(), 30);
+    setTimeout(() => $('reportIssueContent').focus(), 30);
   }
 
   function closeReportIssueModal() {
@@ -4688,6 +4753,7 @@ function formatDateTime(value) {
     $('reportIssueType').value = '';
     $('reportIssueContent').value = '';
     $('reportIssueProgress').value = '';
+    $('reportIssueDifficulty').value = '';
     $('reportIssueModalError').textContent = '';
   }
 
@@ -4696,6 +4762,7 @@ function formatDateTime(value) {
     const issueType = normalizeFacilityIssueType($('reportIssueType').value);
     const issueContent = $('reportIssueContent').value.trim();
     const issueProgress = $('reportIssueProgress').value.trim();
+    const issueDifficulty = $('reportIssueDifficulty').value.trim();
     if (!id) {
       $('reportIssueModalError').textContent = 'Không tìm thấy cơ sở cần cập nhật.';
       return;
@@ -4714,6 +4781,7 @@ function formatDateTime(value) {
       issueType,
       issueContent,
       issueProgress,
+      issueDifficulty,
       updatedAt: nowIso
     });
     const historySummary = issueType || issueContent || issueProgress
@@ -5335,6 +5403,7 @@ function formatDateTime(value) {
   if ($('btnContinueFacilityNotice')) $('btnContinueFacilityNotice').addEventListener('click', closeFacilityNoticeModal);
   if ($('btnSaveReportIssue')) $('btnSaveReportIssue').addEventListener('click', handleSaveReportIssue);
   if ($('btnCancelReportIssue')) $('btnCancelReportIssue').addEventListener('click', closeReportIssueModal);
+  if ($('btnCancelReportIssueTop')) $('btnCancelReportIssueTop').addEventListener('click', closeReportIssueModal);
   if ($('btnReportIssueClearFilters')) $('btnReportIssueClearFilters').addEventListener('click', () => {
     resetReportIssueFilters();
     renderReportIssueTable(state.reportFacilities);
@@ -5360,24 +5429,22 @@ function formatDateTime(value) {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveFacilityModal, { onEscape: closeFacilityEditModal }));
   });
 
-  ['reportIssueFilterName', 'reportIssueFilterContent', 'reportIssueFilterProgress'].forEach((id) => {
+  ['reportIssueFilterName', 'reportIssueFilterAddress', 'reportIssueFilterType', 'reportIssueFilterContent', 'reportIssueFilterProgress', 'reportIssueFilterDifficulty'].forEach((id) => {
     if ($(id)) $(id).addEventListener('input', () => {
       readReportIssueFiltersFromInputs();
       renderReportIssueTable(state.reportFacilities);
     });
   });
-  ['reportIssueFilterType', 'reportIssueFilterOwner'].forEach((id) => {
-    if ($(id)) $(id).addEventListener('change', () => {
-      readReportIssueFiltersFromInputs();
-      renderReportIssueTable(state.reportFacilities);
-    });
+  if ($('btnReportIssueClearFilters')) $('btnReportIssueClearFilters').addEventListener('click', () => {
+    resetReportIssueFilters();
+    renderReportIssueTable(state.reportFacilities);
   });
   if ($('reportIssueBody')) $('reportIssueBody').addEventListener('dblclick', (event) => {
     const row = event.target.closest('tr[data-id]');
     if (!row) return;
     openReportIssueModal(row.dataset.id);
   });
-  ['reportIssueType','reportIssueContent','reportIssueProgress'].forEach(id => {
+  ['reportIssueType','reportIssueContent','reportIssueProgress','reportIssueDifficulty'].forEach(id => {
     if ($(id)) $(id).addEventListener('keydown', (event) => handleEnterToSave(event, handleSaveReportIssue, { onEscape: closeReportIssueModal }));
   });
 
