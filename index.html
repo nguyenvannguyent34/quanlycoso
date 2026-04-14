@@ -2168,10 +2168,17 @@
   }
 
   function getKnownFacilitiesPool() {
-    const pool = [...(Array.isArray(state.facilities) ? state.facilities : [])];
+    const pool = [];
     getIndividualFacilityManagers().forEach(name => {
-      pool.push(...loadLocalFacilities(name));
+      pool.push(...getFacilityCache(name));
     });
+    if (Array.isArray(state.facilities) && state.facilities.length) {
+      pool.push(...state.facilities);
+    }
+    const teamCachedItems = getFacilityCache(TEAM_FACILITY_LABEL);
+    if (teamCachedItems.length) {
+      pool.push(...teamCachedItems);
+    }
     return dedupeFacilities(pool);
   }
 
@@ -2665,11 +2672,19 @@
     return saveFacilitiesForOwner(ownerName, currentItems);
   }
 
-  function syncFacilityStateFromCaches(preferredFacilityId = "") {
+  function syncFacilityStateFromCaches(preferredFacilityId = "", options = {}) {
     const managerName = getCurrentFacilityManager();
     state.facilities = getFacilityCache(managerName);
     state.selectedFacilityId = preferredFacilityId || state.selectedFacilityId || "";
-    renderFacilities();
+    if (!options || !options.skipRender) {
+      renderFacilities();
+    }
+  }
+
+  function refreshReportFacilitiesFromCaches(preferredFacilityId = "", options = {}) {
+    syncFacilityStateFromCaches(preferredFacilityId, { skipRender: !!options.skipFacilityRender });
+    state.reportFacilities = getKnownFacilitiesPool();
+    return state.reportFacilities;
   }
 
   function updateFacilityManagerLabel() {
@@ -4726,7 +4741,7 @@ function formatDateTime(value) {
       return;
     }
     const ownerName = String(existing.owner || '').trim() || getCurrentFacilityManager();
-    const ownerFacilities = loadLocalFacilities(ownerName);
+    const ownerFacilities = getFacilityCache(ownerName);
     const localExisting = normalizeFacility(ownerFacilities.find(item => item.id === id) || existing);
     const nowIso = new Date().toISOString();
     const nextFacility = normalizeFacility({
@@ -4744,26 +4759,28 @@ function formatDateTime(value) {
       createFacilityHistoryEntry('Cập nhật tồn tại', historySummary, isSystemAdminMode() ? 'Admin hệ thống' : ownerName)
     ];
 
+    upsertFacilityForOwner(ownerName, nextFacility, id);
+    refreshReportFacilitiesFromCaches(nextFacility.id, { skipFacilityRender: true });
+    renderReportIssueTable(state.reportFacilities);
+    closeReportIssueModal();
+
     if (!isFacilityCloudReady()) {
-      upsertFacilityForOwner(ownerName, nextFacility, id);
-      state.reportFacilities = dedupeFacilities(getKnownFacilitiesPool());
-      syncFacilityStateFromCaches(id);
-      renderReportDashboard();
-      closeReportIssueModal();      return;
+      setFacilityStatus('success', 'Đã lưu cập nhật tồn tại cơ sở.');
+      return;
     }
 
-    $('reportIssueModalError').textContent = 'Đang lưu cập nhật lên hệ thống...';
+    setFacilityStatus('info', 'Đã lưu nhanh trên máy, đang đồng bộ tồn tại cơ sở...');
     const result = await saveFacilityRemote(nextFacility);
     if (!result || !result.ok) {
-      $('reportIssueModalError').textContent = (result && (result.error || result.message)) || 'Không lưu được thông tin tồn tại lên hệ thống.';
+      setFacilityStatus('warning', ((result && (result.error || result.message)) || 'Không đồng bộ được cập nhật tồn tại lên hệ thống.') + ' Dữ liệu đã được giữ cục bộ trên trình duyệt này.');
       return;
     }
     const savedFacility = normalizeFacility({ ...nextFacility, ...(result.item || {}) });
     upsertFacilityForOwner(ownerName, savedFacility, id);
-    state.reportFacilities = dedupeFacilities(getKnownFacilitiesPool());
-    syncFacilityStateFromCaches(savedFacility.id);
-    renderReportDashboard();
-    closeReportIssueModal();  }
+    refreshReportFacilitiesFromCaches(savedFacility.id, { skipFacilityRender: true });
+    renderReportIssueTable(state.reportFacilities);
+    setFacilityStatus('success', 'Đã lưu và đồng bộ cập nhật tồn tại cơ sở thành công.');
+  }
 
   async function loadReportDashboard(forceRemote = false) {
     const statusBox = $('facilitySaveStatus');
