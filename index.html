@@ -164,6 +164,28 @@
       margin:0 0 6px 0;
       font-size:22px;
     }
+    .content-card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .content-card-header-main{
+      flex:1 1 auto;
+      min-width:0;
+    }
+    .content-card-header-main h2{
+      margin-bottom:6px;
+    }
+    .content-card-header-actions{
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      flex:0 0 auto;
+    }
     .card-body{
       padding:18px 20px 20px;
     }
@@ -414,7 +436,8 @@
       grid-template-columns:repeat(4,minmax(0,1fr));
     }
     .facility-form-panel .form-grid{
-      grid-template-columns:repeat(5,minmax(0,1fr));
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:10px;
     }
     .compact-form-panel textarea{
       min-height:72px;
@@ -883,7 +906,7 @@
       .filter-grid{flex-wrap:nowrap;}
       .task-layout{grid-template-columns:1fr}
       .compact-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-      .facility-form-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .facility-form-panel .form-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
     }
     @media (max-width: 980px){
       .grid{grid-template-columns:1fr}
@@ -1413,9 +1436,17 @@
 </div>
 </div>
 <div class="card" id="contentCard">
-<div class="card-header">
+<div class="card-header content-card-header">
+<div class="content-card-header-main">
 <h2 id="mainTitle">Sẵn sàng sử dụng</h2>
 <div class="muted small" id="mainSub"></div>
+</div>
+<div class="content-card-header-actions hidden" id="facilityHeaderActions">
+<button class="secondary hidden" id="btnFacilityPrint" type="button">In danh sách</button>
+<button class="secondary hidden" id="btnFacilityExport" type="button">Xuất Excel</button>
+<button class="secondary hidden" id="btnFacilityReport" type="button">Báo cáo</button>
+<button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
+</div>
 </div>
 <div class="card-body">
 <div id="welcomePanel">
@@ -1426,15 +1457,7 @@
 
 <div class="hidden" id="adminPanel">
 <div class="facility-admin-shell">
-<div class="admin-toolbar facility-toolbar" style="justify-content:space-between">
-<div class="facility-toolbar-title" id="facilityManagerLabel"></div>
-<div class="flex" style="justify-content:flex-end; width:100%">
-<button class="secondary hidden" id="btnFacilityPrint" type="button">In danh sách</button>
-<button class="secondary hidden" id="btnFacilityExport" type="button">Xuất Excel</button>
-<button class="secondary hidden" id="btnFacilityReport" type="button">Báo cáo</button>
-<button class="secondary" id="btnFacilityLogout" type="button">Quay lại</button>
-</div>
-</div>
+<div class="facility-toolbar-title hidden" id="facilityManagerLabel"></div>
 <div class="panel-box hidden" id="facilityPasswordConfigPanel" style="margin-bottom:16px">
 <h3 style="margin:0 0 6px;font-size:22px">Cấu hình mật khẩu từng mục cá nhân</h3>
 <div class="muted small"></div>
@@ -1466,7 +1489,7 @@
 <input id="facilityDrill" type="hidden"/>
 <input id="facilityTraining" type="hidden"/>
 <div class="form-grid" style="margin-top:10px">
-<div class="hidden" id="facilityCreateOwnerWrap">
+<div class="hidden full-col" id="facilityCreateOwnerWrap">
 <label for="facilityCreateOwner">Người quản lý</label>
 <select id="facilityCreateOwner"></select>
 </div>
@@ -1508,10 +1531,6 @@
 <option selected="" value="I">I</option>
 <option value="II">II</option>
 </select>
-</div>
-<div class="full-col">
-<label for="facilityDescription">Mô tả</label>
-<input id="facilityDescription" placeholder="Nhập mô tả ngắn (nếu có)" type="text"/>
 </div>
 </div>
 <div class="flex" style="margin-top:14px; gap:10px; flex-wrap:wrap">
@@ -2097,6 +2116,8 @@
     if (target) target.classList.remove("hidden");
     const contentCard = $("contentCard");
     if (contentCard) contentCard.classList.toggle("hidden", sectionId === "reportPanel");
+    const headerActions = $("facilityHeaderActions");
+    if (headerActions) headerActions.classList.toggle("hidden", sectionId !== "adminPanel");
     document.body.classList.toggle("facility-manager-open", sectionId === "adminPanel" || sectionId === "reportPanel");
   }
 
@@ -2754,11 +2775,10 @@
     const codeInput = $("facilityCode");
     const fileNumberInput = $("facilityFileNumber");
     const nameInput = $("facilityName");
-    const descriptionInput = $("facilityDescription");
     const addressInput = $("facilityAddress");
     const fieldInput = $("facilityField");
     const appendixInput = $("facilityAppendix");
-    [codeInput, fileNumberInput, nameInput, descriptionInput, addressInput, fieldInput, appendixInput, createOwnerSelect].forEach(input => {
+    [codeInput, fileNumberInput, nameInput, addressInput, fieldInput, appendixInput, createOwnerSelect].forEach(input => {
       if (!input) return;
       input.disabled = !canCreate;
     });
@@ -3486,6 +3506,27 @@ function formatDateTime(value) {
     return results;
   }
 
+  function reloadAllFacilityCachesOnStartup() {
+    if (!isFacilityCloudReady()) return Promise.resolve({ ok: false, localOnly: true });
+    const targets = [...getIndividualFacilityManagers(), TEAM_FACILITY_LABEL];
+    state.facilityWarmStarted = {};
+    targets.forEach(name => setFacilityCacheMeta(name, { loadedAt: 0 }));
+    return runTasksWithConcurrency(
+      targets.map(name => () => ensureFacilityCacheReady(name, { force: true })),
+      TEAM_REMOTE_SYNC_CONCURRENCY
+    ).then((results) => {
+      const currentManager = getCurrentFacilityManager();
+      if ($('adminPanel') && !$('adminPanel').classList.contains('hidden')) {
+        state.facilities = getFacilityCache(currentManager);
+        renderFacilities();
+      }
+      if ($('reportPanel') && !$('reportPanel').classList.contains('hidden')) {
+        void loadReportDashboard(true);
+      }
+      return { ok: results.some(result => result && result.ok), results };
+    }).catch((error) => ({ ok: false, error }));
+  }
+
   async function refreshTeamFacilityCacheFromOwnersRemote(options = {}) {
     if (!isFacilityCloudReady()) {
       const localItems = rebuildTeamFacilityCacheFromOwnerCaches({ useLocalOnly: false });
@@ -4137,7 +4178,7 @@ function formatDateTime(value) {
     const code = $('facilityCode').value.trim();
     const fileNumber = $('facilityFileNumber') ? $('facilityFileNumber').value.trim() : '';
     const name = $('facilityName').value.trim();
-    const description = $('facilityDescription') ? $('facilityDescription').value.trim() : '';
+    const description = '';
     const address = $('facilityAddress').value.trim();
     const field = $('facilityField').value.trim() || 'Thương mại, dịch vụ';
     const appendix = ($('facilityAppendix').value || 'I').trim();
@@ -5651,7 +5692,9 @@ function formatDateTime(value) {
   state.managerPasswordConfigs = saveManagerPasswordConfigs(loadManagerPasswordConfigs());
   renderFacilities();
   renderPasswordConfigPanel();
-  if (document.visibilityState === 'visible') void warmFacilityCaches(getCurrentFacilityManager(), { background: true, maxAgeMs: FACILITY_MEMORY_CACHE_TTL_MS });
+  if (document.visibilityState === 'visible') {
+    void reloadAllFacilityCachesOnStartup();
+  }
   void ensureManagerPasswordConfigsReady({ force: true, maxAgeMs: 0 }).then(() => {
     renderPasswordConfigPanel();
   }).catch(() => {});
