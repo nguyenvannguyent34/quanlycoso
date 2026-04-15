@@ -1907,6 +1907,7 @@
     facilityCacheMeta: {},
     facilityWarmStarted: {},
     facilityLoadToken: 0,
+    facilityStartupSyncPromise: null,
     facilityVersionPollTimer: null,
     facilityVersionCheckInFlight: null,
     facilitySharedVersion: "",
@@ -3352,15 +3353,17 @@ function formatDateTime(value) {
   }
 
   function saveLocalFacilities(items, managerName = getCurrentFacilityManager()) {
-    if (isTeamFacilityView(managerName)) return [];
     try {
-      const normalized = filterPendingDeletedFacilities(sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: managerName })).filter(item => item.name)), managerName);
-      const key = getFacilityStorageKey(managerName);
+      const key = managerName || getCurrentFacilityManager();
+      const normalized = isTeamFacilityView(key)
+        ? filterPendingDeletedFacilities(dedupeFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility(item)).filter(item => item.name)), key)
+        : filterPendingDeletedFacilities(sortFacilities((Array.isArray(items) ? items : []).map(item => normalizeFacility({ ...item, owner: item?.owner || key })).filter(item => item.name)), key);
+      const storageKey = getFacilityStorageKey(key);
       const payload = JSON.stringify(normalized);
-      facilityLocalWriteCache.set(key, payload);
-      const timerId = facilityLocalWriteTimers.get(key);
+      facilityLocalWriteCache.set(storageKey, payload);
+      const timerId = facilityLocalWriteTimers.get(storageKey);
       if (timerId) clearTimeout(timerId);
-      facilityLocalWriteTimers.set(key, window.setTimeout(() => flushFacilityLocalWrite(key), FACILITY_LOCAL_FLUSH_DELAY_MS));
+      facilityLocalWriteTimers.set(storageKey, window.setTimeout(() => flushFacilityLocalWrite(storageKey), FACILITY_LOCAL_FLUSH_DELAY_MS));
       return normalized;
     } catch (err) {
       console.warn('Không lưu được dữ liệu cơ sở cục bộ:', err);
@@ -3372,16 +3375,34 @@ function formatDateTime(value) {
     if (isTeamFacilityView(managerName)) {
       const teamCached = state.facilityCache[TEAM_FACILITY_LABEL];
       if (Array.isArray(teamCached) && teamCached.length) return dedupeFacilities(teamCached);
+      try {
+        const teamKey = getFacilityStorageKey(TEAM_FACILITY_LABEL);
+        const teamRaw = facilityLocalWriteCache.get(teamKey) || localStorage.getItem(teamKey);
+        if (teamRaw) {
+          const teamParsed = JSON.parse(teamRaw);
+          if (Array.isArray(teamParsed)) {
+            return filterPendingDeletedFacilities(dedupeFacilities(teamParsed.map(item => normalizeFacility(item)).filter(item => item.name)), TEAM_FACILITY_LABEL);
+          }
+        }
+      } catch (err) {
+        console.warn('Không đọc được dữ liệu cơ sở tổng hợp cục bộ:', err);
+      }
       return sortFacilities(getIndividualFacilityManagers().flatMap(name => loadLocalFacilities(name)));
     }
     try {
       const key = getFacilityStorageKey(managerName);
       const raw = facilityLocalWriteCache.get(key) || localStorage.getItem(key);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed)
-        ? filterPendingDeletedFacilities(sortFacilities(parsed.map(item => normalizeFacility({ ...item, owner: item?.owner || managerName })).filter(item => item.name)), managerName)
-        : [];
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return filterPendingDeletedFacilities(sortFacilities(parsed.map(item => normalizeFacility({ ...item, owner: item?.owner || managerName })).filter(item => item.name)), managerName);
+        }
+      }
+      const teamItems = loadLocalFacilities(TEAM_FACILITY_LABEL);
+      if (Array.isArray(teamItems) && teamItems.length) {
+        return filterPendingDeletedFacilities(sortFacilities(teamItems.filter(item => String(item?.owner || '').trim() === managerName).map(item => normalizeFacility(item)).filter(item => item.name)), managerName);
+      }
+      return [];
     } catch (err) {
       console.warn('Không đọc được dữ liệu cơ sở cục bộ:', err);
       return [];
@@ -3419,6 +3440,12 @@ function formatDateTime(value) {
         const ownerItems = teamCached.filter(item => String(item?.owner || '').trim() === key);
         if (ownerItems.length) return setFacilityCache(key, ownerItems, { source: 'team-derived' });
       }
+      const teamLocalItems = loadLocalFacilities(TEAM_FACILITY_LABEL);
+      if (Array.isArray(teamLocalItems) && teamLocalItems.length) {
+        setFacilityCache(TEAM_FACILITY_LABEL, teamLocalItems, { source: 'local-team' });
+        const ownerItems = teamLocalItems.filter(item => String(item?.owner || '').trim() === key);
+        if (ownerItems.length) return setFacilityCache(key, ownerItems, { source: 'team-local-derived' });
+      }
     }
     return [];
   }
@@ -3443,6 +3470,7 @@ function formatDateTime(value) {
     if (sharedMeta.lastUpdated) state.facilitySharedLastUpdated = sharedMeta.lastUpdated;
 
     setFacilityCache(TEAM_FACILITY_LABEL, normalizedAll, sharedMeta);
+    saveLocalFacilities(normalizedAll, TEAM_FACILITY_LABEL);
 
     const grouped = {};
     getIndividualFacilityManagers().forEach(owner => { grouped[owner] = []; });
@@ -3582,17 +3610,51 @@ function formatDateTime(value) {
     return results;
   }
 
-  function reloadAllFacilityCachesOnStartup() {
-    const visibleSection = getVisibleAppSection();
-    if (!isFacilityCloudReady() || visibleSection === 'welcome') {
-      return Promise.resolve({ ok: false, skipped: true });
-    }
-    const targetManager = visibleSection === 'report' ? TEAM_FACILITY_LABEL : getCurrentFacilityManager();
-    return ensureFacilityCacheReady(targetManager, {
-      background: true,
-      force: !getFacilityCache(targetManager).length,
-      maxAgeMs: targetManager === TEAM_FACILITY_LABEL ? FACILITY_REPORT_PREFETCH_TTL_MS : FACILITY_MEMORY_CACHE_TTL_MS
+  function seedFacilityCachesFromLocalSnapshot() {
+    const teamItems = loadLocalFacilities(TEAM_FACILITY_LABEL);
+    if (!Array.isArray(teamItems) || !teamItems.length) return [];
+    applySharedFacilityDataset(teamItems, {
+      source: 'local-startup',
+      version: getLatestFacilityDatasetVersion(),
+      lastUpdated: state.facilitySharedLastUpdated || '',
+      loadedAt: Date.now()
     });
+    return teamItems;
+  }
+
+  async function bootstrapFacilityDataSync(options = {}) {
+    const force = !!options.force;
+    const seededItems = seedFacilityCachesFromLocalSnapshot();
+
+    if (!isFacilityCloudReady()) {
+      return { ok: !!seededItems.length, localOnly: true, items: seededItems };
+    }
+
+    if (!force && state.facilityStartupSyncPromise) {
+      return state.facilityStartupSyncPromise;
+    }
+
+    const promise = refreshFacilityCacheFromRemote(TEAM_FACILITY_LABEL, { fresh: true })
+      .then(async result => {
+        const visibleSection = getVisibleAppSection();
+        if (visibleSection === 'report') {
+          await loadReportDashboard(true);
+        } else if (visibleSection === 'admin') {
+          state.facilities = getFacilityCache(getCurrentFacilityManager());
+          renderFacilities();
+        }
+        return result;
+      })
+      .catch(error => {
+        console.error('Không đồng bộ được dữ liệu cơ sở khi mở web:', error);
+        return { ok: false, error: getFriendlyRequestError(error, 'Không đồng bộ được dữ liệu cơ sở khi mở web') };
+      })
+      .finally(() => {
+        state.facilityStartupSyncPromise = null;
+      });
+
+    state.facilityStartupSyncPromise = promise;
+    return promise;
   }
 
   async function checkFacilityVersionAndSync(options = {}) {
@@ -5827,6 +5889,7 @@ function formatDateTime(value) {
   renderFacilities();
   renderPasswordConfigPanel();
   startFacilityVersionPolling();
+  void bootstrapFacilityDataSync({ force: true });
   void ensureManagerPasswordConfigsReady({ force: true, maxAgeMs: 0 }).then(() => {
     renderPasswordConfigPanel();
   }).catch(() => {});
@@ -5837,6 +5900,7 @@ function formatDateTime(value) {
     }
     if (document.visibilityState === 'visible' && isFacilityCloudReady()) {
       void ensureManagerPasswordConfigsReady({ force: false, background: true, maxAgeMs: PASSWORD_CONFIG_CACHE_TTL_MS });
+      void bootstrapFacilityDataSync({ force: !getLatestFacilityDatasetVersion() });
       if (getVisibleAppSection() !== 'welcome') {
         void checkFacilityVersionAndSync({ force: !getLatestFacilityDatasetVersion() });
       }
