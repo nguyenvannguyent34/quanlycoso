@@ -3229,7 +3229,7 @@
     if (ownerFilterWrap) ownerFilterWrap.style.display = isTeamView ? "" : "none";
     if (reportButton) reportButton.classList.toggle('hidden', !shouldShowManagerReportButton(managerName));
     if (printButton) printButton.classList.toggle('hidden', !isTeamView);
-    if (exportButton) exportButton.classList.toggle('hidden', !isTeamView);
+    if (exportButton) exportButton.classList.toggle('hidden', false);
     if (descriptionFilterWrap) descriptionFilterWrap.style.display = shouldShowFacilityDescriptionFilter(managerName) ? "" : "none";
     if (!isTeamView && ownerFilter) ownerFilter.value = '';
     if (!shouldShowFacilityDescriptionFilter(managerName) && descriptionFilter) descriptionFilter.value = '';
@@ -5314,9 +5314,21 @@ function formatDateTime(value) {
   function getVisibleFacilityRows() {
     const body = $('facilityBody');
     if (!body) return [];
+
+    const table = body.closest('table');
+    const headerRow = table
+      ? table.querySelector('thead tr:not(.column-filter-row):not(.report-issue-filter-row)')
+      : null;
+    const expectedColCount = headerRow
+      ? headerRow.querySelectorAll('th').length
+      : getFacilityTableColumnCount();
+
     return Array.from(body.querySelectorAll('tr')).filter(row => {
+      if (row.querySelector('.empty-state')) return false;
+      if (row.classList.contains('table-filter-empty-row')) return false;
+      if (row.style.display === 'none') return false;
       const cells = row.querySelectorAll('td');
-      return (cells.length === 12 || cells.length === 13) && !row.querySelector('.empty-state');
+      return cells.length === expectedColCount;
     });
   }
 
