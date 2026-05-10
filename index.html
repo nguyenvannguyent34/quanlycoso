@@ -2130,6 +2130,24 @@
 </div>
 </div>
 <div class="facility-management-row full-width">
+<div>
+<label for="facilityEditIssueContent">Nội dung tồn tại</label>
+<textarea id="facilityEditIssueContent" rows="5" placeholder="Nhập nội dung tồn tại, vi phạm"></textarea>
+</div>
+</div>
+<div class="facility-management-row full-width">
+<div>
+<label for="facilityEditIssueProgress">Tiến độ khắc phục</label>
+<textarea id="facilityEditIssueProgress" rows="4" placeholder="Nhập tiến độ khắc phục"></textarea>
+</div>
+</div>
+<div class="facility-management-row full-width">
+<div>
+<label for="facilityEditIssueDifficulty">Khó khăn</label>
+<textarea id="facilityEditIssueDifficulty" rows="4" placeholder="Nhập khó khăn trong quá trình khắc phục"></textarea>
+</div>
+</div>
+<div class="facility-management-row full-width">
 <div class="facility-checkbox-row">
 <input id="facilityEditSuspended" type="checkbox"/>
 <label for="facilityEditSuspended">Đình chỉ</label>
@@ -4454,6 +4472,9 @@ function formatDateTime(value) {
     if ($('facilityEditTrainingPeopleCount')) $('facilityEditTrainingPeopleCount').value = item.trainingPeopleCount || '';
     ensureSelectOption('facilityEditIssueType', item.issueType || '');
     $('facilityEditIssueType').value = item.issueType || '';
+    if ($('facilityEditIssueContent')) $('facilityEditIssueContent').value = item.issueContent || '';
+    if ($('facilityEditIssueProgress')) $('facilityEditIssueProgress').value = item.issueProgress || '';
+    if ($('facilityEditIssueDifficulty')) $('facilityEditIssueDifficulty').value = item.issueDifficulty || '';
     const ownerWrap = $('facilityEditOwnerWrap');
     const ownerLabel = $('facilityEditOwnerLabel');
     const ownerHint = $('facilityEditOwnerHint');
@@ -4514,6 +4535,9 @@ function formatDateTime(value) {
     $('facilityEditTraining').value = '';
     if ($('facilityEditTrainingPeopleCount')) $('facilityEditTrainingPeopleCount').value = '';
     $('facilityEditIssueType').value = '';
+    if ($('facilityEditIssueContent')) $('facilityEditIssueContent').value = '';
+    if ($('facilityEditIssueProgress')) $('facilityEditIssueProgress').value = '';
+    if ($('facilityEditIssueDifficulty')) $('facilityEditIssueDifficulty').value = '';
     if ($('facilityEditSuspended')) $('facilityEditSuspended').checked = false;
     $('facilityEditModalError').textContent = '';
     activateFacilityEditTab('general');
@@ -5782,7 +5806,9 @@ function formatDateTime(value) {
     const targetFacilities = getFacilityCache(currentOwnerName);
     const localExisting = normalizeFacility(targetFacilities.find(item => item.id === id) || existing || {});
     const coordinationRegulation = coordinationRegulationInput ? coordinationRegulationInput.value.trim() : String(localExisting.coordinationRegulation || '').trim();
-    const issueContent = String(localExisting.issueContent || '').trim();
+    const issueContent = $('facilityEditIssueContent') ? $('facilityEditIssueContent').value.trim() : String(localExisting.issueContent || '').trim();
+    const issueProgress = $('facilityEditIssueProgress') ? $('facilityEditIssueProgress').value.trim() : String(localExisting.issueProgress || '').trim();
+    const issueDifficulty = $('facilityEditIssueDifficulty') ? $('facilityEditIssueDifficulty').value.trim() : String(localExisting.issueDifficulty || '').trim();
     const baseCreatedAt = localExisting.createdAt || existing.createdAt || new Date().toISOString();
     const baseHistory = normalizeFacilityHistory(localExisting.editHistory || existing.editHistory);
     const nowIso = new Date().toISOString();
@@ -5812,6 +5838,8 @@ function formatDateTime(value) {
       issueType,
       suspended,
       issueContent,
+      issueProgress,
+      issueDifficulty,
       owner: ownerChanged ? nextOwnerName : currentOwnerName,
       createdAt: baseCreatedAt,
       updatedAt: nowIso
