@@ -4841,7 +4841,7 @@ function formatDateTime(value) {
     const filters = {};
     columns.forEach((column, index) => {
       if (!column || column.key === 'stt') return;
-      const input = $(`facilityTableHeaderFilter${index + 1}`);
+      const input = $(`facilityTableHeaderFilter${index}`);
       filters[column.key] = input ? input.value : '';
     });
     return filters;
@@ -4851,7 +4851,7 @@ function formatDateTime(value) {
     const columns = getCurrentFacilityTableColumns();
     columns.forEach((column, index) => {
       if (!column || column.key === 'stt') return;
-      const input = $(`facilityTableHeaderFilter${index + 1}`);
+      const input = $(`facilityTableHeaderFilter${index}`);
       if (input && Object.prototype.hasOwnProperty.call(filters, column.key)) {
         input.value = filters[column.key] || '';
       }
