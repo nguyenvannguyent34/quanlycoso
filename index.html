@@ -1657,6 +1657,7 @@
     textarea.facility-inline-editor{min-height:44px;resize:vertical;white-space:normal;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Version: index_updated_v15_filter_fix - filter state preserved and GitHub Pages index-ready -->
 </head>
 <body>
 <div class="top-unit">
@@ -4739,6 +4740,7 @@ function formatDateTime(value) {
       codeStatus: '',
       owner: ''
     };
+    state.facilityHeaderFilters = {};
     state.facilityQuickView = 'all';
     updateFacilityQuickViewBoxes();
     if (!options.skipRender) renderFacilities();
@@ -4838,24 +4840,33 @@ function formatDateTime(value) {
 
   function getFacilityHeaderFilters() {
     const columns = getCurrentFacilityTableColumns();
-    const filters = {};
+    const activeKeys = new Set();
+    const filters = Object.assign({}, state.facilityHeaderFilters || {});
     columns.forEach((column, index) => {
-      if (!column || column.key === 'stt') return;
+      if (!column || column.key === 'stt' || column.filter === 'skip') return;
+      activeKeys.add(column.key);
       const input = $(`facilityTableHeaderFilter${index}`);
-      filters[column.key] = input ? input.value : '';
+      if (input) filters[column.key] = input.value || '';
+      else if (!Object.prototype.hasOwnProperty.call(filters, column.key)) filters[column.key] = '';
     });
+    Object.keys(filters).forEach((key) => {
+      if (!activeKeys.has(key)) delete filters[key];
+    });
+    state.facilityHeaderFilters = filters;
     return filters;
   }
 
   function setFacilityHeaderFilters(filters = {}) {
     const columns = getCurrentFacilityTableColumns();
+    const nextFilters = {};
     columns.forEach((column, index) => {
-      if (!column || column.key === 'stt') return;
+      if (!column || column.key === 'stt' || column.filter === 'skip') return;
+      const value = Object.prototype.hasOwnProperty.call(filters, column.key) ? (filters[column.key] || '') : '';
+      nextFilters[column.key] = value;
       const input = $(`facilityTableHeaderFilter${index}`);
-      if (input && Object.prototype.hasOwnProperty.call(filters, column.key)) {
-        input.value = filters[column.key] || '';
-      }
+      if (input) input.value = value;
     });
+    state.facilityHeaderFilters = nextFilters;
   }
 
   function hasFacilityHeaderFilterValue() {
@@ -6392,6 +6403,7 @@ function formatDateTime(value) {
     }
 
   </style>
+<!-- Version: index_updated_v15_filter_fix - filter state preserved and GitHub Pages index-ready -->
 </head>
 <body>
   <div class="head">
@@ -6954,7 +6966,8 @@ function formatDateTime(value) {
     const analysisHtml = isTeamReport
       ? `${wrapTable('1. Phân tích theo cán bộ', managerRows, 'Cán bộ quản lý')}${wrapTable('2. Phân tích theo lĩnh vực', fieldRows, 'Lĩnh vực')}`
       : '';
-    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${reportHeading}</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(${isTeamReport ? 4 : 2},1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style></head><body><h2 style="text-align:center;">${reportHeading}</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div>${summaryHtml}${analysisHtml}</body></html>`);
+    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${reportHeading}</title><style>body{font-family:"Times New Roman",serif;padding:28px;color:#111}h1,h2,h3{margin:0} .muted{color:#555} .summary{display:grid;grid-template-columns:repeat(${isTeamReport ? 4 : 2},1fr);gap:10px;margin-top:14px} .summary div{border:1px solid #222;padding:10px} @media print{body{padding:0}}</style><!-- Version: index_updated_v15_filter_fix - filter state preserved and GitHub Pages index-ready -->
+</head><body><h2 style="text-align:center;">${reportHeading}</h2><div class="muted" style="text-align:center;margin-top:6px;">Thời điểm in: ${new Date().toLocaleString('vi-VN')}</div>${summaryHtml}${analysisHtml}</body></html>`);
     printWin.document.close();
     printWin.focus();
     setTimeout(() => { printWin.print(); }, 250);
@@ -7012,6 +7025,20 @@ function formatDateTime(value) {
   document.querySelectorAll('.facility-summary-box[data-view]').forEach(box => {
     box.addEventListener('click', () => setFacilityQuickView(box.dataset.view || 'all'));
   });
+
+  const facilityListWrapForFilter = $('facilityListWrap');
+  if (facilityListWrapForFilter && !facilityListWrapForFilter.dataset.filterDelegated) {
+    facilityListWrapForFilter.dataset.filterDelegated = '1';
+    const handleDelegatedFacilityFilter = (event) => {
+      const target = event.target;
+      if (!target || !target.closest || !target.closest('thead tr.column-filter-row')) return;
+      if (!target.matches('input, select')) return;
+      state.facilityHeaderFilters = getFacilityHeaderFilters();
+      renderFacilities();
+    };
+    facilityListWrapForFilter.addEventListener('input', handleDelegatedFacilityFilter);
+    facilityListWrapForFilter.addEventListener('change', handleDelegatedFacilityFilter);
+  }
 
   function normalizeFilterNeedle(value) {
     return String(value || '').trim().toLowerCase();
@@ -7091,8 +7118,12 @@ function formatDateTime(value) {
     row.dataset.bound = '1';
     row.querySelectorAll('input,select').forEach(control => {
       const eventName = control.tagName === 'SELECT' ? 'change' : 'input';
-      control.addEventListener(eventName, onChange);
-      if (eventName !== 'change') control.addEventListener('change', onChange);
+      const handler = () => {
+        if (key === 'facilityTable') state.facilityHeaderFilters = getFacilityHeaderFilters();
+        onChange();
+      };
+      control.addEventListener(eventName, handler);
+      if (eventName !== 'change') control.addEventListener('change', handler);
     });
     if (key === 'facilityTable') {
       const clearBtn = row.querySelector('#btnFacilityHeaderClearFilters');
